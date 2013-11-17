@@ -76,4 +76,15 @@ README操作即可，你的WordPress文章就变成一个个markdown文档了！
 
 
 ## 发布！
+
+发布之前，现在本地使用`jekyll server`或者`rake --preview`在本地预览，没问题就可以发布了。
+
 好了，下面将生成的markdown文档以及图片，push到你的github空间即可！Just enjoy it! :)
+
+最后，在使用markdown编写中文文章时，发现jekyll默认的markdown引擎对于中文支持不
+是很好，对于对于全部为中文的列表对完全失效，需要将markdown引擎改为`rdiscount`
+，在`_config.yaml`中添加：
+
+    markdown: rdiscount
+
+就可以了。
