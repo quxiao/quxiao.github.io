@@ -8,10 +8,14 @@ tagline:
 # Personal Info
 {% highlight javascript %}
 {
-    'name':     'Qu Xiao',
-    'gender':   'Male',
-    'company':  'Baidu Inc.',
-    'title':    'Software Engineer'
+    'Name': {
+                'Chinese': '屈啸',
+                'English': 'Xavier'
+            }
+    'Gender':   'Male',
+    'Company':  'Baidu Inc.',
+    'Job':      'Software Engineer',
+    'Hobbies':  ['Sports', 'Photography']
 }
 {% endhighlight %}
 

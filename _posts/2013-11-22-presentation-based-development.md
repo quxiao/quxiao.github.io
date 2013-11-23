@@ -2,7 +2,7 @@
 layout: post
 title: "“基于演示的开发”"
 description: ""
-category: ""
+category: "essay"
 tags: []
 ---
 {% include JB/setup %}
