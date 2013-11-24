@@ -111,6 +111,7 @@ tags:
 intrusive list的实现以及测试的代码如下：
 
     
+{% highlight cpp linenos %}
     #include <stdlib.h>
     #include <stdio.h>
     #include <time.h>
@@ -214,6 +215,7 @@ intrusive list的实现以及测试的代码如下：
         return 0;
     }
 
+{% endhighlight %}
 
 另外，intrusive list还有几个特点，比如：
 
