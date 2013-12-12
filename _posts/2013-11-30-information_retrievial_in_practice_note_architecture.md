@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "《Infomration Retrieval in Practice》笔记——整体架构"
+title: "《Information Retrieval in Practice》笔记——整体架构"
 description: ""
 category: ""
 tags: []
