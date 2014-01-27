@@ -14,13 +14,11 @@ tagline:
             }
     'Gender':   'Male',
     'Company':  'Baidu Inc.',
-    'Job':      'Software Engineer',
+    'Job':      'Backend Software Engineer',
     'Hobbies':  ['Sports', 'Photography']
 }
 {% endhighlight %}
 
-
-# 
 # Post List
 <ul class="posts">
   {% for post in site.posts %}
