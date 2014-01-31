@@ -1,0 +1,436 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: | Xavier Blog]]></title>
+  <link href="http://quxiao.github.io/blog/categories//atom.xml" rel="self"/>
+  <link href="http://quxiao.github.io/"/>
+  <updated>2014-01-31T11:56:48+08:00</updated>
+  <id>http://quxiao.github.io/</id>
+  <author>
+    <name><![CDATA[Xavier]]></name>
+    <email><![CDATA[quxiao86@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[模板元编程中的Typelist]]></title>
+    <link href="http://quxiao.github.io/blog/2014/01/23/typelist-in-template-metaprogramming/"/>
+    <updated>2014-01-23T00:00:00+08:00</updated>
+    <id>http://quxiao.github.io/blog/2014/01/23/typelist-in-template-metaprogramming</id>
+    <content type="html"><![CDATA[<p>前段时间在看其他同事的代码，无意间看了类似下面的代码：</p>
+
+<p>``` cpp</p>
+
+<pre><code>TypeList&lt; FilterA,
+TypeList&lt; FilterB,
+TypeList&lt; FilterC,
+TypeList&lt; FilterD,
+TypeList&lt; FilterE,
+    void &gt; &gt; &gt; &gt; &gt; Filters;
+</code></pre>
+
+<p>```</p>
+
+<p>感觉代码风格略微诡异了些，怎么像是LISP，呵呵。后来查了些资料，得知这就是我一直心仪已久的模板元编程中的一种技巧——<strong> Typelist</strong> 。</p>
+
+<p>当你需要对于大量的类型进行相似的操作时，比如对于返回的商品进行五种类型的过滤，许多（手工写的）代码都是重复、冗余的，代码可能是这样的：</p>
+
+<p>``` cpp</p>
+
+<pre><code>Goods* goods = get_goods(goods_id);
+if (goods_blacklist.filter(goods)) {
+    //...
+} else if (cate_blacklist.filter(goods)) {
+    //...
+} else if (stock_blacklist.filter(goods)) {
+    //...
+}
+//...
+</code></pre>
+
+<p>```</p>
+
+<p>显然代码是很冗余的，再抽象一下，也许可以写成这样：</p>
+
+<p>``` cpp</p>
+
+<pre><code>vector&lt;FilterBase*&gt; filters;
+filters.push_back(new GoodsBlacklist());
+filters.push_back(new CateBlacklist());
+filters.push_back(new StockBlacklist());
+//...
+
+Goods* goods = get_goods(goods_id);
+for (size_t i = 0; i &lt; filters.size(); i ++) {
+    if (filters[i]-&gt;do_filter(goods)) {
+        break;
+    }
+}
+</code></pre>
+
+<p>```</p>
+
+<p>代码整洁了一些，不过还是需要程序在运行时<code>new</code>出来各种类、加入到集合中、然后还要考虑调用虚函数的成本，仍然不是高效的。这个时候，Typelist就派上用场了，他可以让编译器帮你自动生成许多类（而不是类的实例）的集合，并且可以像链表一样对这些类进行遍历，从而达到自动进行相似、重复工作的效果。</p>
+
+<h1>定义Typelist</h1>
+
+<p>首先来看看如何定义一个Typelist吧</p>
+
+<p>``` cpp</p>
+
+<pre><code>template&lt;typename H, typename T&gt;
+struct TypeList
+{
+    typedef H Head;
+    typedef T Tail;
+};
+</code></pre>
+
+<p>```</p>
+
+<p>首先，把这些类的集合看做是一个链表，这个链表的类型叫做<code>Type</code>，当然也可以是其它名称。假设有N个类型，链表的第0个类型是H，后面的<code>1 ~ N-1</code>组成一个联合类型T。接着，我们需要考虑一些特殊情况，这时候就需要用到<strong>模板特化</strong>了。首先，如果<code>1 ~ N-1</code>也是<code>Type</code>类型的时候，该如何定义呢？</p>
+
+<p>``` cpp</p>
+
+<pre><code>template&lt;typename H, typename S, typename T&gt;
+struct TypeList&lt;H, TypeList&lt;S, T&gt; &gt; : public TypeList&lt;S, T&gt;
+{
+    typedef H Head;
+    typedef TypeList&lt;S, T&gt; Tail;
+};
+</code></pre>
+
+<p>```</p>
+
+<p>这样，就可以表示当Type的后一个模板参数也是一个Type类型时，Type类型应该是个什么样子，也就可以让Type类型无限延展下去了。最后，还需要考虑Type链表的最后一个元素应该如何定义。链表里面表示最后一个元素可以用<code>NULL</code>，那么我们在这边可以用一个没有任何意义的<code>NullType</code>类型、或者简单使用<code>void</code>表示Type链表的终结。</p>
+
+<p>``` cpp</p>
+
+<pre><code>strcut NullType {};
+
+template&lt;typename H&gt;
+struct TypeList&lt;H, NullType&gt;
+{
+    typedef H Head;
+    typedef NullType Tail;
+};
+</code></pre>
+
+<p>```</p>
+
+<p>上面三种定义就覆盖了Typelist中所以可能的情况，当我们写出类似<code>TypeList&lt; FilterA, TypeList&lt; FilterB, TypeList&lt; FilterC, NullType &gt; &gt; &gt;</code>的时候，编译器就能自动帮我们进行匹配，并且自动生成一种复杂的类型！</p>
+
+<h1>遍历TypeList</h1>
+
+<p>既然定义好了，下面就可以对这个类型列表进行遍历了。以过滤商品这个场景为例，我们需要一个Filters，里面包含几种过滤方式，这几种过滤方式组成一个TypeList。</p>
+
+<p>``` cpp</p>
+
+<pre><code>struct Goods {};
+
+struct BlacklistFilter
+{
+    bool static do_filter(Goods&amp; goods) { std::cout &lt;&lt; "BlacklistFilter" &lt;&lt; std::endl; return true;}
+};  
+
+struct CateFilter
+{   
+    bool static do_filter(Goods&amp; goods) { std::cout &lt;&lt; "CateFilter" &lt;&lt; std::endl; return true;}
+};  
+
+struct StockFilter
+{   
+    bool static do_filter(Goods&amp; goods) { std::cout &lt;&lt; "StockFilter" &lt;&lt; std::endl; return true;}
+};  
+
+typedef TypeList&lt;BlacklistFilter,
+        TypeList&lt;CateFilter,
+        TypeList&lt;StockFilter,
+        NullType&gt; &gt; &gt; 
+        FilterList;
+</code></pre>
+
+<p>```</p>
+
+<p>另外还需要定义一个模版类，用于遍历这些Filter并根据商品实例的属性进行判断。</p>
+
+<p>``` cpp</p>
+
+<pre><code>template&lt;typename Tlist&gt;
+struct GoodsFilters
+{   
+    bool static filter(Goods&amp; goods)
+    {   
+        return Tlist::Head::do_filter(goods)        //第一个Filter的过滤结果
+            &amp;&amp; GoodsFilters&lt;typename Tlist::Tail&gt;::filter(goods);   //剩下的Filters的过滤结果
+    }   
+};  
+
+//终结情况
+template&lt;&gt;
+struct GoodsFilters&lt;NullType&gt;
+{
+    bool static filter(Goods&amp; goods) {return true;}
+};
+
+Goods example_goods;
+GoodsFilters&lt;FilterList&gt;::filter(example_goods);
+</code></pre>
+
+<p>```</p>
+
+<p>最终输出结果：</p>
+
+<pre><code>BlacklistFilter
+CateFilter
+StockFilter
+</code></pre>
+
+<p>这样，对于Typelist的遍历就完成了，使用方无需编写代码显式调用每一个类型的过滤函数，一切都由编译器帮你完成了！ : )</p>
+
+<h1>核心思想 —— 递归</h1>
+
+<p>使用了Typelist（或者说是MetaProgramming）技术之后，感觉其最核心的就是递归的思想（通过模板特化来体现）。我们平时写的递归算法，各种分支、结束条件都需要自己判断，而Typelist只需要把各种典型的条件一一罗列出来即可，编译器会很聪明的对你的代码进行<strong>编译时if判断</strong>。TypeList中，还有许多用到了递归的地方，比方说计算Typelist的长度、通过下标获取类型、根据类型或者实例对应的值、Append操作、Reverse操作等等。其中Append操作以及Reverse操作比较经典，样例代码如下，大家可以体会下递归的精妙：</p>
+
+<p>``` cpp</p>
+
+<pre><code>//Append操作，将一个类型添加至一个TypeList末尾
+template&lt;typename Tlist, typename T&gt;
+struct Append;
+
+template&lt;&gt;
+struct Append&lt;NullType, NullType&gt;
+{
+    typedef NullType Result;
+};
+
+template&lt;typename S&gt;
+struct Append&lt;NullType, S&gt;
+{
+    typedef TypeList&lt;S, NullType&gt; Result;
+};
+
+template&lt;typename H, typename T, typename S&gt;
+struct Append&lt;TypeList&lt;H, T&gt;, S&gt;
+{
+    typedef TypeList&lt;H, typename Append&lt;T, S&gt;::Result &gt; Result;
+};
+
+template&lt;typename H, typename T&gt;
+struct Append&lt;NullType, TypeList&lt;H, T&gt; &gt;
+{
+    typedef TypeList&lt;H, T&gt; Result;
+};
+
+
+//Reverse操作，将TypeList反转过来，例如：TypeList&lt;A, TypeList&lt;B, TypeList&lt;C, NullType&gt; &gt; &gt;    =&gt;  TypeList&lt;C, TypeList&lt;B, TypeList&lt;A, NullType&gt; &gt; &gt;
+template&lt;typename Tlist&gt;
+struct Reverse;
+
+template&lt;typename Tlist&gt;
+struct Reverse
+{
+    typedef typename Append&lt;typename Reverse&lt;typename Tlist::Tail&gt;::Result, typename Tlist::Head&gt;::Result
+            Result;
+};
+
+template&lt;&gt;
+struct Reverse&lt;NullType&gt;
+{
+    typedef NullType Result;
+};
+</code></pre>
+
+<p>```</p>
+
+<h1>参考资料</h1>
+
+<ul>
+<li><a href="http://book.douban.com/subject/1119904/">《C++设计新思维》</a> （很可惜，这么好的书，居然市面上买不到了，看了同事的英文原版，然后在淘宝上买了D版，罪过罪过）</li>
+<li><a href="http://loki-lib.sourceforge.net/html/a00681.html">Loki-lib TypeList</a>  《C++设计新思维》这本书中讲解的Loki库中对应TypeList部分</li>
+<li><a href="http://aszt.inf.elte.hu/~gsd/halado_cpp/ch06.html">http://aszt.inf.elte.hu/~gsd/halado_cpp/ch06.html</a>  网上搜到的匈牙利罗兰大学的网上教程，也是基本上讲解Loki库的</li>
+</ul>
+
+
+<p>&mdash; EOF &mdash;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[从2013到2014]]></title>
+    <link href="http://quxiao.github.io/blog/2014/01/01/from_2013_to_2014/"/>
+    <updated>2014-01-01T00:00:00+08:00</updated>
+    <id>http://quxiao.github.io/blog/2014/01/01/from_2013_to_2014</id>
+    <content type="html"><![CDATA[<p><img src="http://quxiao.github.io/images/2014-01-01/year_of_hourse.jpg" alt="pic" /></p>
+
+<p>2013年就这么过去了，感觉时间如白驹过隙，转瞬即逝。我现在仍然清晰地记得2013年过年回家时的情景，仿佛就是前段时间发生的，可是一转眼，马上又要过春节了。</p>
+
+<p>回首2013，最大的感觉还是时间过得飞快，一周又一周，感觉没做啥事情就这样过去了。每天忙忙碌碌的工作，晚上属于自己的时间越来越少了，即使有一些，也感觉没有精力去充分利用了。我使劲想了想，大概可以说的，也就这么几件事吧。</p>
+
+<h1>部门变动了</h1>
+
+<p>年初和同事一起做广告方面的项目，感觉做的还是挺有意思的。但是没过多久，就被Boss调去做另外一个电商方面的项目，被调过去的原因是我之前“兼职”负责过那个项目的一些统计工作。（不由感慨，一旦你在其他人心中被打上了某些tag，想要改变就会十分困难。比如你做过统计相关的事情，以后当有统计相关的其它工作时，Boss第一个想到的估计就是你，因为你这方面最容易上手，人力成本最低。）之后，就在新的团队一直干着，但是由于项目前景一直很惨淡却又倍受领导重视，直接导致项目组的每一位成员的工作强度都很大，有时候上线会上到凌晨2、3点，实实在在的狼性了一把。期间一些同学一方面承受不了这样的强度，一方面估计也觉得项目没啥前途，纷纷离开了项目组或者公司，其中包括了我的Boss和项目的大Boss。不过，大部分的同学还是任劳任怨，一直坚持到现在。</p>
+
+<h1>锻炼算是一直坚持着</h1>
+
+<p>虽然工作的强度略大，不过我还是一有空就去健身房锻炼，工作日如果能正常下班（19点之前），并且还有体力的话，我就会去健身房；周末只要不回南京老家，我基本上两天都会去。去跑跑步、做做器械，虽然我还没有练出健壮的肌肉，但至少身材还是一直保持着，没有向有些搞IT的同学，自从上班之后身体就逐渐发福。</p>
+
+<p>另外，在气候适合的情况下，我也会找同事一起打打篮球，周末或者过节在家的话，我有机会也会去爬紫金山，算是锻炼比较勤快了。</p>
+
+<h1>经常回家看看</h1>
+
+<p>自从来上海工作之后，我基本都保持每两周就回家一次的习惯，回家多陪陪父母，和父亲聊聊体育、聊聊新闻，听母亲唠叨一些家长里短，另外偶尔也会回学校看看学弟学妹以及老师。在上海，每隔两三天，我也会打个电话给父母，报个平安。</p>
+
+<p>经常回家的另外一个原因，是可以吃到好吃的东西，在公司周围吃饭比较贵，而且吃饭的地方也就这么几家，早就吃腻了。</p>
+
+<h1>多认识了些朋友</h1>
+
+<p>工作方面，由于加入了新的项目组，所以又多认识了些同事，其中包括只在hi上交流过的大搜的同事、“人数众多”的产品经理们、和我们一起开发一起上线的FE同学等等，可以说自己这一年的绝大部分的时间都花在了和他们交流上。</p>
+
+<p>生活方面，又多认识了一些女生（我目前是一名单身男性，你懂的），虽然没能和她们进一步的发展，虽然有的只匆匆见过一面，但是和大部分还算是交了朋友，偶尔也会在微博或者微信上面有所交流，对于身在异乡的我来说，这还是挺不错的，不是吗？</p>
+
+<p>&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-华丽的分割线&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;</p>
+
+<p>2013年，有很多地方做的还不是很好。比如，技术方面感觉没太大长进，一直想学的英语也没有坚持下去。2014年，也不想去过度设计这一年，只希望自己能好好利用时间静下心来做一些事情，比如技术、比如健身、比如旅游。</p>
+
+<ul>
+<li>希望能将后端相关的技术再深入研究、平时多写一些开源项目、多写些技术博客，自认为自己是个做技术的，技术才是我的立足之本！我就是想好好做一名技术“工匠”，尽可能的少一些扯皮的事情。</li>
+<li>希望能继续坚持锻炼，保持良好的作息习惯，13年做的不错，14年继续保持！</li>
+<li>希望2014年能多到些地方看看，13年准备的台湾行没能如愿，希望14年能够实现。</li>
+<li>如果时间和精力允许的情况下，我还想把英语好好学起来，以便我能和国外的同行交流，多学习学习国外的先进技术。</li>
+</ul>
+
+
+<p>就列这四点吧，如果这些都能完成，已经相当不错了。</p>
+
+<p>&mdash;EOF&mdash;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[《Information Retrieval in Practice》笔记——整体架构]]></title>
+    <link href="http://quxiao.github.io/blog/2013/11/30/information_retrievial_in_practice_note_architecture/"/>
+    <updated>2013-11-30T00:00:00+08:00</updated>
+    <id>http://quxiao.github.io/blog/2013/11/30/information_retrievial_in_practice_note_architecture</id>
+    <content type="html"><![CDATA[<p>对于一个典型的搜索引擎，至少包含两大部分：1）建立索引；2）query查询。</p>
+
+<h1>建立索引</h1>
+
+<p>主要流程如下图所示：</p>
+
+<p><img src="/images/2013-11-30/index-building.png"></p>
+
+<p>主要工作为：获取需要检索的数据，将其转化为系统可以识别的方式，做一些预处理，最后持久化存储起来。</p>
+
+<h2>本文获取 (Text Accquisition)</h2>
+
+<p><strong> 爬虫 </strong></p>
+
+<p>本文获取就是将所需要的数据“抓”下来。其中，依据搜索引擎的使用场景不同(网站内部检索/全网检索/文件系统检索/&hellip;)，需要检索的数据可以是全网、某个网站的网页、数据库的表、或者磁盘上面的文件等等，这样就需要不同类型的“爬虫”。另外，也可以像<code>RSS</code>这样的流式访问数据的标准。</p>
+
+<p>获取到所需要的数据，这只完成了一部分。另外，当数据源有更新时（网页修改/数据库新增了数据/&hellip;），爬虫需要能及时的感知并且重新抓取数据提供给检索系统。而且，不同类型的数据，对于实时性的要求是不一样的。比如，一个发布新闻网站和和一个保存历史资料的网站，它们网页的实时性要求肯定是不一样的。</p>
+
+<p><strong> 转换 </strong></p>
+
+<p>文本获取到了，需要将其统一成搜索引擎可以识别的格式，文本转换包含两层含义：</p>
+
+<ul>
+<li><strong>将不同格式标准的数据转换为统一的格式</strong></li>
+</ul>
+
+
+<p>例如，同样的记录书籍内容的文档，一个是<code>XML</code>格式的，一个是<code>JSON</code>格式的。爬虫如果想获取书籍的名称、作者、<code>ISBN</code>等信息，就需要采用不同的解析方式。</p>
+
+<ul>
+<li><strong>将不同编码的文本转化为统一编码</strong></li>
+</ul>
+
+
+<p>有的网页是<code>UTF-8</code>编码的，有的是<code>GB18030</code>编码的，都需要统一成一个编码。</p>
+
+<p><strong> 存储 </strong></p>
+
+<p>数据（数据本身以及MetaData）获取到了，也转成统一格式了，下面就得想办法把数据持久化。持久化的方式有很多种，比如可以是本地文件系统、分布式文件系统（HDFS）、各种数据库（MYSQL / MongoDB）等等。</p>
+
+<h2>文本变形 (Text Transformation)</h2>
+
+<p><strong> 切词 &amp;&amp; 归一化 </strong></p>
+
+<p>检索索引之前，需要先将文本转化为一系列的term，term可以理解为有意义的最小单位词语，比如：</p>
+
+<blockquote><p>GitHub is the best place to share code with friends, co-workers, classmates, and complete strangers.</p></blockquote>
+
+<p>就会生成<code>github</code>, <code>best</code>, <code>place</code>, <code>share</code>, <code>code</code>, <code>friend</code>, <code>co-worker</code>, <code>classmate</code>, <code>complete</code>, <code>stranger</code>这些term。其中会将<code>is</code>, <code>the</code>等没有实际意义的单词去掉，然后做归一化，比如大小写转换，单复数转换等。</p>
+
+<p>中文一句话中没有空格表示停顿，转化term会更复杂，比如上学时老师举的一个例子：</p>
+
+<blockquote><p>南京市长江大桥</p></blockquote>
+
+<p>应该需要切成<code>南京市</code>, <code>长江</code>以及<code>大桥</code>，而不是<code>南京</code>, <code>市长</code>, <code>江大桥</code></p>
+
+<p><strong> 质量度 </strong></p>
+
+<p>除了获取已经归一化的、数据所需要表达的信息之外，还需要对这份数据本身的质量做一个判断，相当于一个小网站发布的新闻和一个大网站发布的新闻，按照常理明显后者的质量、可信度等因素要优化前者。（在某些国家，事实真的是这样吗？ :P ）。<code>PageRank</code>算法就是一个例子，采用迭代的方式，通过网页链接（也就是网页的出度和入度）来计算该网页的质量度。</p>
+
+<h2>构建索引</h2>
+
+<p>一般来说，倒排索引的结构是这样的：</p>
+
+<pre><code>term1 -&gt; (docid_1, data_11), (docid_2, data_12), ...
+term2 -&gt; (docid_2, data_21), (docid_3, data_22), ...
+</code></pre>
+
+<p>其中，term就是某一个切词的结果的签名，当然，这里的term也可以是其它信息，比如商品的分类、文章的类型等等。其实应用中需要什么样的触发方式，就可以建立对应类型的倒排。docid就是用来唯一标识一份数据的，数据可以是一个网页、一个商品等等，一般都会称其<code>Document</code>。至于data，主要是为计算doc相对于term的权重服务的，里面存储了计算权重所需要的数据。举个简单的例子，如果我们假设一篇文章中出现某个term的次数越多，这篇文章对于这个term就越相关，这时候在data数据里面存储这个term在该文章中出现的次数即可。另外，有些权重计算在建立索引的阶段就可以完成，因此这部分权重结果也会存放在data中。</p>
+
+<p>所以，建立倒排索引的第一步，就是扫描整个数据全集，收集有关term和document的统计信息（term在doc中出现的频率，term在整个doc全集中出现的频率，term的偏移量，doc的更新时间，etc.）。接着，将数据集合，由<code>doc -&gt; (term1, term2, term3, ...)</code>转化为<code>term -&gt; (doc1, doc2, doc3, ...)</code>的倒排形式，其中包含了对term以及doc的权重计算。最后，将倒排索引dump出来，有时出于数据量和性能的考虑，还需要将索引分库存储，分库方式有两种：按document分库，以及按term进行分库。</p>
+
+<h1>Query查询</h1>
+
+<p>query查询的主要步骤如下图所示：</p>
+
+<p><img src="http://quxiao.github.io/images/2013-11-30/query-processing.png" alt="pic" /></p>
+
+<h2>User Interface</h2>
+
+<p>对于用户来说，直接面对的是搜索引擎的Web界面，或者说是User Interface界面。UI有以下几个功能：</p>
+
+<ol>
+<li>接收用户输入，将其转化为一棵query查询树，作为排序模块的输入。query查询树节点上面的操作一般是<code>AND</code>/<code>OR</code>/<code>NOT</code>这样的布尔运算；</li>
+<li>进行query变换。比如拼写检查、query推荐、query扩展；</li>
+<li>展现最终的排序结果。包括：填充document信息（物料）、生成内容摘要、对关键信息进行飘红或者加粗等等。</li>
+</ol>
+
+
+<h2>排序</h2>
+
+<p>排序模块决定了结果文档集合的先后顺序，文档的权重计算方法有很多种，最原始的形式可以表示成：</p>
+
+<pre><code>Sum(qi * di)
+</code></pre>
+
+<p>其中，<code>qi</code>表示输入query的第i个term的权重，<code>di</code>表示该document相对于第i个term的权重。</p>
+
+<p><code>qi</code>以及<code>di</code>权重的计算，一般是基于<code>tf.idf</code>的思想。<code>tf</code>(<code>term frequency</code>)，表示term在document或者query中出现的频率；而<code>idf</code>(inverse document frequncy)，则是term出现在整个document或者query全局中的频率的倒数。这种思想其实很好理解，如果一个词在一篇文章中出现了许多次，我们可以暂且认为这个词和这篇文章是相关的，但是，如果这个词在所有文章中出现的频率都很高，那么这个词就对于那篇文章来说就没有那么“特殊”了，并不能表明这个词和那篇文章就是很相关的。</p>
+
+<h2>评估</h2>
+
+<p>两层含义：</p>
+
+<ul>
+<li>排序相关性的评估</li>
+<li>性能的评估</li>
+</ul>
+
+
+<p>通过算法，最终得到一份排序结果，但是由于算法的局限性、训练数据集合是否完备以及个性化等因素，用户并不一定就对排在前面的结果感兴趣。因此，需要一个评估模块，收集用户的点击行为，用于扩充算法训练数据集合，或者作为算法参数调整的依据，最终反映在排序模块中。</p>
+
+<p>另一方面，搜索引擎的性能，也需要进行监控。通过日志就可以清楚的看到用户的一次检索，各个模块的耗时是多少，哪个模块是性能瓶颈，开发者可以有针对性的进行优化。在测试环节，QA也可以使用日志来反向构造请求，模拟线上请求。</p>
+
+<p>（PS: 文章包含了自己的理解，可能不正确）</p>
+
+<p>&mdash; EOF &mdash;</p>
+]]></content>
+  </entry>
+  
+</feed>

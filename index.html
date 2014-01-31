@@ -1,1 +1,1756 @@
-My Octopress Page is coming soon &hellip;
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Xavier Blog</title>
+  <meta name="author" content="Xavier">
+
+  
+  <meta name="description" content=" ">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://quxiao.github.io">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Xavier Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Xavier Blog</a></h1>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:quxiao.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/01/31/test/">Test</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-31T11:25:30+08:00" pubdate data-updated="true">Jan 31<span>st</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><img src="/images/2014-01-01/year_of_hourse.jpg">
+<img src="http://quxiao.github.io/images/2014-01-01/year_of_hourse.jpg" alt="pic" /></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-23T00:00:00+08:00" pubdate data-updated="true"></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>前段时间在看其他同事的代码，无意间看了类似下面的代码：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">TypeList</span><span class="o">&lt;</span> <span class="n">FilterA</span><span class="p">,</span>
+</span><span class='line'><span class="n">TypeList</span><span class="o">&lt;</span> <span class="n">FilterB</span><span class="p">,</span>
+</span><span class='line'><span class="n">TypeList</span><span class="o">&lt;</span> <span class="n">FilterC</span><span class="p">,</span>
+</span><span class='line'><span class="n">TypeList</span><span class="o">&lt;</span> <span class="n">FilterD</span><span class="p">,</span>
+</span><span class='line'><span class="n">TypeList</span><span class="o">&lt;</span> <span class="n">FilterE</span><span class="p">,</span>
+</span><span class='line'>    <span class="kt">void</span> <span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">&gt;</span> <span class="n">Filters</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>感觉代码风格略微诡异了些，怎么像是LISP，呵呵。后来查了些资料，得知这就是我一直心仪已久的模板元编程中的一种技巧——<strong> Typelist</strong> 。</p>
+
+<p>当你需要对于大量的类型进行相似的操作时，比如对于返回的商品进行五种类型的过滤，许多（手工写的）代码都是重复、冗余的，代码可能是这样的：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">Goods</span><span class="o">*</span> <span class="n">goods</span> <span class="o">=</span> <span class="n">get_goods</span><span class="p">(</span><span class="n">goods_id</span><span class="p">);</span>
+</span><span class='line'><span class="k">if</span> <span class="p">(</span><span class="n">goods_blacklist</span><span class="p">.</span><span class="n">filter</span><span class="p">(</span><span class="n">goods</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>    <span class="c1">//...</span>
+</span><span class='line'><span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">cate_blacklist</span><span class="p">.</span><span class="n">filter</span><span class="p">(</span><span class="n">goods</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>    <span class="c1">//...</span>
+</span><span class='line'><span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">stock_blacklist</span><span class="p">.</span><span class="n">filter</span><span class="p">(</span><span class="n">goods</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>    <span class="c1">//...</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="c1">//...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>显然代码是很冗余的，再抽象一下，也许可以写成这样：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">vector</span><span class="o">&lt;</span><span class="n">FilterBase</span><span class="o">*&gt;</span> <span class="n">filters</span><span class="p">;</span>
+</span><span class='line'><span class="n">filters</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="k">new</span> <span class="n">GoodsBlacklist</span><span class="p">());</span>
+</span><span class='line'><span class="n">filters</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="k">new</span> <span class="n">CateBlacklist</span><span class="p">());</span>
+</span><span class='line'><span class="n">filters</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="k">new</span> <span class="n">StockBlacklist</span><span class="p">());</span>
+</span><span class='line'><span class="c1">//...</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Goods</span><span class="o">*</span> <span class="n">goods</span> <span class="o">=</span> <span class="n">get_goods</span><span class="p">(</span><span class="n">goods_id</span><span class="p">);</span>
+</span><span class='line'><span class="k">for</span> <span class="p">(</span><span class="n">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">filters</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="n">i</span> <span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">filters</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">do_filter</span><span class="p">(</span><span class="n">goods</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>代码整洁了一些，不过还是需要程序在运行时<code>new</code>出来各种类、加入到集合中、然后还要考虑调用虚函数的成本，仍然不是高效的。这个时候，Typelist就派上用场了，他可以让编译器帮你自动生成许多类（而不是类的实例）的集合，并且可以像链表一样对这些类进行遍历，从而达到自动进行相似、重复工作的效果。</p>
+
+<h1>定义Typelist</h1>
+
+<p>首先来看看如何定义一个Typelist吧</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">H</span><span class="p">,</span> <span class="k">typename</span> <span class="n">T</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">TypeList</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">H</span> <span class="n">Head</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">T</span> <span class="n">Tail</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>首先，把这些类的集合看做是一个链表，这个链表的类型叫做<code>Type</code>，当然也可以是其它名称。假设有N个类型，链表的第0个类型是H，后面的<code>1 ~ N-1</code>组成一个联合类型T。接着，我们需要考虑一些特殊情况，这时候就需要用到<strong>模板特化</strong>了。首先，如果<code>1 ~ N-1</code>也是<code>Type</code>类型的时候，该如何定义呢？</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">H</span><span class="p">,</span> <span class="k">typename</span> <span class="n">S</span><span class="p">,</span> <span class="k">typename</span> <span class="n">T</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">H</span><span class="p">,</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">S</span><span class="p">,</span> <span class="n">T</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">:</span> <span class="k">public</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">S</span><span class="p">,</span> <span class="n">T</span><span class="o">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">H</span> <span class="n">Head</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">S</span><span class="p">,</span> <span class="n">T</span><span class="o">&gt;</span> <span class="n">Tail</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样，就可以表示当Type的后一个模板参数也是一个Type类型时，Type类型应该是个什么样子，也就可以让Type类型无限延展下去了。最后，还需要考虑Type链表的最后一个元素应该如何定义。链表里面表示最后一个元素可以用<code>NULL</code>，那么我们在这边可以用一个没有任何意义的<code>NullType</code>类型、或者简单使用<code>void</code>表示Type链表的终结。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">strcut</span> <span class="n">NullType</span> <span class="p">{};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">H</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">H</span><span class="p">,</span> <span class="n">NullType</span><span class="o">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">H</span> <span class="n">Head</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">NullType</span> <span class="n">Tail</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面三种定义就覆盖了Typelist中所以可能的情况，当我们写出类似<code>TypeList&lt; FilterA, TypeList&lt; FilterB, TypeList&lt; FilterC, NullType &gt; &gt; &gt;</code>的时候，编译器就能自动帮我们进行匹配，并且自动生成一种复杂的类型！</p>
+
+<h1>遍历TypeList</h1>
+
+<p>既然定义好了，下面就可以对这个类型列表进行遍历了。以过滤商品这个场景为例，我们需要一个Filters，里面包含几种过滤方式，这几种过滤方式组成一个TypeList。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">struct</span> <span class="n">Goods</span> <span class="p">{};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">struct</span> <span class="n">BlacklistFilter</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="kt">bool</span> <span class="k">static</span> <span class="n">do_filter</span><span class="p">(</span><span class="n">Goods</span><span class="o">&amp;</span> <span class="n">goods</span><span class="p">)</span> <span class="p">{</span> <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;BlacklistFilter&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span> <span class="k">return</span> <span class="kc">true</span><span class="p">;}</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">struct</span> <span class="n">CateFilter</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="kt">bool</span> <span class="k">static</span> <span class="n">do_filter</span><span class="p">(</span><span class="n">Goods</span><span class="o">&amp;</span> <span class="n">goods</span><span class="p">)</span> <span class="p">{</span> <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;CateFilter&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span> <span class="k">return</span> <span class="kc">true</span><span class="p">;}</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">struct</span> <span class="n">StockFilter</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="kt">bool</span> <span class="k">static</span> <span class="n">do_filter</span><span class="p">(</span><span class="n">Goods</span><span class="o">&amp;</span> <span class="n">goods</span><span class="p">)</span> <span class="p">{</span> <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;StockFilter&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span> <span class="k">return</span> <span class="kc">true</span><span class="p">;}</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">typedef</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">BlacklistFilter</span><span class="p">,</span>
+</span><span class='line'>        <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">CateFilter</span><span class="p">,</span>
+</span><span class='line'>        <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">StockFilter</span><span class="p">,</span>
+</span><span class='line'>        <span class="n">NullType</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">&gt;</span>
+</span><span class='line'>        <span class="n">FilterList</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>另外还需要定义一个模版类，用于遍历这些Filter并根据商品实例的属性进行判断。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">Tlist</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">GoodsFilters</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="kt">bool</span> <span class="k">static</span> <span class="n">filter</span><span class="p">(</span><span class="n">Goods</span><span class="o">&amp;</span> <span class="n">goods</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">Tlist</span><span class="o">::</span><span class="n">Head</span><span class="o">::</span><span class="n">do_filter</span><span class="p">(</span><span class="n">goods</span><span class="p">)</span>        <span class="c1">//第一个Filter的过滤结果</span>
+</span><span class='line'>            <span class="o">&amp;&amp;</span> <span class="n">GoodsFilters</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">Tlist</span><span class="o">::</span><span class="n">Tail</span><span class="o">&gt;::</span><span class="n">filter</span><span class="p">(</span><span class="n">goods</span><span class="p">);</span>   <span class="c1">//剩下的Filters的过滤结果</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">//终结情况</span>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">GoodsFilters</span><span class="o">&lt;</span><span class="n">NullType</span><span class="o">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="kt">bool</span> <span class="k">static</span> <span class="n">filter</span><span class="p">(</span><span class="n">Goods</span><span class="o">&amp;</span> <span class="n">goods</span><span class="p">)</span> <span class="p">{</span><span class="k">return</span> <span class="kc">true</span><span class="p">;}</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Goods</span> <span class="n">example_goods</span><span class="p">;</span>
+</span><span class='line'><span class="n">GoodsFilters</span><span class="o">&lt;</span><span class="n">FilterList</span><span class="o">&gt;::</span><span class="n">filter</span><span class="p">(</span><span class="n">example_goods</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>最终输出结果：</p>
+
+<pre><code>BlacklistFilter
+CateFilter
+StockFilter
+</code></pre>
+
+<p>这样，对于Typelist的遍历就完成了，使用方无需编写代码显式调用每一个类型的过滤函数，一切都由编译器帮你完成了！ : )</p>
+
+<h1>核心思想 —— 递归</h1>
+
+<p>使用了Typelist（或者说是MetaProgramming）技术之后，感觉其最核心的就是递归的思想（通过模板特化来体现）。我们平时写的递归算法，各种分支、结束条件都需要自己判断，而Typelist只需要把各种典型的条件一一罗列出来即可，编译器会很聪明的对你的代码进行<strong>编译时if判断</strong>。TypeList中，还有许多用到了递归的地方，比方说计算Typelist的长度、通过下标获取类型、根据类型或者实例对应的值、Append操作、Reverse操作等等。其中Append操作以及Reverse操作比较经典，样例代码如下，大家可以体会下递归的精妙：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="c1">//Append操作，将一个类型添加至一个TypeList末尾</span>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">Tlist</span><span class="p">,</span> <span class="k">typename</span> <span class="n">T</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">Append</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">Append</span><span class="o">&lt;</span><span class="n">NullType</span><span class="p">,</span> <span class="n">NullType</span><span class="o">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">NullType</span> <span class="n">Result</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">S</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">Append</span><span class="o">&lt;</span><span class="n">NullType</span><span class="p">,</span> <span class="n">S</span><span class="o">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">S</span><span class="p">,</span> <span class="n">NullType</span><span class="o">&gt;</span> <span class="n">Result</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">H</span><span class="p">,</span> <span class="k">typename</span> <span class="n">T</span><span class="p">,</span> <span class="k">typename</span> <span class="n">S</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">Append</span><span class="o">&lt;</span><span class="n">TypeList</span><span class="o">&lt;</span><span class="n">H</span><span class="p">,</span> <span class="n">T</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">S</span><span class="o">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">H</span><span class="p">,</span> <span class="k">typename</span> <span class="n">Append</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">S</span><span class="o">&gt;::</span><span class="n">Result</span> <span class="o">&gt;</span> <span class="n">Result</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">H</span><span class="p">,</span> <span class="k">typename</span> <span class="n">T</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">Append</span><span class="o">&lt;</span><span class="n">NullType</span><span class="p">,</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">H</span><span class="p">,</span> <span class="n">T</span><span class="o">&gt;</span> <span class="o">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">H</span><span class="p">,</span> <span class="n">T</span><span class="o">&gt;</span> <span class="n">Result</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="c1">//Reverse操作，将TypeList反转过来，例如：TypeList&lt;A, TypeList&lt;B, TypeList&lt;C, NullType&gt; &gt; &gt;    =&gt;  TypeList&lt;C, TypeList&lt;B, TypeList&lt;A, NullType&gt; &gt; &gt;</span>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">Tlist</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">Reverse</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">Tlist</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">Reverse</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="k">typename</span> <span class="n">Append</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">Reverse</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">Tlist</span><span class="o">::</span><span class="n">Tail</span><span class="o">&gt;::</span><span class="n">Result</span><span class="p">,</span> <span class="k">typename</span> <span class="n">Tlist</span><span class="o">::</span><span class="n">Head</span><span class="o">&gt;::</span><span class="n">Result</span>
+</span><span class='line'>            <span class="n">Result</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">Reverse</span><span class="o">&lt;</span><span class="n">NullType</span><span class="o">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">NullType</span> <span class="n">Result</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>参考资料</h1>
+
+<ul>
+<li><a href="http://book.douban.com/subject/1119904/">《C++设计新思维》</a> （很可惜，这么好的书，居然市面上买不到了，看了同事的英文原版，然后在淘宝上买了D版，罪过罪过）</li>
+<li><a href="http://loki-lib.sourceforge.net/html/a00681.html">Loki-lib TypeList</a>  《C++设计新思维》这本书中讲解的Loki库中对应TypeList部分</li>
+<li><a href="http://aszt.inf.elte.hu/~gsd/halado_cpp/ch06.html">http://aszt.inf.elte.hu/~gsd/halado_cpp/ch06.html</a>  网上搜到的匈牙利罗兰大学的网上教程，也是基本上讲解Loki库的</li>
+</ul>
+
+
+<p>&mdash; EOF &mdash;</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-01T00:00:00+08:00" pubdate data-updated="true"></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><img src="http://quxiao.github.io/images/2014-01-01/year_of_hourse.jpg" alt="pic" /></p>
+
+<p>2013年就这么过去了，感觉时间如白驹过隙，转瞬即逝。我现在仍然清晰地记得2013年过年回家时的情景，仿佛就是前段时间发生的，可是一转眼，马上又要过春节了。</p>
+
+<p>回首2013，最大的感觉还是时间过得飞快，一周又一周，感觉没做啥事情就这样过去了。每天忙忙碌碌的工作，晚上属于自己的时间越来越少了，即使有一些，也感觉没有精力去充分利用了。我使劲想了想，大概可以说的，也就这么几件事吧。</p>
+
+<h1>部门变动了</h1>
+
+<p>年初和同事一起做广告方面的项目，感觉做的还是挺有意思的。但是没过多久，就被Boss调去做另外一个电商方面的项目，被调过去的原因是我之前“兼职”负责过那个项目的一些统计工作。（不由感慨，一旦你在其他人心中被打上了某些tag，想要改变就会十分困难。比如你做过统计相关的事情，以后当有统计相关的其它工作时，Boss第一个想到的估计就是你，因为你这方面最容易上手，人力成本最低。）之后，就在新的团队一直干着，但是由于项目前景一直很惨淡却又倍受领导重视，直接导致项目组的每一位成员的工作强度都很大，有时候上线会上到凌晨2、3点，实实在在的狼性了一把。期间一些同学一方面承受不了这样的强度，一方面估计也觉得项目没啥前途，纷纷离开了项目组或者公司，其中包括了我的Boss和项目的大Boss。不过，大部分的同学还是任劳任怨，一直坚持到现在。</p>
+
+<h1>锻炼算是一直坚持着</h1>
+
+<p>虽然工作的强度略大，不过我还是一有空就去健身房锻炼，工作日如果能正常下班（19点之前），并且还有体力的话，我就会去健身房；周末只要不回南京老家，我基本上两天都会去。去跑跑步、做做器械，虽然我还没有练出健壮的肌肉，但至少身材还是一直保持着，没有向有些搞IT的同学，自从上班之后身体就逐渐发福。</p>
+
+<p>另外，在气候适合的情况下，我也会找同事一起打打篮球，周末或者过节在家的话，我有机会也会去爬紫金山，算是锻炼比较勤快了。</p>
+
+<h1>经常回家看看</h1>
+
+<p>自从来上海工作之后，我基本都保持每两周就回家一次的习惯，回家多陪陪父母，和父亲聊聊体育、聊聊新闻，听母亲唠叨一些家长里短，另外偶尔也会回学校看看学弟学妹以及老师。在上海，每隔两三天，我也会打个电话给父母，报个平安。</p>
+
+<p>经常回家的另外一个原因，是可以吃到好吃的东西，在公司周围吃饭比较贵，而且吃饭的地方也就这么几家，早就吃腻了。</p>
+
+<h1>多认识了些朋友</h1>
+
+<p>工作方面，由于加入了新的项目组，所以又多认识了些同事，其中包括只在hi上交流过的大搜的同事、“人数众多”的产品经理们、和我们一起开发一起上线的FE同学等等，可以说自己这一年的绝大部分的时间都花在了和他们交流上。</p>
+
+<p>生活方面，又多认识了一些女生（我目前是一名单身男性，你懂的），虽然没能和她们进一步的发展，虽然有的只匆匆见过一面，但是和大部分还算是交了朋友，偶尔也会在微博或者微信上面有所交流，对于身在异乡的我来说，这还是挺不错的，不是吗？</p>
+
+<p>&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-华丽的分割线&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;</p>
+
+<p>2013年，有很多地方做的还不是很好。比如，技术方面感觉没太大长进，一直想学的英语也没有坚持下去。2014年，也不想去过度设计这一年，只希望自己能好好利用时间静下心来做一些事情，比如技术、比如健身、比如旅游。</p>
+
+<ul>
+<li>希望能将后端相关的技术再深入研究、平时多写一些开源项目、多写些技术博客，自认为自己是个做技术的，技术才是我的立足之本！我就是想好好做一名技术“工匠”，尽可能的少一些扯皮的事情。</li>
+<li>希望能继续坚持锻炼，保持良好的作息习惯，13年做的不错，14年继续保持！</li>
+<li>希望2014年能多到些地方看看，13年准备的台湾行没能如愿，希望14年能够实现。</li>
+<li>如果时间和精力允许的情况下，我还想把英语好好学起来，以便我能和国外的同行交流，多学习学习国外的先进技术。</li>
+</ul>
+
+
+<p>就列这四点吧，如果这些都能完成，已经相当不错了。</p>
+
+<p>&mdash;EOF&mdash;</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/11/30/information_retrievial_in_practice_note_architecture/">《Information Retrieval in Practice》笔记——整体架构</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-11-30T00:00:00+08:00" pubdate data-updated="true"></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>对于一个典型的搜索引擎，至少包含两大部分：1）建立索引；2）query查询。</p>
+
+<h1>建立索引</h1>
+
+<p>主要流程如下图所示：</p>
+
+<p><img src="/images/2013-11-30/index-building.png"></p>
+
+<p>主要工作为：获取需要检索的数据，将其转化为系统可以识别的方式，做一些预处理，最后持久化存储起来。</p>
+
+<h2>本文获取 (Text Accquisition)</h2>
+
+<p><strong> 爬虫 </strong></p>
+
+<p>本文获取就是将所需要的数据“抓”下来。其中，依据搜索引擎的使用场景不同(网站内部检索/全网检索/文件系统检索/&hellip;)，需要检索的数据可以是全网、某个网站的网页、数据库的表、或者磁盘上面的文件等等，这样就需要不同类型的“爬虫”。另外，也可以像<code>RSS</code>这样的流式访问数据的标准。</p>
+
+<p>获取到所需要的数据，这只完成了一部分。另外，当数据源有更新时（网页修改/数据库新增了数据/&hellip;），爬虫需要能及时的感知并且重新抓取数据提供给检索系统。而且，不同类型的数据，对于实时性的要求是不一样的。比如，一个发布新闻网站和和一个保存历史资料的网站，它们网页的实时性要求肯定是不一样的。</p>
+
+<p><strong> 转换 </strong></p>
+
+<p>文本获取到了，需要将其统一成搜索引擎可以识别的格式，文本转换包含两层含义：</p>
+
+<ul>
+<li><strong>将不同格式标准的数据转换为统一的格式</strong></li>
+</ul>
+
+
+<p>例如，同样的记录书籍内容的文档，一个是<code>XML</code>格式的，一个是<code>JSON</code>格式的。爬虫如果想获取书籍的名称、作者、<code>ISBN</code>等信息，就需要采用不同的解析方式。</p>
+
+<ul>
+<li><strong>将不同编码的文本转化为统一编码</strong></li>
+</ul>
+
+
+<p>有的网页是<code>UTF-8</code>编码的，有的是<code>GB18030</code>编码的，都需要统一成一个编码。</p>
+
+<p><strong> 存储 </strong></p>
+
+<p>数据（数据本身以及MetaData）获取到了，也转成统一格式了，下面就得想办法把数据持久化。持久化的方式有很多种，比如可以是本地文件系统、分布式文件系统（HDFS）、各种数据库（MYSQL / MongoDB）等等。</p>
+
+<h2>文本变形 (Text Transformation)</h2>
+
+<p><strong> 切词 &amp;&amp; 归一化 </strong></p>
+
+<p>检索索引之前，需要先将文本转化为一系列的term，term可以理解为有意义的最小单位词语，比如：</p>
+
+<blockquote><p>GitHub is the best place to share code with friends, co-workers, classmates, and complete strangers.</p></blockquote>
+
+<p>就会生成<code>github</code>, <code>best</code>, <code>place</code>, <code>share</code>, <code>code</code>, <code>friend</code>, <code>co-worker</code>, <code>classmate</code>, <code>complete</code>, <code>stranger</code>这些term。其中会将<code>is</code>, <code>the</code>等没有实际意义的单词去掉，然后做归一化，比如大小写转换，单复数转换等。</p>
+
+<p>中文一句话中没有空格表示停顿，转化term会更复杂，比如上学时老师举的一个例子：</p>
+
+<blockquote><p>南京市长江大桥</p></blockquote>
+
+<p>应该需要切成<code>南京市</code>, <code>长江</code>以及<code>大桥</code>，而不是<code>南京</code>, <code>市长</code>, <code>江大桥</code></p>
+
+<p><strong> 质量度 </strong></p>
+
+<p>除了获取已经归一化的、数据所需要表达的信息之外，还需要对这份数据本身的质量做一个判断，相当于一个小网站发布的新闻和一个大网站发布的新闻，按照常理明显后者的质量、可信度等因素要优化前者。（在某些国家，事实真的是这样吗？ :P ）。<code>PageRank</code>算法就是一个例子，采用迭代的方式，通过网页链接（也就是网页的出度和入度）来计算该网页的质量度。</p>
+
+<h2>构建索引</h2>
+
+<p>一般来说，倒排索引的结构是这样的：</p>
+
+<pre><code>term1 -&gt; (docid_1, data_11), (docid_2, data_12), ...
+term2 -&gt; (docid_2, data_21), (docid_3, data_22), ...
+</code></pre>
+
+<p>其中，term就是某一个切词的结果的签名，当然，这里的term也可以是其它信息，比如商品的分类、文章的类型等等。其实应用中需要什么样的触发方式，就可以建立对应类型的倒排。docid就是用来唯一标识一份数据的，数据可以是一个网页、一个商品等等，一般都会称其<code>Document</code>。至于data，主要是为计算doc相对于term的权重服务的，里面存储了计算权重所需要的数据。举个简单的例子，如果我们假设一篇文章中出现某个term的次数越多，这篇文章对于这个term就越相关，这时候在data数据里面存储这个term在该文章中出现的次数即可。另外，有些权重计算在建立索引的阶段就可以完成，因此这部分权重结果也会存放在data中。</p>
+
+<p>所以，建立倒排索引的第一步，就是扫描整个数据全集，收集有关term和document的统计信息（term在doc中出现的频率，term在整个doc全集中出现的频率，term的偏移量，doc的更新时间，etc.）。接着，将数据集合，由<code>doc -&gt; (term1, term2, term3, ...)</code>转化为<code>term -&gt; (doc1, doc2, doc3, ...)</code>的倒排形式，其中包含了对term以及doc的权重计算。最后，将倒排索引dump出来，有时出于数据量和性能的考虑，还需要将索引分库存储，分库方式有两种：按document分库，以及按term进行分库。</p>
+
+<h1>Query查询</h1>
+
+<p>query查询的主要步骤如下图所示：</p>
+
+<p><img src="http://quxiao.github.io/images/2013-11-30/query-processing.png" alt="pic" /></p>
+
+<h2>User Interface</h2>
+
+<p>对于用户来说，直接面对的是搜索引擎的Web界面，或者说是User Interface界面。UI有以下几个功能：</p>
+
+<ol>
+<li>接收用户输入，将其转化为一棵query查询树，作为排序模块的输入。query查询树节点上面的操作一般是<code>AND</code>/<code>OR</code>/<code>NOT</code>这样的布尔运算；</li>
+<li>进行query变换。比如拼写检查、query推荐、query扩展；</li>
+<li>展现最终的排序结果。包括：填充document信息（物料）、生成内容摘要、对关键信息进行飘红或者加粗等等。</li>
+</ol>
+
+
+<h2>排序</h2>
+
+<p>排序模块决定了结果文档集合的先后顺序，文档的权重计算方法有很多种，最原始的形式可以表示成：</p>
+
+<pre><code>Sum(qi * di)
+</code></pre>
+
+<p>其中，<code>qi</code>表示输入query的第i个term的权重，<code>di</code>表示该document相对于第i个term的权重。</p>
+
+<p><code>qi</code>以及<code>di</code>权重的计算，一般是基于<code>tf.idf</code>的思想。<code>tf</code>(<code>term frequency</code>)，表示term在document或者query中出现的频率；而<code>idf</code>(inverse document frequncy)，则是term出现在整个document或者query全局中的频率的倒数。这种思想其实很好理解，如果一个词在一篇文章中出现了许多次，我们可以暂且认为这个词和这篇文章是相关的，但是，如果这个词在所有文章中出现的频率都很高，那么这个词就对于那篇文章来说就没有那么“特殊”了，并不能表明这个词和那篇文章就是很相关的。</p>
+
+<h2>评估</h2>
+
+<p>两层含义：</p>
+
+<ul>
+<li>排序相关性的评估</li>
+<li>性能的评估</li>
+</ul>
+
+
+<p>通过算法，最终得到一份排序结果，但是由于算法的局限性、训练数据集合是否完备以及个性化等因素，用户并不一定就对排在前面的结果感兴趣。因此，需要一个评估模块，收集用户的点击行为，用于扩充算法训练数据集合，或者作为算法参数调整的依据，最终反映在排序模块中。</p>
+
+<p>另一方面，搜索引擎的性能，也需要进行监控。通过日志就可以清楚的看到用户的一次检索，各个模块的耗时是多少，哪个模块是性能瓶颈，开发者可以有针对性的进行优化。在测试环节，QA也可以使用日志来反向构造请求，模拟线上请求。</p>
+
+<p>（PS: 文章包含了自己的理解，可能不正确）</p>
+
+<p>&mdash; EOF &mdash;</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/11/22/presentation-based-development/">“基于演示的开发”</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-11-22T00:00:00+08:00" pubdate data-updated="true"></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>什么是“基于演示的开发”？</h1>
+
+<p>有一天和一个同事吃饭，我们聊到了大学里面做项目的事情，他说在大学的时候，他们那流行一种说法叫“基于演示的开发”，我心想这是什么高端的软件开发方法学?原来其实就是说对于作为课程中需要完成的小项目，后台功能是真的完成了，还是fake的，这个无所谓，只要当向其他人进行演示的时候，只要系统的界面好看些，系统“看起来”是功能完整的就行了，因此取名“基于演示的开发”。</p>
+
+<p>虽然我是第一次听到这个说法，但在学校的时候，大部分同学都是基于这套“理论”进行小项目开发的。后台真有连接数据库吗？不一定，只要把结果直接写在代码里面就可以了；点击开始运行某算法，真的运行了吗？不一定，只要把预期的结果直接返回就行了。这种“造假”，在我大学本科期间，甚至研究生期间，比比皆是。说实话，我自己也造过假，只不过比别人少很多罢了。</p>
+
+<p> 为啥会有那么多“基于演示的开发”呢？说白了，你随便弄个可以演示的DEMO，和自己认认真真、辛辛苦苦的开发，最后的结果是一样的，前者的结果甚至会更好，我干嘛费劲呢？反正老师也就是随便看看，大部分也不会问什么细节（有的计算机专业的老师，我都对TA的计算机知识的掌握程度表示怀疑），就是个走过场。</p>
+
+<h1>三位同学的三件事</h1>
+
+<p>说到这里，我想起来了大学三个同学的三件事情：</p>
+
+<p>同学A，学习挺刻苦，考试成绩很好。大学学习JAVA课程的时候，老师让每个人做一个基于JSP（全称：Java Server Pages，当年很流行的）的小网站，然后交一个设计文档。结果A同学不会写也不想写这个JSP，然后就随便写了几个HTML的网页，截个屏，写了个文档交差了，结果他截屏的时候，居然把浏览器地址栏也放进去了，地址栏里面赫然显示着<code>xxx.html</code>！我们在这个文档发回来的时候发现了A同学的“亮点”，貌似老师也没发现。。。</p>
+
+<p>（之后同学A考研考上了某著名985大学，读完硕士，去美国读计算机博士了）</p>
+
+<p>同学B，学习挺刻苦，考试成绩很好。本科期间倒是没什么太多的故事，他本科毕业之后，一心想读研，考了一年又一年，考了两年还是三年，好不容易考上了某著名985大学的软件学院。我平时觉得同学B编程能力也不是很强啊，为啥会选实用性较强的软件学院呢？有次我碰到他就问了他这个问题，他说，这个学校的软件学院，研究生入学考试不用考上机编程，只用做卷子和面试就可以了。。。。</p>
+
+<p>（同学B读硕士的时候，只知道去上海某著名外企实习过一段时间，毕业之后下落不明）</p>
+
+<p>同学C，学习上（个人感觉）不像前两位那么刻苦，不过成绩也不错。据说，只是据说，他大学四年期间，有的考试会用一些“特殊”手段，让考试成绩有所提高。这个是否属实，我不能百分之百确定，不过有次在考试的时候，他坐我旁边，的确问过我某一题选什么的，我看了看他，然后继续答题了。</p>
+
+<p>（同学C最后因为成绩不错，最后保送本校，读博士了）</p>
+
+<p>其实，我和这三位，都是很好的朋友，他们都不是有啥坏点子的人，大家都过着各自不同的生活，呵呵。好久没见他们，还是有些想念的。</p>
+
+<h1>浮躁</h1>
+
+<p>我觉得，类似这种“基于演示的开发”的出现，跟学生没太大关系，并且学生是受害者。大家从小接受的教育就是倾向于“随大流”或者“什么专业赚钱多就选什么”，很少有人因为这是自己的兴趣爱好而选择自己的专业的（至少我看我们学校本专业的是这个情况），既然学得不是自己感兴趣的东西，就没什么动力去深入挖掘其中的奥秘，需要交什么作业，随便糊弄个就完了，只要能在学校这个“system”里面玩转就行了。接着大家有的毕业去工作，有的留校当老师，优良的“传统”就在职场和校园里面一代代传下去了……</p>
+
+<p>出现了这种现象，到底是什么原因呢？我想“浮躁”这个词可以概括，社会很浮躁、学校很浮躁、学生们也难免浮躁。算了，还是不说什么抱怨了，太多的抱怨是没有用的。还是大家各自努力吧，沉下心来做好身边的事情，每个人都少点浮躁，多点执着！</p>
+
+<p>&mdash;EOF&mdash;</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/11/17/immigrate-from-wordpress/">从Wordpres迁移至Jekyll(@github.io)</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-11-17T00:00:00+08:00" pubdate data-updated="true"></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>用上Wordpress之后，总体感觉还是很不错的，安装、设置、撰写文章都很方便，但仍然有几点不足：</p>
+
+<ol>
+<li>许多功能都需要插件支持，比如代码语法高亮，首页截取文章摘要</li>
+<li>图片和文章的存储方式，图片需要单独找图床、或者上传到服务器，而文章又是保存
+mysql数据库中的</li>
+<li>数据备份比较麻烦，每次都得使用插件或者人工备份数据</li>
+</ol>
+
+
+<p>因此决定将博客迁移到github上面，即免费又能使用<a href="http://jekyllrb.com/">Jekyll</a>这种静态博客，不需要配置DB、使用git发布、markdown语法。简单、方便、
+很极客！</p>
+
+<h2>建立github.io初始环境</h2>
+
+<p>首先，你需要一个github帐号，然后使用<a href="http://jekyllbootstrap.com/">JekyllBootstrap</a>建立一个初始化的环境，参照<a href="http://jekyllbootstrap.com/usage/jekyll-quick-start.html">教程</a>一步一步来，环境很快就可以搞定。你就可以在USERNAME.github.io上面看到环境了</p>
+
+<p>PS: 教程上面说需要建立的是USERNAME.github.com的repository，需要改为USERNAME.github.io才可以</p>
+
+<h2>备份Wordpress数据</h2>
+
+<p>迁移之前，先备份下数据，如果是使用VPN的话，SSH登录到服务器上，备份数据库</p>
+
+<pre><code>mysqldump -u root -p -h localhost BLOG_TABLE &gt; BLOG_TABLE.sql
+</code></pre>
+
+<p>另外一些静态文件，比如图片什么的，也备份一份</p>
+
+<h2>选择迁移工具</h2>
+
+<p>迁移工具方面，基本上是基于下面两种方式：</p>
+
+<ol>
+<li>使用WordPress导出的xml文件，导出md文档</li>
+<li>连接WordPress的Mysql数据库导出md文档</li>
+</ol>
+
+
+<p>Jekyll有自带的<code>jekyll-import</code>工具，很想使用官方的迁移工具，但我一直“未遂”，说是无法load到<code>jekyll-import</code>模块……</p>
+
+<p>另外，Jekyll官网上还推荐了三个第三方的工具：</p>
+
+<ol>
+<li><a href="https://github.com/thomasf/exitwp">Exitwp</a></li>
+<li><a href="http://vitobotta.com/how-to-migrate-from-wordpress-to-jekyll/">A great
+article</a> ，
+其实是一篇详细的迁移教程</li>
+<li><a href="https://github.com/theaob/wpXml2Jekyll">wpXml2Jekyll</a></li>
+</ol>
+
+
+<p>第二个太过详细，第三个只能运行在Windows下，所以看来只能选择第一个工具了。</p>
+
+<h2>导出WordPress XML文件</h2>
+
+<p>在WordPress的<code>export.php</code>页面上可以轻松导出XML文件。但这一步遇到一个小插曲：blog上面太多spam评论了，结果也会一并export出来，这些spam
+评论会导致后面工具导出markdown文档失败。因为blog上面真实的评论并不多，所以就考
+虑把评论都删除，网上查了资料，只需要将WordPress Mysql表中的<code>wp_comments</code>表删除即可</p>
+
+<pre><code>DROP TABLE wp_comments;
+</code></pre>
+
+<h2>使用exitwp</h2>
+
+<p>这个工具带有鲜明的“反WordPress”风格，使用起来还是比较简单的，按照项目首页的
+README操作即可，你的WordPress文章就变成一个个markdown文档了！</p>
+
+<p>不过使用途中发现有几个问题：</p>
+
+<ol>
+<li>在Mac上使用pip进行依赖安装后，那些依赖的库还是会import失败（是我打开方式不对吗……），还是得自己将一个个依赖下载后安装</li>
+<li>Exitwp虽然支持下载图片，但是文章中的图片链接却没有换过来</li>
+<li>导出后的md文档，对于正文中的特殊字符没有做处理，比如<code>*</code>，会导致<code>jekyll build</code>失败，需要手动修改</li>
+<li>由于系统编码原因，会导致使用exitwp以及jekyll失败，参考这篇<a href="http://www.webplay.pro/linux/set-locale-terminal-settings-mac-os-x.html">文章</a>
+，需要在<code>/etc/profile</code>添加<code>export LANG=zh_CN.UTF-8</code>以及<code>export
+LC_ALL=zh_CN.UTF-8</code></li>
+</ol>
+
+
+<h2>发布！</h2>
+
+<p>发布之前，现在本地使用<code>jekyll server</code>或者<code>rake --preview</code>在本地预览，没问题就可以发布了。</p>
+
+<p>好了，下面将生成的markdown文档以及图片，push到你的github空间即可！Just enjoy it! :)</p>
+
+<p>最后，在使用markdown编写中文文章时，发现jekyll默认的markdown引擎对于中文支持不
+是很好，对于对于全部为中文的列表对完全失效，需要将markdown引擎改为<code>rdiscount</code>
+，在<code>_config.yaml</code>中添加：</p>
+
+<pre><code>markdown: rdiscount
+</code></pre>
+
+<p>就可以了。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/10/28/effective-go-learning-note/">《Effective Go》学习笔记</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-10-28T00:29:06+08:00" pubdate data-updated="true">Oct 28<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>最近抽时间把Go语言看了一下，把Go playground玩了一遍，把官方文档上的Effective Go也学习了一番。把一些重点或者说自己觉得比较有特点的地方记录下来，用作备忘和分享。</p>
+
+<h1>未使用的package或者变量是编译错误</h1>
+
+<p>这相当于就在代码层面对开发人员进行了规范，不像C++等其它语言，你多include一个.h文件，或者声明了一个变量但没有使用，这对你编译程序都不会有任何影响，挺多会打些编译warning。这样很容易造成程序编译了没有使用的库和变量，使程序变得臃肿。</p>
+
+<h1><strong>变量的可见性有变量名决定</strong></h1>
+
+<p>一个package中的变量名如果首字母是大写，则对于package外部是可见的，反之则不可见。Go里面没有public, private这样的关键字（至少我目前没看到），直接约定首字母大写的变量是public的，不是大写的是private的，简便并且规范。</p>
+
+<h1>函数可以返回多值</h1>
+
+<p>像Python一样，Go的函数可以返回多个值，这样就很方便的把正常情况下需要返回的数据以及发生错误时error一并返回了。</p>
+
+<h1>关键字defer——return之前执行</h1>
+
+<p>Go里面可以将语句前声明defer关键字，表示目前先不执行这条语句，等待函数return前再执行。这实在是太方便了！特别是对于一些需要管理资源的场景。</p>
+
+<pre><code>// Contents returns the file's contents as a string.
+func Contents(filename string) (string, error) {
+    f, err := os.Open(filename)
+    if err != nil {
+        return "", err
+    }
+    defer f.Close()  // f.Close will run when we're finished.
+
+    var result []byte
+    buf := make([]byte, 100)
+    for {
+        n, err := f.Read(buf[0:])
+        result = append(result, buf[0:n]...) // append is discussed later.
+        if err != nil {
+            if err == io.EOF {
+                break
+            }
+            return "", err  // f will be closed if we return here.
+        }
+    }
+    return string(result), nil // f will be closed if we return here.
+}
+</code></pre>
+
+<p>试想一下，在C++中，如果想要在每个分支都能释放资源，就得采用1）<code>goto</code>或<code>do-while</code>，例如以下代码，或者 2）<code>scoped pointer</code>。</p>
+
+<pre><code>int f1(const char* fname) {
+    int ret = 0;
+    FILE* fp = fopen(fname, "r");
+    if ( NULL == fp ) {
+        return -1;
+    }
+    if (....) {
+        ret = 1;
+        goto FINISH;
+    } else if (....) {
+        ret = 2;
+        goto FINISH;
+    }
+
+FINISH:
+    fclose(fp);
+    return ret;
+}
+
+int f2(const char* fname) {
+    int ret = 0;
+    FILE* fp = fopen(fname, "r");
+    if ( NULL == fp ) {
+        return -1;
+    }
+    do {
+        if (....) {
+            ret = 1;
+            break;
+        } else if (....) {
+            ret = 2;
+            break;
+        }
+    } while(0);
+
+    fclose(fp);
+    return ret;
+}
+</code></pre>
+
+<h1>new &amp; make</h1>
+
+<p>Go语言中的new和C++中的不太一样，它只负责分配一段全为<code>'\0'</code>的内存，不会进行任何其它初始化，需要你自己再做一些工作。
+而make关键字是用来新建slice, map, channel这三中类型的，因为它们内部必须做一些特殊的初始化才能使用。</p>
+
+<h1>结构体可以直接print</h1>
+
+<p>默认情况下，struct就可以直接打印出来，而且还会打印出每个字段的名称和值。这个对于开发人员排查问题，也是极其方便的。</p>
+
+<pre><code>type T struct {
+    a int
+    b float64
+    c string
+}
+t := &amp;T{ 7, -2.35, "abc\tdef" }
+fmt.Printf("%v\n", t)
+fmt.Printf("%+v\n", t)
+fmt.Printf("%#v\n", t)
+</code></pre>
+
+<p>会打印出</p>
+
+<pre><code>&amp;{7 -2.35 abc   def}
+&amp;{a:7 b:-2.35 c:abc     def}
+&amp;main.T{a:7, b:-2.35, c:"abc\tdef"}
+</code></pre>
+
+<p>当然，你也可以定义某个类型T的<strong>String()</strong>方法，用来改变输出的字符串，就像Python中实现<code>__str__</code>方法一样。</p>
+
+<h1>接口“嵌入”</h1>
+
+<p>如果想使用某套接口，在C++中一般都是将满足这套接口的实例作为某个类的成员，再调用这个成员的接口。在Go中，可以在某个接口里面直接“嵌入”其它已经实现的接口，比如需要一个ReadWriter接口，里面有Read()和Write()，但是已经有一个接口Reader里面有Read()，一个接口Writer里面有Write()，就直接使用以下代码就可以了，这样Read()和Writer()就是ReadWriter接口的方法了。</p>
+
+<pre><code>type Reader interface {
+    Read(p []byte) (n int, err error)
+}
+
+type Writer interface {
+    Write(p []byte) (n int, err error)
+}
+
+// ReadWriter is the interface that combines the Reader and Writer interfaces.
+type ReadWriter interface {
+    Reader
+    Writer
+}
+</code></pre>
+
+<h1>goroutine &amp;&amp; channel</h1>
+
+<p>goroutine以及channel可以说是Go语言最重要的特性了。goroutine有一个简单的思想，它就是一个通其它goroutine运行在同一份内存空间的函数。而channel顾名思义，就是一个管道，任何数据可以通过管道进行传输，可以往channel里面放数据，可以从channel里面获取数据。goroutine和channel的配合使用，很好的解释了Go语言“<strong>Do not communicate by sharing memory; instead, share memory by communicating</strong>”的思想，还有一个很好的例子在<a href="http://talks.golang.org/2012/waza.slide#12">这里</a>，这里例子同时也讲解了并发（concurrency）和并行（parallelism）之间的关系和区别。</p>
+
+<p>我觉得，并发是一种工作方式，它把一个整体的复杂的任务分解为小型的逻辑简单的任务；而并行就是真是的同时在做许多事情。就那例子中的任务来说，把一堆书送到另一端的火堆烧掉。如果是并行的话，就是原来是一个人“拿书-运书-烧书”，现在同时有多个人“拿书-运书-烧书”。如果是并发的话：，就是把任务可以分解为：1）一个人把一部分书从书堆中放到车子上；2）一个人把装有书的车子推到火堆旁；3）一个人把火堆旁的书烧掉。每个人各司其职，只需要从一个源头（channel或者其它地方）获取原始数据，自己进行简单的加工，然后堆到另外一边（另一个channel），自己不用管其他人是怎么工作、或者什么时候工作的，只需要把自己分内的事情完成就OK了。Divide and conquer真是一种简单精妙的思想！</p>
+
+<p>好了，暂时就先整理到这里吧~</p>
+
+<p>参考资料：</p>
+
+<p><a href="http://golang.org/doc/effective_go.html">Effetive Go</a>
+<a href="http://talks.golang.org/2012/waza.slide">Concurrency is not Parallelism</a>
+<a href="http://play.golang.org/">Go Playground</a></p>
+
+<p>&mdash;EOF&mdash;</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/09/01/filelock_in_script/">在脚本中使用文件锁</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-09-01T00:04:09+08:00" pubdate data-updated="true">Sep 1<span>st</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>较早之前，一个模块的reload程序出现过这样一个问题：模块会定期检查一份文件是否被更新，如果被更新了，就reload；但是，如果文件正在被更新（没有写完）并且模块正好检测到更新，模块就会reload到一份不全的文件，导致数据异常。当时的解决方案是：使用一个done文件，推送文件的脚本在完成数据更新后，touch一下done，模块检测done文件的更新来判断是否reload。</p>
+
+<p>最近这个事情又被同们事提起，不过稍微扩展了下，问题变成了：<strong>有没有一种机制，能让许多并行的脚本能串行进行一系列操作</strong>。比如多个脚本对文件进行依次读写，以免产生脏数据。无疑，如果脚本如果shell中有一种“锁”的机制，就可以解决这个问题。原来只使用过API级别的锁，脚本中的锁还真没用过。其实，如果要在shell脚本实现锁，需要满足两个条件：</p>
+
+<ol>
+<li> 一个全局可见的状态</li>
+<li> 一种“检测 + 加锁”的原子操作</li>
+</ol>
+
+
+<p>大家可能会想到使用一个文件来当做锁，如果有这个文件，就表示某个脚本正在操作，其它脚本等待；如果没有这个文件，我就touch这个文件，然后开始我的操作。但是，“检测文件”和“新建文件”不是原子操作，所以是无法保证串行的。</p>
+
+<p>google了一下，还是有几种满足条件的方案的。</p>
+
+<h1>文件夹锁</h1>
+
+<p>检测文件和新建文件无法做到原子性，但是mkdir操作，却能做到原子地检测文件夹和创建文件夹，有点儿意思！所以，当脚本想对于竞争数据进行操作，就<code>mkdir</code>某个文件夹，根据返回码得知申请所是否成功，申请成功、完成操作之后再<code>rm -rf</code>就可以实现了。例如这样：</p>
+
+<div>
+  <pre><code class='bash'>#!/bin/sh
+    
+    if [ $# -ne 2 ]
+    then
+        exit 1
+    else
+        NUM=&quot;$1&quot;
+        SLEEP_TIME=&quot;$2&quot;
+    fi
+    
+    OUT_FILE=&quot;test.out&quot;
+    LOCK_FILE=&quot;lock.file&quot;
+    
+    while :
+    do
+        mkdir ${LOCK_FILE}
+        if [ $? -ne 0 ]
+        then
+            continue
+        fi
+        for ((i=0; i&lt;10; i++))
+        do
+            echo &quot;${NUM} is working in $i step!&quot; &gt;&gt; ${OUT_FILE}
+        done
+        sleep ${SLEEP_TIME}
+        rm -rf ${LOCK_FILE}
+    done</code></pre>
+</div>
+
+
+<h1>lockfile命令</h1>
+
+<p>原来直接就有个专门用于文件锁的命令，这个命令比mkdir更强大，可以设置申请文件锁的等待时长、重拾次数、锁的过期时间。但是，在写测试代码的时候，却发现只会有一个脚本一直获取到文件锁，其它脚本都处于申请锁等待并超时的状态，难道我参数用的不对？</p>
+
+<div>
+  <pre><code class='bash'>#!/bin/sh
+    
+    if [ $# -ne 2 ]
+    then
+        exit 1
+    else
+        NUM=&quot;$1&quot;
+        SLEEP_TIME=&quot;$2&quot;
+    fi
+    
+    OUT_FILE=&quot;test.out&quot;
+    LOCK_FILE=&quot;lock.file&quot;
+    
+    while :
+    do
+        echo &quot;${NUM} try to get lockfile&quot; &gt;&gt; ${OUT_FILE}
+        lockfile  ${LOCK_FILE}
+        if [ $? -ne 0 ]
+        then
+            echo &quot;${NUM} wait lock failed&quot; &gt;&gt; ${OUT_FILE}
+            continue
+        fi
+        echo &quot;${NUM} got lockfile&quot; &gt;&gt; ${OUT_FILE}
+        for ((i=0; i&lt;10; i++))
+        do
+            echo &quot;${NUM} is working in $i step!&quot; &gt;&gt; ${OUT_FILE}
+        done
+        sleep ${SLEEP_TIME}
+        echo &quot;${NUM} delete lockfile&quot; &gt;&gt; ${OUT_FILE}
+        rm -rf ${LOCK_FILE}
+    done
+    
+    exit 0</code></pre>
+</div>
+
+
+<h1>设置noclobber + 重定向文件</h1>
+
+<p>shell中有一个参数叫noclobber，设置了这个参数后，当脚本试图重定向文件时，如果发现改文件已经存在，重定向就会失败。这种方法自己没尝试过，下面是从网上抄来的code example：</p>
+
+<div>
+  <pre><code class='bash'>if ( set -o noclobber; echo &quot;locked&quot; &gt; &quot;$lockfile&quot;) 2&gt; /dev/null; then
+      trap &#39;rm -f &quot;$lockfile&quot;; exit $?&#39; INT TERM EXIT
+      echo &quot;Locking succeeded&quot; &gt;&amp;2
+      rm -f &quot;$lockfile&quot;
+    else
+      echo &quot;Lock failed - exit&quot; &gt;&amp;2
+      exit 1
+    fi</code></pre>
+</div>
+
+
+<p>看来在脚本中使用文件锁，还是比较方便的。不过，在我看来在脚本中使用文件锁，有个致命弱点：操作系统不会禁止其它进程对作为锁的文件（或者文件夹）进行操作。相当于一个脚本已经申请到了文件锁并正在操作，但是其它进程完全可以不受限制的删除这个文件锁，这样就会使得期间其它脚本能够成功申请到文件锁。或者一些脚本使用文件锁对竞争资源进行操作，但其它脚本直接操作竞争资源，这种情况也是无法避免的。使用文件锁，完全靠自觉！</p>
+
+<p>另外，文件锁也没有提供像共享锁、排它锁这样的高级功能，这也是文件锁的短板。</p>
+
+<p>参考资料：</p>
+
+<p><a href="http://en.wikipedia.org/wiki/File_locking">http://en.wikipedia.org/wiki/File_locking</a></p>
+
+<p><a href="http://wiki.bash-hackers.org/howto/mutex">Lock your script (against parallel run)</a></p>
+
+<p>&mdash;EOF&mdash;</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/07/06/intrusive-list/">Intrusive List</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-07-06T20:47:21+08:00" pubdate data-updated="true">Jul 6<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>链表，应该是每一个学编程的人都会接触到的经典数据结构，大部分计算机专业的同学至少在上学期间也实现过单向、双向链表。在我的印象里，链表一般都是这么表示的：</p>
+
+<pre><code>struct LinkNode
+{
+    LinkNode* prev;
+    LinkNode* next;
+    int my_data1;
+    double my_data2;
+    //...
+};
+
+class LinkList
+{
+    LinkNode root;
+    //...
+};
+</code></pre>
+
+<p>或者，我们就干脆直接是用<code>std::list&lt;T&gt;</code>。无论是哪一种，它都是将使用的数据“嵌入”到链表的节点中，或者说是节点包在数据之外。这种实现也是教科书里面讲到的那个实现，也是我之前知道的唯一的实现方式。</p>
+
+<p>前段时间看网上的几篇博客（<a href="http://rdc.taobao.com/blog/cs/?p=1675">Tips of Linux C programming</a>，<a href="http://www.codeofhonor.com/blog/avoiding-game-crashes-related-to-linked-lists">Avoiding game crashes related to linked lists</a>），发现原来还有另外一种更优雅的链表实现——intrusive list。Linux kernel，以及许多底层软件（另外还有游戏星际争霸）的开发中，都是使用intrusive list进行链表操作的。</p>
+
+<p>所谓intrusive list，就是指不像上面说的那样将链表节点包在数据外面，而是将链表节点包在数据里面。例如下面这样：</p>
+
+<pre><code>struct list_node_t
+{
+    list_node_t* prev;
+    list_node_t* next;
+};
+
+struct MyClass
+{
+    int data;
+    list_node_t node;
+};
+</code></pre>
+
+<p>这样做，是为了让节点和数据在一个数据结构中。因为许多场景下，链表包含的数据是指针（考虑到数据拷贝构造的代价，以及一份数据被多个链表共享的情况），例如<code>std::list&lt;MyClass*&gt;</code>。使用intrusive list实现，就可以省去了&#8221;节点 &ndash;> 数据指针 &ndash;> 数据&#8221;的二次查找。找到intrusive list中的一个节点后，就可以立即找到这个节点对应的数据，即我知道一个<code>list_node_t</code>的地址，我改如何找到这个<code>list_node_t</code>对应的<code>MyClass</code>的<code>data</code>呢？这里用到了一段很优美的宏：</p>
+
+<pre><code>#define GET_ENTRY(ptr, type, member)\
+    ((type *)((char *)(ptr)-(unsigned long)(&amp;((type *)0)-&gt;member)))
+</code></pre>
+
+<p>第一眼肯定觉得晕，不急，我们一步一步来。首先看参数：</p>
+
+<ul>
+<li><p>ptr: <code>list_node_t</code>的地址</p></li>
+<li><p>type: 包含这个<code>list_node_t</code>的类型，对应上面的例子，就是<code>Myclass</code></p></li>
+<li><p>member：这个<code>list_node_t</code>类型变量在MyClass中的变量名，需要这个得到改变量的offset</p></li>
+</ul>
+
+
+<p>首先看</p>
+
+<pre><code>(&amp;((type *)0)-&gt;member)
+</code></pre>
+
+<p>这个的意思是：如果有个type类型的变量，它的地址是0，那type类型中的member变量的地址是多少，其实就是这个member变量距离所属的type类型变量的偏移量。</p>
+
+<p>然后是</p>
+
+<pre><code>((char *)(ptr)-(unsigned long)(&amp;((type *)0)-&gt;member))
+</code></pre>
+
+<p>这就很清楚了，知道了偏移量，我又知道了真正的member变量的地址（ptr），用ptr的地址减去ptr的偏移量，就得到了ptr所在的type变量的地址了，然后就可以获取type变量上的数据了。</p>
+
+<p>自己简单实现了intrusive list，再和<code>std::list</code>做一个简单的性能测试，对一个int数据的链表插入，结果是：<code>std::list push_back</code>的操作操作时间基本上都在intrusive list的2倍以上！这么看来，intrusive list的优势还是挺明显的。</p>
+
+<pre><code>QuXiaos-MacBook-Pro:intrusive_list quxiao$ ./a.out 1000
+std_list: 0.129 ms
+intrusive_list: 0.059 ms
+QuXiaos-MacBook-Pro:intrusive_list quxiao$ ./a.out 10000
+std_list: 1.297 ms
+intrusive_list: 0.550 ms
+QuXiaos-MacBook-Pro:intrusive_list quxiao$ ./a.out 100000
+std_list: 11.961 ms
+intrusive_list: 4.901 ms
+QuXiaos-MacBook-Pro:intrusive_list quxiao$ ./a.out 1000000
+std_list: 116.855 ms
+intrusive_list: 53.086 ms
+QuXiaos-MacBook-Pro:intrusive_list quxiao$ ./a.out 10000000
+std_list: 1061.955 ms
+intrusive_list: 544.419 ms
+</code></pre>
+
+<p>intrusive list的实现以及测试的代码如下：</p>
+
+<div>
+  <pre><code class='cpp'>#include &lt;stdlib.h&gt;
+    #include &lt;stdio.h&gt;
+    #include &lt;time.h&gt;
+    #include &lt;list&gt;
+    
+    struct list_node_t
+    {
+        list_node_t* prev;
+        list_node_t* next;
+    };
+    
+    struct MyClass
+    {
+        int data;
+        list_node_t node;
+    };
+    
+    void _list_add(list_node_t* cur, list_node_t* prev, list_node_t* next)
+    {
+        prev-&gt;next = cur;
+        next-&gt;prev = cur;
+        cur-&gt;prev = prev;
+        cur-&gt;next = next;
+    }
+    
+    void list_add_head(list_node_t* cur, list_node_t* head)
+    {
+        _list_add(cur, head, head-&gt;next);
+    }
+    
+    void list_add_tail(list_node_t* cur, list_node_t* head)
+    {
+        _list_add(cur, head-&gt;prev, head);
+    }
+    
+    void list_del(list_node_t* cur)
+    {
+        cur-&gt;prev-&gt;next = cur-&gt;next;
+        cur-&gt;next-&gt;prev = cur-&gt;prev;
+        cur-&gt;prev = cur-&gt;next = NULL;
+    }
+    
+    #define GET_ENTRY(ptr, type, member)\
+        ((type *)((char *)(ptr)-(unsigned long)(&amp;((type *)0)-&gt;member)))
+    
+    #define INIT_NODE(ptr)\
+        (ptr)-&gt;next = (ptr)-&gt;prev = ptr;
+    
+    #define list_for_each(pos, head) \
+            for (pos = (head)-&gt;next; pos != (head); \
+                            pos = pos-&gt;next)
+    
+    #define list_for_each_safe(pos, n, head) \
+            for (pos = (head)-&gt;next, n = pos-&gt;next; pos != (head); \
+                        pos = n, n = pos-&gt;next)
+    
+    void test_std_list(int run_num)
+    {
+        int t1 = clock();
+        std::list&lt;int&gt; std_list;
+        for (int i = 0; i &lt; run_num; i ++)
+        {
+            std_list.push_back(i);
+        }
+    
+        printf(&quot;std_list: %.3lf ms\n&quot;, double(clock() - t1) / CLOCKS_PER_SEC * 1000);
+    }
+    
+    void test_intrusive_list(int run_num)
+    {
+        int t1 = clock();
+        list_node_t list_head;
+        INIT_NODE(&amp;list_head);
+    
+        for (int i = 0; i &lt; run_num; i ++)
+        {
+            MyClass* c = (MyClass*) malloc(sizeof(MyClass));
+            c-&gt;data = i;
+            list_add_tail(&amp;c-&gt;node, &amp;list_head);
+        }
+        printf(&quot;intrusive_list: %.3lf ms\n&quot;, double(clock() - t1) / CLOCKS_PER_SEC * 1000);
+    }
+    
+    int main(int argc, char** argv)
+    {
+        if ( argc != 2 )
+        {
+            fprintf(stderr, &quot;argc is not 2&quot;);
+            return -1;
+        }
+        int run_num = atoi(argv[1]);
+        if ( 0 == run_num )
+        {
+            fprintf(stderr, &quot;argv[%s] is not num&quot;, argv[1]);
+            return -1;
+        }
+    
+        test_std_list(run_num);
+        test_intrusive_list(run_num);
+    
+        return 0;
+    }</code></pre>
+</div>
+
+
+<p>另外，intrusive list还有几个特点，比如：</p>
+
+<ul>
+<li><p>移植性好，不像数据包在链表里面的实现，要么每种链表类型都写重复的代码，要么就使用template，但只能在C++中使用</p></li>
+<li><p>容易使用，你需要使用哪种类型的列表，就在这种类型中添加节点即可</p></li>
+<li><p>可以方便实现一份数据被多个链表共享的情况，有几个链表，就在类型下添加几个节点变量即可，多个链表直接不会互相干扰</p></li>
+</ul>
+
+
+<p>要不是看了那几篇博客，我对链表的认识还停留在教科书上，好歹也看了几本数据结构的书，其中不乏经典书籍，但从没有听说过intrusive list这种实现，看来很多知识，并不是光靠看书就能获取的。</p>
+
+<p>参考材料：</p>
+
+<ul>
+<li><p><a href="http://highscalability.com/blog/2013/5/22/strategy-stop-using-linked-lists.html">Strategy: Stop Using Linked-Lists</a></p></li>
+<li><p><a href="http://www.codeofhonor.com/blog/avoiding-game-crashes-related-to-linked-lists">Avoiding game crashes related to linked lists</a></p></li>
+<li><p><a href="http://rdc.taobao.com/blog/cs/?p=1675">Tips of Linux C programming</a></p></li>
+<li><p><a href="http://isis.poly.edu/kulesh/stuff/src/klist/">Linux Kernel Linked List Explained</a></p></li>
+</ul>
+
+
+<p>&mdash;EOF&mdash;</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/05/31/memcached_source_code_study_thread_model/">Memcached源码学习——线程模型</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-05-31T09:30:39+08:00" pubdate data-updated="true">May 31<span>st</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Memcached中有以下几类线程：</p>
+
+<ul>
+<li>主线程</li>
+<li>工作线程</li>
+<li>维护线程</li>
+</ul>
+
+
+<p>主线程，又可以叫分发线程，除了完成程序的各种参数、以及其他线程的初始化以外，还会listen端口，新建连接，并且将该连接分发到其他的工作线程。</p>
+
+<p>工作线程，大部分实际的工作都是他们干的，包括读取请求的协议内容、解析、进行具体存、取、更新、删除kv的操作，最后返回结果。</p>
+
+<p>另外，还有一个维护线程，它的工作就是在需要的时候（存放的item大于总量的2/3）对hash表进行扩展。</p>
+
+<p>Memcached处理请求时，采用的是单进程多线程的Master-Worker模型，通过libevent这个事件响应库来实现的。</p>
+
+<p>首先来看一下主线程和工作线程之间是怎么交互的吧：</p>
+
+<p>工作线程在初始化的时候，会建立一个pipe（管道），两端分别为：<code>notify_receive_fd</code>，<code>以及notify_send_fd</code>：</p>
+
+<div>
+  <pre><code class='cpp'>for (i = 0; i &lt; nthreads; i++) {
+        int fds[2];
+        if (pipe(fds)) {
+            perror(&quot;Can&#39;t create notify pipe&quot;);
+            exit(1);
+        }
+
+        threads[i].notify_receive_fd = fds[0];
+        threads[i].notify_send_fd = fds[1];
+
+        setup_thread(&amp;threads[i]);
+        /* Reserve three fds for the libevent base, and two for the pipe */
+        stats.reserved_fds += 5;
+    }</code></pre>
+</div>
+
+
+<p>也就是说当其他线程向<code>notify_send_fd</code>文件描述符写内容的时候，<code>notify_receive_fd</code>就可以接受到。</p>
+
+<p>接着，就用到了libevent的API：</p>
+
+<div>
+  <pre><code class='cpp'>me-&gt;base = event_init();
+
+    /* Listen for notifications from other threads */
+    event_set(&amp;me-&gt;notify_event, me-&gt;notify_receive_fd,
+              EV_READ | EV_PERSIST, thread_libevent_process, me);
+    event_base_set(me-&gt;base, &amp;me-&gt;notify_event);
+
+    if (event_add(&amp;me-&gt;notify_event, 0) == -1) {
+        fprintf(stderr, &quot;Can&#39;t monitor libevent notify pipe\n&quot;);
+        exit(1);
+    }</code></pre>
+</div>
+
+
+<p>每个工作线程都新建一个libevent实例(<code>me-&gt;base</code>)，并且将<code>notify_event</code>绑定在这个实例上。</p>
+
+<p><code>notify_event</code>什么时候触发？
+当<code>notify_receive_fd</code>有内容的时候被触发。</p>
+
+<p>触发了执行什么函数？
+执行<code>thread_libevent_process (me)</code>函数。</p>
+
+<p>那在哪个地方会写<code>notify_send_fd</code>呢？
+在主线程将新建的连接分发给工作时，就会向某个线程的<code>notify_send_fd</code>写一个空的字符串用来唤醒这个线程。下面的代码一目了然：</p>
+
+<div>
+  <pre><code class='cpp'>void dispatch_conn_new(int sfd, enum conn_states init_state, int event_flags,
+                           int read_buffer_size, enum network_transport transport) {
+        CQ_ITEM *item = cqi_new();
+        /*这就是所谓的round robin*/
+        int tid = (last_thread + 1) % settings.num_threads;
+    
+        LIBEVENT_THREAD *thread = threads + tid;
+    
+        last_thread = tid;
+    
+        item-&gt;sfd = sfd;
+        /* ... */
+    
+        cq_push(thread-&gt;new_conn_queue, item);
+    
+        if (write(thread-&gt;notify_send_fd, &quot;&quot;, 1) != 1) {
+            perror(&quot;Writing to thread notify pipe&quot;);
+        }
+    }</code></pre>
+</div>
+
+
+<p>首先来看看主线程，当他把其他工作线程、维护线程启起来之后，就开始侦听socket端口了（可以在memcached的源码中看出tcp和udp在处理逻辑上有很多不同的地方，但我不知道为什么不一样，就只看了处理tcp部分的代码，看来改补一补网络通信的知识了……），主要逻辑在<code>server_sockets</code>函数中：</p>
+
+<div>
+  <pre><code class='cpp'>if (IS_UDP(transport)) {
+        int c;
+
+        for (c = 0; c &lt; settings.num_threads_per_udp; c++) {
+            /* this is guaranteed to hit all threads because we round-robin */
+            dispatch_conn_new(sfd, conn_read, EV_READ | EV_PERSIST,
+                              UDP_READ_BUFFER_SIZE, transport);
+        }
+    } else {
+        if (!(listen_conn_add = conn_new(sfd, conn_listening,
+                                         EV_READ | EV_PERSIST, 1,
+                                         transport, main_base))) {
+            fprintf(stderr, &quot;failed to create listening connection\n&quot;);
+            exit(EXIT_FAILURE);
+        }
+        listen_conn_add-&gt;next = listen_conn;
+        listen_conn = listen_conn_add;
+    }</code></pre>
+</div>
+
+
+<p><code>conn_new</code>函数建立了连接之后，将socket文件描述符于<code>event_handler</code>函数绑定，当有socket请求过来的时候，就执行<code>event_handler</code>。在<code>event_handler</code>中，就是直接调用<code>drive_machine</code>这个大大的状态转移函数，一次连接的所有状态就都在这个函数里面处理了。</p>
+
+<p>主线程首先达到<code>drive_machine</code>中的<code>conn_listenning</code>状态，然后通过<code>dispatch_conn_new</code>将这次的连接分配给某个工作线程，工作线程再经历其他的状态，完成一次请求。</p>
+
+<p><code>drive_machine</code>的具体逻辑比较复杂，这里就不讲了。</p>
+
+<p>好，最后简单回顾下这个工作流程：</p>
+
+<ol>
+<li> 主线程接受到memcached客户端的请求（是在哪儿一直接收请求的？）</li>
+<li> 主线程通过round robin找到一个工作线程</li>
+<li> 主线程将创建的连接push到工作线程的连接队列中，然后唤醒这个工作线程</li>
+<li> 工作线程被唤醒后，从自己的线程队列中取出一个连接</li>
+<li> 解析请求、对hash表进行相应的操作，写入返回</li>
+</ol>
+
+
+<p>整体看下来，感觉memcached的源码并没有什么高深的算法，用的都是很朴素的链表、底层的网络通信、线程间互斥、字符串解析等等，感觉除了网络通信比较繁琐以外，其他的地方都是一个刚毕业的计算机专业的学生可以也应该掌握的。通过对一些简单、实用的东西进行有效的组合，就可以获取一个功能更强大的合成体。</p>
+
+<p>&mdash;EOF&mdash;</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+      <a class="prev" href="/blog/page/2/">&larr; Older</a>
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/01/31/test/">Test</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/30/information_retrievial_in_practice_note_architecture/">《Information Retrieval in Practice》笔记——整体架构</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/22/presentation-based-development/">“基于演示的开发”</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating&#8230;</li>
+  </ul>
+  
+  <a href="https://github.com/quxiao">@quxiao</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'quxiao',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Xavier -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

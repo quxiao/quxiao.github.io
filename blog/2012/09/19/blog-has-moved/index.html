@@ -1,0 +1,272 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>博客搬家了 - Xavier Blog</title>
+  <meta name="author" content="Xavier">
+
+  
+  <meta name="description" content="博客搬家了，从原来胡戈戈的虚拟主机搬到了Hello,Host!的VPS上面，域名也从qxavier.info换成了qxavier.me了。给博客搬家不是因为主机的质量或者服务问题，对于胡戈戈的服务态度以及虚拟主机的质量，我感到很满意。每次我有问题，他都能及时的响应，给我满意的答复。 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://quxiao.github.io/blog/2012/09/19/blog-has-moved">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Xavier Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Xavier Blog</a></h1>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:quxiao.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">博客搬家了</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-09-19T21:44:25+08:00" pubdate data-updated="true">Sep 19<span>th</span>, 2012</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>博客搬家了，从原来<a href="http://hugege.com/">胡戈戈</a>的虚拟主机搬到了<a href="http://hellohostnet.com">Hello,Host!</a>的VPS上面，域名也从qxavier.info换成了<a href="http://qxavier.me">qxavier.me</a>了。给博客搬家不是因为主机的质量或者服务问题，对于胡戈戈的服务态度以及虚拟主机的质量，我感到很满意。每次我有问题，他都能及时的响应，给我满意的答复。博客搬家的主要原因是自己想“折腾”、或者说是虚拟主机的限制有些多，除了写博客，其他事情基本做不了，就算在上面搭一个很简单的PHP程序，也很费劲。于是自己就将眼光投向了自由度更大、费用也还算合理的VPS。</p>
+
+<p>自由度大了，但你也要因此而付出代价，那就是在博客搬家途中会踩到各种各样的“坑”。在这也整理一下，给大家提供些参考。</p>
+
+<h1>域名解析</h1>
+
+<p>.me等“非主流”域名，需要第三方解析服务，例如dnspod.cn，可以参考<a href="http://hellohostnet.com/wiki/doku.php?id=dnspod_%E8%AE%BE%E7%BD%AE%E6%95%99%E7%A8%8B">这里</a>。这也是防止域名或者DNS服务器被墙的一个措施。</p>
+
+<h1>FTP服务安装</h1>
+
+<p>wordpress在安装插件或者上传图片时，需要FTP服务。因为操作系统用的是ubuntu，所以安装软件apt-get install一下就可以了，安装的是vsftpd。安装过程很简单，但关键是修改配置。除了以下配置：</p>
+
+<pre><code># Uncomment this to allow local users to log in.
+local_enable=YES
+#
+# Uncomment this to enable any form of FTP write command.
+write_enable=YES
+</code></pre>
+
+<p>还需要特别注意掩码的设置，之前就是因为忘了设置，结果在上面耗了几乎两天的时间！</p>
+
+<pre><code># Default umask for local users is 077. You may wish to change this to 022,
+# if your users expect that (022 is used by most other ftpd's)
+local_umask=022
+</code></pre>
+
+<h1>用户权限设置</h1>
+
+<p>一般VPS直接就给我们root帐号用了，但是如果没有其他帐号，vsftpd是无法使用的，因为它不支持root登录，所以之前还得创建一个用户。另外，如果是将wordpress文件夹放在该用户下，还需要将里面所有文件的所有者和所有组从root改为这个用户。</p>
+
+<h1>Apache开启rewrite_mod模块</h1>
+
+<p>wordpress的文章url是虚拟的，依赖于apache的rewrite_mod模块，所以必须开启该模块。</p>
+
+<h1>数据库导入</h1>
+
+<p>之前以为很困难，其实比较简单。因为换了域名，所以数据库中的出现域名的地方需要替换成新的域名，只要dump处理，替换一下，然后导入到新的数据库就行了。</p>
+
+<p>&mdash;EOF&mdash;</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">admin</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-09-19T21:44:25+08:00" pubdate data-updated="true">Sep 19<span>th</span>, 2012</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/essay/'>Essay</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2012/08/28/rde5ba94e8afa5e5838fqae4b880e6a0b7e6809de88083/" title="Previous Post: RD应该像QA一样思考">&laquo; RD应该像QA一样思考</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2012/09/26/matthew-effect-and-long-tail/" title="Next Post: 马太效应 and 长尾理论">马太效应 and 长尾理论 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/01/31/test/">Test</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/30/information_retrievial_in_practice_note_architecture/">《Information Retrieval in Practice》笔记——整体架构</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/22/presentation-based-development/">“基于演示的开发”</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/quxiao">@quxiao</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'quxiao',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Xavier -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

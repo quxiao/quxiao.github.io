@@ -1,0 +1,549 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Data Structure | Xavier Blog]]></title>
+  <link href="http://quxiao.github.io/blog/categories/data-structure/atom.xml" rel="self"/>
+  <link href="http://quxiao.github.io/"/>
+  <updated>2014-01-31T11:56:48+08:00</updated>
+  <id>http://quxiao.github.io/</id>
+  <author>
+    <name><![CDATA[Xavier]]></name>
+    <email><![CDATA[quxiao86@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Intrusive List]]></title>
+    <link href="http://quxiao.github.io/blog/2013/07/06/intrusive-list/"/>
+    <updated>2013-07-06T20:47:21+08:00</updated>
+    <id>http://quxiao.github.io/blog/2013/07/06/intrusive-list</id>
+    <content type="html"><![CDATA[<p>链表，应该是每一个学编程的人都会接触到的经典数据结构，大部分计算机专业的同学至少在上学期间也实现过单向、双向链表。在我的印象里，链表一般都是这么表示的：</p>
+
+<pre><code>struct LinkNode
+{
+    LinkNode* prev;
+    LinkNode* next;
+    int my_data1;
+    double my_data2;
+    //...
+};
+
+class LinkList
+{
+    LinkNode root;
+    //...
+};
+</code></pre>
+
+<p>或者，我们就干脆直接是用<code>std::list&lt;T&gt;</code>。无论是哪一种，它都是将使用的数据“嵌入”到链表的节点中，或者说是节点包在数据之外。这种实现也是教科书里面讲到的那个实现，也是我之前知道的唯一的实现方式。</p>
+
+<p>前段时间看网上的几篇博客（<a href="http://rdc.taobao.com/blog/cs/?p=1675">Tips of Linux C programming</a>，<a href="http://www.codeofhonor.com/blog/avoiding-game-crashes-related-to-linked-lists">Avoiding game crashes related to linked lists</a>），发现原来还有另外一种更优雅的链表实现——intrusive list。Linux kernel，以及许多底层软件（另外还有游戏星际争霸）的开发中，都是使用intrusive list进行链表操作的。</p>
+
+<p>所谓intrusive list，就是指不像上面说的那样将链表节点包在数据外面，而是将链表节点包在数据里面。例如下面这样：</p>
+
+<pre><code>struct list_node_t
+{
+    list_node_t* prev;
+    list_node_t* next;
+};
+
+struct MyClass
+{
+    int data;
+    list_node_t node;
+};
+</code></pre>
+
+<p>这样做，是为了让节点和数据在一个数据结构中。因为许多场景下，链表包含的数据是指针（考虑到数据拷贝构造的代价，以及一份数据被多个链表共享的情况），例如<code>std::list&lt;MyClass*&gt;</code>。使用intrusive list实现，就可以省去了"节点 &ndash;> 数据指针 &ndash;> 数据"的二次查找。找到intrusive list中的一个节点后，就可以立即找到这个节点对应的数据，即我知道一个<code>list_node_t</code>的地址，我改如何找到这个<code>list_node_t</code>对应的<code>MyClass</code>的<code>data</code>呢？这里用到了一段很优美的宏：</p>
+
+<pre><code>#define GET_ENTRY(ptr, type, member)\
+    ((type *)((char *)(ptr)-(unsigned long)(&amp;((type *)0)-&gt;member)))
+</code></pre>
+
+<p>第一眼肯定觉得晕，不急，我们一步一步来。首先看参数：</p>
+
+<ul>
+<li><p>ptr: <code>list_node_t</code>的地址</p></li>
+<li><p>type: 包含这个<code>list_node_t</code>的类型，对应上面的例子，就是<code>Myclass</code></p></li>
+<li><p>member：这个<code>list_node_t</code>类型变量在MyClass中的变量名，需要这个得到改变量的offset</p></li>
+</ul>
+
+
+<p>首先看</p>
+
+<pre><code>(&amp;((type *)0)-&gt;member)
+</code></pre>
+
+<p>这个的意思是：如果有个type类型的变量，它的地址是0，那type类型中的member变量的地址是多少，其实就是这个member变量距离所属的type类型变量的偏移量。</p>
+
+<p>然后是</p>
+
+<pre><code>((char *)(ptr)-(unsigned long)(&amp;((type *)0)-&gt;member))
+</code></pre>
+
+<p>这就很清楚了，知道了偏移量，我又知道了真正的member变量的地址（ptr），用ptr的地址减去ptr的偏移量，就得到了ptr所在的type变量的地址了，然后就可以获取type变量上的数据了。</p>
+
+<p>自己简单实现了intrusive list，再和<code>std::list</code>做一个简单的性能测试，对一个int数据的链表插入，结果是：<code>std::list push_back</code>的操作操作时间基本上都在intrusive list的2倍以上！这么看来，intrusive list的优势还是挺明显的。</p>
+
+<pre><code>QuXiaos-MacBook-Pro:intrusive_list quxiao$ ./a.out 1000
+std_list: 0.129 ms
+intrusive_list: 0.059 ms
+QuXiaos-MacBook-Pro:intrusive_list quxiao$ ./a.out 10000
+std_list: 1.297 ms
+intrusive_list: 0.550 ms
+QuXiaos-MacBook-Pro:intrusive_list quxiao$ ./a.out 100000
+std_list: 11.961 ms
+intrusive_list: 4.901 ms
+QuXiaos-MacBook-Pro:intrusive_list quxiao$ ./a.out 1000000
+std_list: 116.855 ms
+intrusive_list: 53.086 ms
+QuXiaos-MacBook-Pro:intrusive_list quxiao$ ./a.out 10000000
+std_list: 1061.955 ms
+intrusive_list: 544.419 ms
+</code></pre>
+
+<p>intrusive list的实现以及测试的代码如下：</p>
+
+<p><div>
+  <pre><code class='cpp'>&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;#include &amp;lt;stdlib.h&amp;gt;
+#include &amp;lt;stdio.h&amp;gt;
+#include &amp;lt;time.h&amp;gt;
+#include &amp;lt;list&amp;gt;
+
+struct list_node_t
+{
+    list_node_t* prev;
+    list_node_t* next;
+};
+
+struct MyClass
+{
+    int data;
+    list_node_t node;
+};
+
+void _list_add(list_node_t* cur, list_node_t* prev, list_node_t* next)
+{
+    prev-&amp;gt;next = cur;
+    next-&amp;gt;prev = cur;
+    cur-&amp;gt;prev = prev;
+    cur-&amp;gt;next = next;
+}
+
+void list_add_head(list_node_t* cur, list_node_t* head)
+{
+    _list_add(cur, head, head-&amp;gt;next);
+}
+
+void list_add_tail(list_node_t* cur, list_node_t* head)
+{
+    _list_add(cur, head-&amp;gt;prev, head);
+}
+
+void list_del(list_node_t* cur)
+{
+    cur-&amp;gt;prev-&amp;gt;next = cur-&amp;gt;next;
+    cur-&amp;gt;next-&amp;gt;prev = cur-&amp;gt;prev;
+    cur-&amp;gt;prev = cur-&amp;gt;next = NULL;
+}
+
+#define GET_ENTRY(ptr, type, member)\
+    ((type *)((char *)(ptr)-(unsigned long)(&amp;amp;((type *)0)-&amp;gt;member)))
+
+#define INIT_NODE(ptr)\
+    (ptr)-&amp;gt;next = (ptr)-&amp;gt;prev = ptr;
+
+#define list_for_each(pos, head) \
+        for (pos = (head)-&amp;gt;next; pos != (head); \
+                        pos = pos-&amp;gt;next)
+
+#define list_for_each_safe(pos, n, head) \
+        for (pos = (head)-&amp;gt;next, n = pos-&amp;gt;next; pos != (head); \
+                    pos = n, n = pos-&amp;gt;next)
+
+void test_std_list(int run_num)
+{
+    int t1 = clock();
+    std::list&amp;lt;int&amp;gt; std_list;
+    for (int i = 0; i &amp;lt; run_num; i ++)
+    {
+        std_list.push_back(i);
+    }
+
+    printf(&quot;std_list: %.3lf ms\n&quot;, double(clock() - t1) / CLOCKS_PER_SEC * 1000);
+}
+
+void test_intrusive_list(int run_num)
+{
+    int t1 = clock();
+    list_node_t list_head;
+    INIT_NODE(&amp;amp;list_head);
+
+    for (int i = 0; i &amp;lt; run_num; i ++)
+    {
+        MyClass* c = (MyClass*) malloc(sizeof(MyClass));
+        c-&amp;gt;data = i;
+        list_add_tail(&amp;amp;c-&amp;gt;node, &amp;amp;list_head);
+    }
+    printf(&quot;intrusive_list: %.3lf ms\n&quot;, double(clock() - t1) / CLOCKS_PER_SEC * 1000);
+}
+
+int main(int argc, char** argv)
+{
+    if ( argc != 2 )
+    {
+        fprintf(stderr, &quot;argc is not 2&quot;);
+        return -1;
+    }
+    int run_num = atoi(argv[1]);
+    if ( 0 == run_num )
+    {
+        fprintf(stderr, &quot;argv[%s] is not num&quot;, argv[1]);
+        return -1;
+    }
+
+    test_std_list(run_num);
+    test_intrusive_list(run_num);
+
+    return 0;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;</code></pre>
+</div>
+</p>
+
+<p>另外，intrusive list还有几个特点，比如：</p>
+
+<ul>
+<li><p>移植性好，不像数据包在链表里面的实现，要么每种链表类型都写重复的代码，要么就使用template，但只能在C++中使用</p></li>
+<li><p>容易使用，你需要使用哪种类型的列表，就在这种类型中添加节点即可</p></li>
+<li><p>可以方便实现一份数据被多个链表共享的情况，有几个链表，就在类型下添加几个节点变量即可，多个链表直接不会互相干扰</p></li>
+</ul>
+
+
+<p>要不是看了那几篇博客，我对链表的认识还停留在教科书上，好歹也看了几本数据结构的书，其中不乏经典书籍，但从没有听说过intrusive list这种实现，看来很多知识，并不是光靠看书就能获取的。</p>
+
+<p>参考材料：</p>
+
+<ul>
+<li><p><a href="http://highscalability.com/blog/2013/5/22/strategy-stop-using-linked-lists.html">Strategy: Stop Using Linked-Lists</a></p></li>
+<li><p><a href="http://www.codeofhonor.com/blog/avoiding-game-crashes-related-to-linked-lists">Avoiding game crashes related to linked lists</a></p></li>
+<li><p><a href="http://rdc.taobao.com/blog/cs/?p=1675">Tips of Linux C programming</a></p></li>
+<li><p><a href="http://isis.poly.edu/kulesh/stuff/src/klist/">Linux Kernel Linked List Explained</a></p></li>
+</ul>
+
+
+<p>&mdash;EOF&mdash;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[双端堆]]></title>
+    <link href="http://quxiao.github.io/blog/2011/07/25/deap/"/>
+    <updated>2011-07-25T14:17:06+08:00</updated>
+    <id>http://quxiao.github.io/blog/2011/07/25/deap</id>
+    <content type="html"><![CDATA[<p>之前有同学问我，怎么在一个集合中高效的找到最大以及最小的元素？（注意，不是总是找最大元素，或者总是找最小元素，而是类似随机的查找最大以及最小元素。）一开始有几种想法：</p>
+
+<p>朴素的想法</p>
+
+<p>把集合遍历一遍，就可以知道最大或者最小元素了，查找复杂度是O(N)，查找并删除的复杂度也是O(N)。</p>
+
+<p>堆结构</p>
+
+<p>用两个堆，一个最大堆，一个最小堆，两个堆各存一份数据。查找最大元素，就在最大堆里面找；查找最小元素，就在最小堆里面找，他们的查找时间复杂度是O(1)，查找并删除的复杂度是O(logN)。但是，怎么“同步”这两个堆呢？即，在最大堆里面删除最小的元素，在最小堆里面删除最大的元素。我们知道的只是：最小（大）元素在最大（小）堆的叶子上。怎么判断节点是叶子呢？下标×2 > size就是叶子，但是叶子上面的元素又不是排序的，查找的复杂度只能是O(N)。所以，这种想法的复杂度还是O(N)。</p>
+
+<p>双端堆（灯，等灯等灯！）</p>
+
+<p>突然想到小倩同学之前好像说过一个叫双端堆的数据结构，可以同时高效的查找最大最小元素。问了下小倩，然后又发现原来最近看的《<a href="http://book.douban.com/subject/3576025/">数据结构基础</a>》上面，就有相关的内容，只不过里面不叫双端堆，而是叫做对称最小-最大堆。（我个人感觉这两种名称讲的就是同一个数据结构）它就可以在O(1)的复杂度的情况下，找到最小（大）元素；O(logN)的情况下找到并删除最小（大）元素。</p>
+
+<p><strong>双端堆的特点</strong></p>
+
+<p>双端堆是一棵满二叉树，最顶端的根是一个虚根，不存放数据。定义element(N)为节点N的所有子孙节点（不包括N本身）的集合，N的左孩子left(N)（如果有的话）是element(N)中最小的元素，右孩子right(N)（如果有的话）是element(N)中最大的元素。</p>
+
+<p>当以下条件成立时，它才是双端堆：</p>
+
+<ul>
+<li><p>P1：每个节点的元素小于等于它的右兄弟（如果有）</p></li>
+<li><p>P2：对于每个有祖父的节点N，其祖父节点的左孩子小于等于N</p></li>
+<li><p>P3：对于每个有祖父的节点N，其祖父节点的右孩子大于等于N</p></li>
+</ul>
+
+
+<p>比如下图就是一个双端堆</p>
+
+<p><img src="http://quxiao.github.io/images/2011-07-25-deap/image_thumb20.png" alt="image" /></p>
+
+<p>下面我们看看实现</p>
+
+<p>既然是一个满二叉树，那么就可以像堆一样有一个数组来表示，下标为n的节点的左右孩子的下标分别为2×n和2×n+1。</p>
+
+<p><strong>插入操作</strong></p>
+
+<p>现将该元素放在树的最后，看有没有满足性质P1，若违反，交换两节点的内容。再看是否满足上面讲的性质P2或者P3，如果满足，就将元素放在当前位置；若没有：</p>
+
+<ul>
+<li><p>违反P2，将当前节点与其祖父的左孩子交换，祖父的左孩子变成当前节点；</p></li>
+<li><p>违反P3，将当前节点与其祖父的右孩子交换，祖父的右孩子变成当前节点。</p></li>
+</ul>
+
+
+<p>重复进行判断，直至找到合适的位置。</p>
+
+<p>假设插入2，过程如下图：</p>
+
+<p><img src="http://quxiao.github.io/images/2011-07-25-deap/image_thumb21.png" alt="image" />
+=>
+<img src="http://quxiao.github.io/images/2011-07-25-deap/image_thumb22.png" alt="image" />
+=>
+<img src="http://quxiao.github.io/images/2011-07-25-deap/image_thumb23.png" alt="image" /></p>
+
+<p>代码如下:</p>
+
+<p><div>
+  <pre><code class='java'>&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;public void insert (T data) throws Exception
+{
+    int curIdx = ++ size;
+    if ( size &amp;gt;= HEAP_MAX_SIZE )
+        throw new Exception();
+    int grandpa;
+    int parentMin, parentMax;       //爷爷的左右孩子
+    while (true)
+    {
+        //是否有更大的左兄弟
+        if ( (curIdx &amp;amp; 1) == 1 &amp;amp;&amp;amp; data.compareTo(heap[curIdx-1]) &amp;lt; 0 )
+        {
+            heap[curIdx] = heap[curIdx-1];
+            -- curIdx;
+        }
+
+        grandpa = curIdx &amp;gt;&amp;gt; 2;
+        if ( grandpa == 0 )
+            break;
+        parentMin = grandpa &amp;lt;&amp;lt; 1;
+        parentMax = parentMin + 1;
+        if ( heap[parentMin].compareTo(data) &amp;gt; 0 )
+        {
+            heap[curIdx] = heap[parentMin];
+            curIdx = parentMin;
+        }
+        else if ( heap[parentMax].compareTo(data) &amp;lt; 0 )
+        {
+            heap[curIdx] = heap[parentMax];
+            curIdx = parentMax;
+        }
+        else
+            break;
+    }
+    heap[curIdx] = data;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;</code></pre>
+</div>
+</p>
+
+<p><strong>删除操作</strong></p>
+
+<p>这里面的删除操作应该是指找到并删除最小（大）元素，找到很容易，最小元素是根的左孩子，最大元素是根的右孩子。但是，删除之后怎么调整以满足双端堆的特性呢？我们以删除最小元素为例，算法如下：</p>
+
+<p>我们将树的最后一个元素暂时放在删除元素的位置，判断两个条件：</p>
+
+<p>是否满足P1，不满足则交换两元素</p>
+
+<p>与其左孩子、以及右兄弟节点的左孩子（如果有的话）比较，是否是最小的，不是则与最小的节点交换。（其左孩子和右兄弟的左孩子是两个次小的节点）</p>
+
+<p>重复以上判断，直至满足这两个条件。</p>
+
+<p>如果删除4的话，过程如下图：</p>
+
+<p><img src="http://quxiao.github.io/images/2011-07-25-deap/image_thumb24.png" alt="image" />
+=>
+<img src="http://quxiao.github.io/images/2011-07-25-deap/image_thumb25.png" alt="image" />
+=>
+<img src="http://quxiao.github.io/images/2011-07-25-deap/image_thumb26.png" alt="image" />
+=>
+<img src="http://quxiao.github.io/images/2011-07-25-deap/image_thumb27.png" alt="image" />
+=>
+<img src="http://quxiao.github.io/images/2011-07-25-deap/image_thumb28.png" alt="image" /></p>
+
+<p>代码如下：</p>
+
+<p><div>
+  <pre><code class='java'>&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;public T deleteMin () throws Exception
+{
+    if ( size &amp;lt; 2 )
+        throw new Exception();
+    if ( size == 2 )
+        return heap[size --];
+
+    T tmp;
+    int minChildIdx;
+    T data = heap[size --];
+    int curIdx = 2;
+    T ret = heap[curIdx];
+    while ( true )
+    {
+        if ( (curIdx &amp;amp; 1) == 0 &amp;amp;&amp;amp; curIdx + 1 &amp;lt;= size &amp;amp;&amp;amp; data.compareTo(heap[curIdx+1]) &amp;gt; 0 )
+        {
+            tmp = heap[curIdx+1];
+            heap[curIdx+1] = data;
+            data = tmp;
+        }
+        minChildIdx = curIdx &amp;lt;&amp;lt; 1;
+        if ( minChildIdx &amp;gt; size )
+            break;
+        if ( ((curIdx + 1) &amp;lt;&amp;lt; 1) &amp;lt;= size &amp;amp;&amp;amp; heap[minChildIdx].compareTo(heap[(curIdx+1)&amp;lt;&amp;lt;1]) &amp;gt; 0 )
+            minChildIdx = (curIdx + 1) &amp;lt;&amp;lt; 1;
+        if ( data.compareTo(heap[minChildIdx]) &amp;gt; 0 )
+        {
+            heap[curIdx] = heap[minChildIdx];
+            curIdx = minChildIdx;
+        }
+        else
+            break;
+    }
+    heap[curIdx] = data;
+    return ret;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;</code></pre>
+</div>
+</p>
+
+<p>所有代码可以在<a href="http://code.google.com/p/quxiao-source-code/source/browse/#svn%2Ftrunk%2Fdata_structure%2FSMMH%2Fsrc">这里</a>看到。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[AVL树初步实现]]></title>
+    <link href="http://quxiao.github.io/blog/2011/07/21/avl_tree_implimentation/"/>
+    <updated>2011-07-21T21:12:20+08:00</updated>
+    <id>http://quxiao.github.io/blog/2011/07/21/avl_tree_implimentation</id>
+    <content type="html"><![CDATA[<p>这两天复习数据结构，看到AVL树这一部分，之前这部分一直处于“纸上谈兵”的阶段，表示有些遗憾。趁着最近比较闲，把它实现一下！</p>
+
+<p>还是先讲一下AVL树的基本概念吧。其实，AVL树就是二叉树，与普通二叉树不同的是，它能通过某种操作（“旋转”）使得树保持几乎平衡，这里就是指左子树和右子树的树高差的绝对值&lt;=1。当二叉树是平衡的情况下，在树上的搜索效率就会提高。极端情况下，能从O(N)降到O(logN)。</p>
+
+<p>OK，那么又有哪几种不平衡的情况呢？我们来看一下下面几种情况：</p>
+
+<p>右子树的右子树太“深”</p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/07/image.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/07/image_thumb.png" alt="image" /></a></p>
+
+<p>树往一边倾斜，这是一种常见的不平衡状态。比如把一个已排序的数据插入二叉树就是这种情况。遇到这种情况，如果可以把k2“提”起来就好了。很简单，我们可以把k2作为树根，k1做k2的左孩子，再把B当作k1的右子树。旋转之后可以得到：</p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/07/image1.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/07/image_thumb1.png" alt="image" /></a></p>
+
+<p>这样，树又基本平衡了。左子树的左子树太深的情况可依此类推。这两种情况成为单旋转。</p>
+
+<p>还有一种情况，右子树的左子树太“深”</p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/07/image2.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/07/image_thumb2.png" alt="image" /></a></p>
+
+<p>这样就k2不好“提”了，因为旋转之后，B子树的树高没有改变。把树描述的更加详细一些：</p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/07/image3.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/07/image_thumb3.png" alt="image" /></a> => <a href="http://www.qxavier.me/wp-content/uploads/2011/07/image4.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/07/image_thumb4.png" alt="image" /></a></p>
+
+<p>我们的目标是把k3以及BC放的高一些，以降低整体树高。因为k1&lt;=k3&lt;=k2，那可否让k3来做树根呢？k3做了树根，k1和k2是其左右孩子，AD子树可以不变，B可以作为k1右子树，C可以作为k2左子树，这样就搞定了！</p>
+
+<p>同样，左子树的右子树太深的情况也是类似。这两种情况成为双旋转。</p>
+
+<p>好，用代码实现这些操作！</p>
+
+<p>根据单旋转的图例，两步操作就可以完成：</p>
+
+<ol>
+<li><p> k2的左指针指向k1</p></li>
+<li><p> k1的右指针指向B</p></li>
+</ol>
+
+
+<p>代码实现就是这样：</p>
+
+<pre><code>AVLTree* singleRotateWithRight(AVLTree* pNode)
+{
+    if ( pNode == NULL || pNode-&gt;right == NULL )
+        return NULL;
+    AVLTree* rightNode = pNode-&gt;right;
+    pNode-&gt;right = rightNode-&gt;left;
+    rightNode-&gt;left = pNode;
+
+    pNode-&gt;height = max(getHeight(pNode-&gt;left), getHeight(pNode-&gt;right)) + 1;
+    rightNode-&gt;height = max(getHeight(rightNode-&gt;left), getHeight(rightNode-&gt;right)) + 1;
+
+    return rightNode;
+}
+</code></pre>
+
+<p>再看双旋转的实现，很奇妙的是，一个双旋转可以用两个但旋转来代替！</p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/07/image5.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/07/image_thumb5.png" alt="image" /></a>=><a href="http://www.qxavier.me/wp-content/uploads/2011/07/image6.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/07/image_thumb6.png" alt="image" /></a> =><a href="http://www.qxavier.me/wp-content/uploads/2011/07/image7.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/07/image_thumb7.png" alt="image" /></a></p>
+
+<p>实现起来相当简单：</p>
+
+<pre><code>AVLTree* doubleRotateWithRight (AVLTree* pNode)
+{
+    pNode-&gt;right = singleRotateWithLeft(pNode-&gt;right);
+    return singleRotateWithRight(pNode);
+}
+</code></pre>
+
+<p>插入操作怎么实现呢？其实就是在普通二叉树的插入操作之后，加入判断是否不平衡，若不平衡，判断是哪种情况，进行相应旋转操作。</p>
+
+<pre><code>AVLTree* insert(int data, AVLTree* pNode)
+{
+    if ( pNode == NULL )
+    {
+        pNode = new AVLTree();
+        pNode-&gt;data = data;
+        pNode-&gt;height = 0;
+        pNode-&gt;left = pNode-&gt;right = NULL;
+    }
+    else if ( data &lt; pNode-&gt;data )
+    {
+        pNode-&gt;left = insert(data, pNode-&gt;left);
+        if ( getHeight(pNode-&gt;left) - getHeight(pNode-&gt;right) == 2 )
+        {
+            if ( data &lt; pNode-&gt;left-&gt;data )
+            {
+                pNode = singleRotateWithLeft(pNode);
+            }
+            else
+            {
+                pNode = doubleRotateWithLeft(pNode);
+            }
+        }
+    }
+    else if ( data &gt; pNode-&gt;data )
+    {
+        pNode-&gt;right = insert(data, pNode-&gt;right);
+        if ( getHeight(pNode-&gt;right) - getHeight(pNode-&gt;left) == 2 )
+        {
+            if ( data &gt; pNode-&gt;right-&gt;data )
+            {
+                pNode = singleRotateWithRight(pNode);
+            }
+            else
+            {
+                pNode = doubleRotateWithRight(pNode);
+            }
+        }
+    }
+
+    return pNode;
+}
+</code></pre>
+
+<p>好吧，先写这么多，性能对比以后再写。全部实现代码可以在<a href="http://code.google.com/p/quxiao-source-code/source/browse/#svn%2Ftrunk%2Fdata_structure%2FAVLTreeCPP%2FAVLTreeCPP">这里</a>看到。</p>
+]]></content>
+  </entry>
+  
+</feed>

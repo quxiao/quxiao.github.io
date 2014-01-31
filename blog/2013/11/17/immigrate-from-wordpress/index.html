@@ -1,0 +1,326 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>从Wordpres迁移至Jekyll(@github.io) - Xavier Blog</title>
+  <meta name="author" content="Xavier">
+
+  
+  <meta name="description" content="">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://quxiao.github.io/blog/2013/11/17/immigrate-from-wordpress">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Xavier Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Xavier Blog</a></h1>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:quxiao.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">从Wordpres迁移至Jekyll(@github.io)</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-11-17T00:00:00+08:00" pubdate data-updated="true"></time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>用上Wordpress之后，总体感觉还是很不错的，安装、设置、撰写文章都很方便，但仍然有几点不足：</p>
+
+<ol>
+<li>许多功能都需要插件支持，比如代码语法高亮，首页截取文章摘要</li>
+<li>图片和文章的存储方式，图片需要单独找图床、或者上传到服务器，而文章又是保存
+mysql数据库中的</li>
+<li>数据备份比较麻烦，每次都得使用插件或者人工备份数据</li>
+</ol>
+
+
+<p>因此决定将博客迁移到github上面，即免费又能使用<a href="http://jekyllrb.com/">Jekyll</a>这种静态博客，不需要配置DB、使用git发布、markdown语法。简单、方便、
+很极客！</p>
+
+<h2>建立github.io初始环境</h2>
+
+<p>首先，你需要一个github帐号，然后使用<a href="http://jekyllbootstrap.com/">JekyllBootstrap</a>建立一个初始化的环境，参照<a href="http://jekyllbootstrap.com/usage/jekyll-quick-start.html">教程</a>一步一步来，环境很快就可以搞定。你就可以在USERNAME.github.io上面看到环境了</p>
+
+<p>PS: 教程上面说需要建立的是USERNAME.github.com的repository，需要改为USERNAME.github.io才可以</p>
+
+<h2>备份Wordpress数据</h2>
+
+<p>迁移之前，先备份下数据，如果是使用VPN的话，SSH登录到服务器上，备份数据库</p>
+
+<pre><code>mysqldump -u root -p -h localhost BLOG_TABLE &gt; BLOG_TABLE.sql
+</code></pre>
+
+<p>另外一些静态文件，比如图片什么的，也备份一份</p>
+
+<h2>选择迁移工具</h2>
+
+<p>迁移工具方面，基本上是基于下面两种方式：</p>
+
+<ol>
+<li>使用WordPress导出的xml文件，导出md文档</li>
+<li>连接WordPress的Mysql数据库导出md文档</li>
+</ol>
+
+
+<p>Jekyll有自带的<code>jekyll-import</code>工具，很想使用官方的迁移工具，但我一直“未遂”，说是无法load到<code>jekyll-import</code>模块……</p>
+
+<p>另外，Jekyll官网上还推荐了三个第三方的工具：</p>
+
+<ol>
+<li><a href="https://github.com/thomasf/exitwp">Exitwp</a></li>
+<li><a href="http://vitobotta.com/how-to-migrate-from-wordpress-to-jekyll/">A great
+article</a> ，
+其实是一篇详细的迁移教程</li>
+<li><a href="https://github.com/theaob/wpXml2Jekyll">wpXml2Jekyll</a></li>
+</ol>
+
+
+<p>第二个太过详细，第三个只能运行在Windows下，所以看来只能选择第一个工具了。</p>
+
+<h2>导出WordPress XML文件</h2>
+
+<p>在WordPress的<code>export.php</code>页面上可以轻松导出XML文件。但这一步遇到一个小插曲：blog上面太多spam评论了，结果也会一并export出来，这些spam
+评论会导致后面工具导出markdown文档失败。因为blog上面真实的评论并不多，所以就考
+虑把评论都删除，网上查了资料，只需要将WordPress Mysql表中的<code>wp_comments</code>表删除即可</p>
+
+<pre><code>DROP TABLE wp_comments;
+</code></pre>
+
+<h2>使用exitwp</h2>
+
+<p>这个工具带有鲜明的“反WordPress”风格，使用起来还是比较简单的，按照项目首页的
+README操作即可，你的WordPress文章就变成一个个markdown文档了！</p>
+
+<p>不过使用途中发现有几个问题：</p>
+
+<ol>
+<li>在Mac上使用pip进行依赖安装后，那些依赖的库还是会import失败（是我打开方式不对吗……），还是得自己将一个个依赖下载后安装</li>
+<li>Exitwp虽然支持下载图片，但是文章中的图片链接却没有换过来</li>
+<li>导出后的md文档，对于正文中的特殊字符没有做处理，比如<code>*</code>，会导致<code>jekyll build</code>失败，需要手动修改</li>
+<li>由于系统编码原因，会导致使用exitwp以及jekyll失败，参考这篇<a href="http://www.webplay.pro/linux/set-locale-terminal-settings-mac-os-x.html">文章</a>
+，需要在<code>/etc/profile</code>添加<code>export LANG=zh_CN.UTF-8</code>以及<code>export
+LC_ALL=zh_CN.UTF-8</code></li>
+</ol>
+
+
+<h2>发布！</h2>
+
+<p>发布之前，现在本地使用<code>jekyll server</code>或者<code>rake --preview</code>在本地预览，没问题就可以发布了。</p>
+
+<p>好了，下面将生成的markdown文档以及图片，push到你的github空间即可！Just enjoy it! :)</p>
+
+<p>最后，在使用markdown编写中文文章时，发现jekyll默认的markdown引擎对于中文支持不
+是很好，对于对于全部为中文的列表对完全失效，需要将markdown引擎改为<code>rdiscount</code>
+，在<code>_config.yaml</code>中添加：</p>
+
+<pre><code>markdown: rdiscount
+</code></pre>
+
+<p>就可以了。</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Xavier</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-11-17T00:00:00+08:00" pubdate data-updated="true"></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/note/'>Note</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/10/28/effective-go-learning-note/" title="Previous Post: 《Effective Go》学习笔记">&laquo; 《Effective Go》学习笔记</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2013/11/22/presentation-based-development/" title="Next Post: “基于演示的开发”">“基于演示的开发” &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/01/31/test/">Test</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/30/information_retrievial_in_practice_note_architecture/">《Information Retrieval in Practice》笔记——整体架构</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/22/presentation-based-development/">“基于演示的开发”</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/quxiao">@quxiao</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'quxiao',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Xavier -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

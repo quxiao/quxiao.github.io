@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Digest | Xavier Blog]]></title>
+  <link href="http://quxiao.github.io/blog/categories/digest/atom.xml" rel="self"/>
+  <link href="http://quxiao.github.io/"/>
+  <updated>2014-01-31T11:56:48+08:00</updated>
+  <id>http://quxiao.github.io/</id>
+  <author>
+    <name><![CDATA[Xavier]]></name>
+    <email><![CDATA[quxiao86@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[32位？64位？]]></title>
+    <link href="http://quxiao.github.io/blog/2012/07/26/32e4bd8defbc9f64e4bd8defbc9f/"/>
+    <updated>2012-07-26T22:46:20+08:00</updated>
+    <id>http://quxiao.github.io/blog/2012/07/26/32e4bd8defbc9f64e4bd8defbc9f</id>
+    <content type="html"><![CDATA[<p>前两天室友买了台Dell Inspiron 14R，装机的时候向我要Win7 64位的安装盘，我略感惊讶，原来笔记本也普及64位了，我还停留在Windows XP的3.2G的“美好”回忆里。借此机会，正好看看平常所说的“32位”“64位”到底有什么不同。</p>
+
+<h1>到底是哪个地方的“位”？</h1>
+
+<p>本质上，讲的就是一个地方的“位”——CPU，也就是CPU进行一次运算支持的数据位数，或者是CPU一条基本指令的位数。</p>
+
+<p>CPU的位数决定了运算的范围或者说是精确程度，也决定了计算机内存的寻址范围。</p>
+
+<p>说到数字的精度，下面是IEEE754的标准中，32位浮点数（float）和64位浮点数（double）在内存中分别是如下形式：</p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2012/07/image.png"><img src="http://www.qxavier.me/wp-content/uploads/2012/07/image_thumb.png" alt="image" /></a></p>
+
+<p><img src="http://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/IEEE_754_Double_Floating_Point_Format.svg/618px-IEEE_754_Double_Floating_Point_Format.svg.png" alt="IEEE 754 Double Floating Point Format.svg" /></p>
+
+<p>其中，</p>
+
+<p>float的计算方式为<a href="http://www.qxavier.me/wp-content/uploads/2012/07/image1.png"><img src="http://www.qxavier.me/wp-content/uploads/2012/07/image_thumb1.png" alt="image" /></a>，数值范围为1.18 × 10−38 ～ 3.4 × 1038 。</p>
+
+<p>double的计算方式为<a href="http://www.qxavier.me/wp-content/uploads/2012/07/image2.png"><img src="http://www.qxavier.me/wp-content/uploads/2012/07/image_thumb2.png" alt="image" /></a>，数值范围为2.2250738585072014 x 10−308 ～ 1.7976931348623157 x 10308</p>
+
+<p>大家也可以看一下斯坦福大学的公开课《<a href="http://v.163.com/special/opencourse/paradigms.html">范式编程</a>》，前2节课讲的就是各种基础类型是如何在内存中存储的。</p>
+
+<p>至于寻址范围，理论上32位的寻址范围是2<sup>32</sup>，64位的就是2<sup>64</sup>。但实际用户能用到的并没有那么多，32位机器也就3.4G左右可供用户使用，而64位机器一般是支持100～200G左右的内存，64位Windows 7专业版支持最大192G。</p>
+
+<h1>CPU –> OS –> Application</h1>
+
+<p><img src="http://www.techsupportalert.com/files/images/pc_freeware/64bit-software/32-bit-64-bit-explained-442-322.jpg" alt="Processor, OS and application hierarchy" /></p>
+
+<p>CPU、OS和Application，是一个前者决定后者的关系。是否可以运行64位的应用程序，得看OS是不是64位的；能不能安装64位的OS，得看CPU（以前主板等硬件）是否是支持64位的。下表可以清晰的各种情况的CPU、OS和Application是否兼容的情况：</p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2012/07/image3.png"><img src="http://www.qxavier.me/wp-content/uploads/2012/07/image_thumb3.png" alt="image" /></a></p>
+
+<p>&mdash;EOF&mdash;</p>
+
+<p><a href="http://www.techsupportalert.com/content/32-bit-and-64-bit-explained.htm">http://www.techsupportalert.com/content/32-bit-and-64-bit-explained.htm</a></p>
+
+<p><a href="http://en.wikipedia.org/wiki/IEEE_floating_point">http://en.wikipedia.org/wiki/IEEE_floating_point</a></p>
+
+<p><a href="http://v.163.com/special/opencourse/paradigms.html">http://v.163.com/special/opencourse/paradigms.html</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Linux压缩命令小结]]></title>
+    <link href="http://quxiao.github.io/blog/2010/06/27/linux-command-summary-compression/"/>
+    <updated>2010-06-27T11:04:10+08:00</updated>
+    <id>http://quxiao.github.io/blog/2010/06/27/linux-command-summary-compression</id>
+    <content type="html"><![CDATA[<p><strong>后缀 .tar</strong></p>
+
+<p>解压命令: tar -xvf InFile.tar</p>
+
+<p>压缩命令: tar -cvf OutFile.tar InFile</p>
+
+<p>(x——extract v——verbose  c——create   f——file)</p>
+
+<p><strong>后缀 .tar.gz</strong></p>
+
+<p>解压命令: tar -zxvf InFile.tar.gz</p>
+
+<p>压缩命令: tar -zcvf OutFile.tar.gz InFile</p>
+
+<p>(z——gzip)</p>
+
+<p><strong>后缀 .tar.bz2</strong></p>
+
+<p>解压命令: tar -jxvf InFile.tar.bz2</p>
+
+<p>压缩命令: tar -jcvf OutFile.tar.bz2 InFile</p>
+
+<p>(j——bzip2)</p>
+
+<p><strong>后缀 .tar.Z</strong></p>
+
+<p>解压命令: tar Zxvf InFile.tar.Z</p>
+
+<p>压缩命令: tar Zcvf OutFile.tar.Z InFile</p>
+
+<p><strong>后缀 .gz</strong></p>
+
+<p>解压命令: gzip -d InFile.gz 或 gunzip InFile.gz</p>
+
+<p>压缩命令: gzip InFile</p>
+
+<p>(d——decompress)</p>
+
+<p><strong>后缀 .zip</strong></p>
+
+<p>解压命令: unzip InFile.zip</p>
+
+<p>压缩命令: zip OutFile.zip InFile</p>
+
+<p><strong>后缀 .bz2</strong></p>
+
+<p>解压命令: bzip2 -d InFile.bz2 或 bunzip2 InFile.bz2</p>
+
+<p>压缩命令: bzip2 -z InFile</p>
+
+<p><strong>后缀 .Z</strong></p>
+
+<p>解压命令: uncompress InFile.Z</p>
+
+<p>压缩命令: compress InFile</p>
+
+<p><strong>后缀 .rar</strong></p>
+
+<p>解压命令: rar x InFile.rar</p>
+
+<p>压缩命令: rar a InFile</p>
+]]></content>
+  </entry>
+  
+</feed>

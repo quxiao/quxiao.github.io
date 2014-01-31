@@ -1,0 +1,319 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Memcached源码学习——item - Xavier Blog</title>
+  <meta name="author" content="Xavier">
+
+  
+  <meta name="description" content="item是memcached操作的最小单位，一个item包括以下数据： struct item 本身大小
+key (uint8_t)
+suffix (uint8_t)，内容是&#8221; %d %d\r\n&#8221;, flag, nbytes-2
+value
+CAS（optional, &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://quxiao.github.io/blog/2013/02/13/memcached_source_code_study_item">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Xavier Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Xavier Blog</a></h1>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:quxiao.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Memcached源码学习——item</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-02-13T22:03:13+08:00" pubdate data-updated="true">Feb 13<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>item是memcached操作的最小单位，一个item包括以下数据：</p>
+
+<ul>
+<li>struct item 本身大小</li>
+<li>key (<code>uint8_t</code>)</li>
+<li>suffix (<code>uint8_t</code>)，内容是&#8221; %d %d\r\n&#8221;, flag, nbytes-2</li>
+<li>value</li>
+<li>CAS（optional, <code>uint64_t</code>）
+(参考<code>do_item_alloc</code> &amp;&amp; <code>item_make_header</code>)</li>
+</ul>
+
+
+<p>与item相关的操作有以下几种</p>
+
+<h1>分配item</h1>
+
+<p>流程如下：</p>
+
+<ol>
+<li>确定item大小——ntotal</li>
+<li>找到合适的slab</li>
+<li>看该slab的（LRU）tails中是否有item
+
+<ul>
+<li>如果tails没有，在该slab上申请ntotal大小的内存</li>
+<li>如果a) tails上面有item，并且b)其引用计数（refcount）为0，c)item是过期的（time和exptime），那么
+
+<ul>
+<li>重新计算这个slab上面分配的总item大小，</li>
+<li>更新关联数组（do_item_unlink_noblock），就是链表的删除节点操作。</li>
+<li>（注意：_hashitem_before()函数中，使用了&amp;引用操作）</li>
+</ul>
+</li>
+<li>如果slab上面试图分配但是分配不到，并且最tails上的item没有过期（expire）
+
+<ul>
+<li>如果不允许将item给evict，return NULL</li>
+<li>否则，a) 只好把这个tails上的item给evict掉; b) 重新计算这个slab上面分配的总item大小; c) 删除关联数组中的该item节点</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>初始化item各个字段</li>
+</ol>
+
+
+<h1> free item</h1>
+
+<ol>
+<li>当一个item的引用计数为0时，就将这个item“释放”（其实没有真正的释放）</li>
+<li>计算item的大小ntotal</li>
+<li>判断是在哪个<code>slab_class</code>上</li>
+<li>在该<code>slab_class</code>上，释放ntotal大小的空间（之前的slab上释放空间的操作）</li>
+</ol>
+
+
+<h1>hashtable &amp;&amp; heads &amp;&amp; tails</h1>
+
+<p>当对item进行创建、删除等操作的时候，除了在slab上进行申请、释放空间之外，还需要更新以下数据：</p>
+
+<ul>
+<li>item的time和flag</li>
+<li>全局stats</li>
+<li><code>primary_hashtable</code></li>
+<li>与item对应的slab的heads和tails数组</li>
+</ul>
+
+
+<p>其中，</p>
+
+<p>time就是当前创建时间，flag表示item目前的状态（TODO）</p>
+
+<p><code>primary_hashtable</code>是一个<code>item**</code>结构
+<code>primary_hashtable</code>的大小是2 ^ hashpower，hashpower默认大小为16
+item与<code>primary_hashtable</code>的对应关系为：</p>
+
+<pre><code>hash_key(item) &amp; (2^hashporwer - 1)
+</code></pre>
+
+<p>heads和tails数组用于记录每一个<code>slab_class</code>的<code>item*</code>的链表，用于进行LRU淘汰，所以说，memcached的LRU算法是每个<code>slab_class</code>独立的。</p>
+
+<p>&mdash;EOF&mdash;</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">admin</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-02-13T22:03:13+08:00" pubdate data-updated="true">Feb 13<span>th</span>, 2013</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/source-reading/'>Source Reading</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/02/03/memcached_source_code_study_slab_struct_and_operation/" title="Previous Post: memcached源码学习——Slab结构及操作">&laquo; memcached源码学习——Slab结构及操作</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2013/04/08/shell_and_python_in_daily_work_part1_text_processing/" title="Next Post: 日常工作中用到的Shell/Python命令——文本篇">日常工作中用到的Shell/Python命令——文本篇 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/01/31/test/">Test</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/30/information_retrievial_in_practice_note_architecture/">《Information Retrieval in Practice》笔记——整体架构</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/22/presentation-based-development/">“基于演示的开发”</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/quxiao">@quxiao</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'quxiao',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Xavier -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

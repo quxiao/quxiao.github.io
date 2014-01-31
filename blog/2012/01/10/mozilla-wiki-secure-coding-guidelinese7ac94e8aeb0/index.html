@@ -1,0 +1,283 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Mozilla Wiki Secure Coding Guidelines笔记 - Xavier Blog</title>
+  <meta name="author" content="Xavier">
+
+  
+  <meta name="description" content="最近网站安全问题频发啊，我在某技术论坛上的帐号也沦陷了（虽然N年不用了）。自己赶紧补补这方面的知识，重点看了下Mozilla Wiki中的Secure Coding Guidelines，记下一些重点和之前忽略的地方。 密码怎么设计？ 密码设计原则 最好是8位或8位以上
+要有数字、字母的组合， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://quxiao.github.io/blog/2012/01/10/mozilla-wiki-secure-coding-guidelinese7ac94e8aeb0">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Xavier Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Xavier Blog</a></h1>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:quxiao.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Mozilla Wiki Secure Coding Guidelines笔记</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-01-10T12:04:52+08:00" pubdate data-updated="true">Jan 10<span>th</span>, 2012</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>最近网站安全问题频发啊，我在某技术论坛上的帐号也沦陷了（虽然N年不用了）。自己赶紧补补这方面的知识，重点看了下Mozilla Wiki中的Secure Coding Guidelines，记下一些重点和之前忽略的地方。</p>
+
+<h1>密码怎么设计？</h1>
+
+<p>密码设计原则</p>
+
+<ul>
+<li><p>最好是8位或8位以上</p></li>
+<li><p>要有数字、字母的组合，最好是包含字母大小写和特殊字符</p></li>
+<li><p>设置密码黑名单，禁止用户注册过于简单的密码，以防止黑客通过社会工程学猜到密码</p></li>
+</ul>
+
+
+<p>之前做项目只想到第一条，而且还是只要求6位。要是用户只注册含有数字的6为密码，那就可以被轻易破解了。人人网都没有做到以上全部，我的人人密码就是6位数字。。。虽说密码设计应该是用户自己的事情，但是简单的密码实在是太好破解了，还是最好引导用户设计出相对复杂的密码比较好。</p>
+
+<h1>密码怎么保存？</h1>
+
+<p>密码应该用<a href="http://en.wikipedia.org/wiki/HMAC">hmac</a>+<a href="http://en.wikipedia.org/wiki/Bcrypt">bcrypt</a>进行加密保存。</p>
+
+<p>简单的说，hmac是通过含有密钥的hash算法，生成消息认证码（Message Authentication Code），可以进行数据一致性检测和消息认证；bcrypt是一种较“慢”的hash算法，这样可以使得暴力枚举破解的时间成本极大提升。</p>
+
+<p>bcrypt的Python实现<a href="http://www.mindrot.org/projects/py-bcrypt/">py-bcrypt</a>和Java实现<a href="http://www.mindrot.org/projects/jBCrypt/">jBCrypt</a>。</p>
+
+<p>我感觉，即使不用Mozilla推荐的hmac+bcrypt的策略，至少也应该是用md5和sha来保存的。明文是绝对不允许的，否则一抓包，用户名和密码就搞到手了。让黑客暴力破解出密码可能不是你的错，但是直接把密码告诉黑客，就是你的不对了。</p>
+
+<h1>输入是在客户端验证，还是在服务端验证？</h1>
+
+<p>都要！因为即使有客户端的js验证，用户也可以禁用浏览器的js功能，将“脏”数据传到服务端。</p>
+
+<p>在客户端验证，是为了有很好的用户体验，避免什么数据都要先提交到服务端，然后再告诉你提交的数据有误；在服务端验证，则是加上了第二把锁，并且，有的数据是一定要到服务端才能检测的，比如帐号密码。</p>
+
+<p>另外，在验证输入时，应该检测符合要求的格式，即“<strong>accept known good</strong>”，而不是检测不符合要求的格式，即“reject known bad”。符合要求的格式是可以设计全面的，它的补集则不可以。</p>
+
+<h1>输出编码</h1>
+
+<p>输出编码是防止XSS和各种注入的首要手段。（输入验证是次要手段）</p>
+
+<pre><code>输出编码就是将一些HTML、JS、XML等格式中的特殊字符进行转义，比如将&lt;script&gt;转化为&amp;lt;script&amp;gt;。这样，即使用户在之前的输入中填写了恶意代码，等到系统显示的时候，它也不会被执行了。
+</code></pre>
+
+<p>在进行SQL查询时，应该使用参数化的SQL语句（parameterized queries），千万不要使用字符串拼接来进行SQL查询（貌似之前的项目绝大部分都是这么做的 :( ）。一些ORM（比如Hibernate）可以阻止一部分的SQL注入，但是在一些情况下，ORM仍然会使用native SQL，所以ORM不是万能的。</p>
+
+<h1>访问控制</h1>
+
+<p>应该防止一些URL暴露保密的内容，即使你没有提供给用户，一些用户也会有意无意的访问到那些URL（比如通过枚举）。设计某个Web工程的时候，应该先要按照某种原则设计好URL目录，然后根据不同的路径设计不同的访问权限，比如可以通过url filter实现。</p>
+
+<p>安全可是永恒的话题，先写这么多，以后还要在实践中慢慢领悟。</p>
+
+<p>&mdash;EOF&mdash;</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">admin</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-01-10T12:04:52+08:00" pubdate data-updated="true">Jan 10<span>th</span>, 2012</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/note/'>Note</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2012/01/01/e58699e59ca82011e588b02012/" title="Previous Post: 写在2011到2012">&laquo; 写在2011到2012</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2012/01/30/operate_hbase_with_jython/" title="Next Post: 使用Jython操作HBase">使用Jython操作HBase &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/01/31/test/">Test</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/30/information_retrievial_in_practice_note_architecture/">《Information Retrieval in Practice》笔记——整体架构</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/22/presentation-based-development/">“基于演示的开发”</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/quxiao">@quxiao</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'quxiao',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Xavier -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

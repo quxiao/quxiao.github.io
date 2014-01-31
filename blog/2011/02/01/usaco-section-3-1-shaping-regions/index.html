@@ -1,0 +1,252 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>USACO Section 3.1 Shaping Regions - Xavier Blog</title>
+  <meta name="author" content="Xavier">
+
+  
+  <meta name="description" content="一道几何题，解决方法很容易想到，不过要细心。 随着输入的顺序，将矩形一个个放入集合，如果新的矩形与集合中的旧矩形相交，就将旧矩形分解，删除旧矩形，放入新矩形和分解的矩形。 设矩形R1、R2，宽和高分别为(W1, H1)和(W2, H2)，两矩形中心坐标分别为(X1, Y1)以及(X2, Y2)。 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://quxiao.github.io/blog/2011/02/01/usaco-section-3-1-shaping-regions">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Xavier Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Xavier Blog</a></h1>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:quxiao.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">USACO Section 3.1 Shaping Regions</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-02-01T20:54:47+08:00" pubdate data-updated="true">Feb 1<span>st</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>一道几何题，解决方法很容易想到，不过要细心。</p>
+
+<p>随着输入的顺序，将矩形一个个放入集合，如果新的矩形与集合中的旧矩形相交，就将旧矩形分解，删除旧矩形，放入新矩形和分解的矩形。</p>
+
+<p>设矩形R1、R2，宽和高分别为(W1, H1)和(W2, H2)，两矩形中心坐标分别为(X1, Y1)以及(X2, Y2)。判断两矩形是否相交（也就是是否有面积相重合），就看两矩形中心坐标的竖直和水平距离是否小于两矩形高的和的一半以及两矩形宽的和的一半。即：</p>
+
+<p>( |X1 &ndash; X2| &lt; (W1 + W2) / 2 ) &amp;&amp; ( |Y1 &ndash; Y2| &lt; (H1 + H2) / 2 )</p>
+
+<p>如果条件满足，R1和R2即相交。</p>
+
+<p>那相交会有几种情况呢？我想到了16种：</p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/02/image.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/02/image_thumb.png" alt="image" /></a></p>
+
+<p>根据不同的情况，可以将原来的矩形分解为0～4个小矩形，这样就可以解出来了。</p>
+
+<p>（做几何题可真费草稿纸啊，看来以后得学学matlab了，低碳、环保！）</p>
+
+<p>另外，USACO还有一种解法，就是将矩形的四条边进行离散化处理，将线段排序，然后再依次扫描，大体思路是这样的，具体细节没怎么看。</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">admin</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-02-01T20:54:47+08:00" pubdate data-updated="true">Feb 1<span>st</span>, 2011</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/usaco/'>USACO</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2011/01/30/usaco-section-3-1-humble-numbers/" title="Previous Post: USACO Section 3.1 Humble Numbers">&laquo; USACO Section 3.1 Humble Numbers</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2011/02/12/usaco-section-3-1-stamps/" title="Next Post: USACO Section 3.1 Stamps">USACO Section 3.1 Stamps &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/01/31/test/">Test</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/30/information_retrievial_in_practice_note_architecture/">《Information Retrieval in Practice》笔记——整体架构</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/22/presentation-based-development/">“基于演示的开发”</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/quxiao">@quxiao</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'quxiao',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Xavier -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

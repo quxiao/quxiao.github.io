@@ -1,0 +1,1200 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Xavier Blog</title>
+  <meta name="author" content="Xavier">
+
+  
+  <meta name="description" content="题目大意：一句话！已知二叉树的前序和中序，求二叉树的后序，树的节点数不超过26。 二叉树的前序的节点处理顺序为：根节点、左子树、右子树；
+中序为：左子树、根节点、右子树；
+后序为：左子树、右子树、根节点。 因为前序的第一个元素是根节点，则可以找到根节点在中序中的位置idx， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://quxiao.github.io/blog/page/5">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Xavier Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Xavier Blog</a></h1>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:quxiao.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/05/23/usaco-section-3-4-american-heritage/">USACO Section 3.4 American Heritage</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-05-23T15:20:05+08:00" pubdate data-updated="true">May 23<span>rd</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>题目大意：一句话！已知二叉树的前序和中序，求二叉树的后序，树的节点数不超过26。</p>
+
+<p>二叉树的前序的节点处理顺序为：根节点、左子树、右子树；
+中序为：左子树、根节点、右子树；
+后序为：左子树、右子树、根节点。</p>
+
+<p>因为前序的第一个元素是根节点，则可以找到根节点在中序中的位置idx，这样idx左边的序列为左子树、idx右边的就为右子树。根据左右子树的个数，就可以知道其在前序中的相应位置，然后就可以递归的处理左右子树了并得到它们的后序排列，最终的答案就为：左子树的后序 + 右子树的后序 + 根节点。当子问题足够小的时候，即前序、中序长度为1或0时，后序就是前序或者中序。</p>
+
+<p>题目中例子的解题顺序如下图：</p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/05/image1.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/05/image_thumb1.png" alt="image" /></a></p>
+
+<p>关键代码如下：</p>
+
+<pre><code>string getPostOrder(string preOrder, string inOrder)
+{
+     assert(preOrder.length() == inOrder.length());
+     if ( preOrder.length() == 1 || preOrder.length() == 0 )
+          return preOrder;
+     int rootIdx;
+     rootIdx = inOrder.find_first_of(preOrder[0]);
+     assert(rootIdx != string::npos);
+     string leftTree, rightTree;
+     leftTree = getPostOrder(preOrder.substr(1, rootIdx), inOrder.substr(0, rootIdx));
+     rightTree = getPostOrder(preOrder.substr(rootIdx+1, preOrder.length()-rootIdx-1), inOrder.substr(rootIdx+1, preOrder.length()-rootIdx-1));
+     return leftTree + rightTree + preOrder[0];
+}
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/05/18/usaco-section-3-4-closed-fences/">USACO Section 3.4 Closed Fences</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-05-18T18:47:14+08:00" pubdate data-updated="true">May 18<span>th</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>题目大意：</p>
+
+<pre><code>由N（3 &lt; N &lt; 200）个点构成的多边形，问1) 该多边形是否为简单多边形，2) 从某一点(x, y)可以看到哪些边？看到边的任意部分就算可以看到该边，但如果从(x, y)只能看到边的某一顶点不算能看到。
+
+             几乎没怎么做过计算几何，鸭梨好大啊！第一问比较简单，只要线段之间没有相互相交（不含端点）就可以了。第二问没直接想到思路，参考了N种方法，终于找到一种好理解且实现简单的解法。看到这题，最直观的想法就是从观察点发出射线，找到与其相交且截距最近的线段就可以啦。但是，射线应该有哪些方向呢？360度绕一圈，效率低且精度无法掌握。较好的方法是将观察点(x, y)与每个顶点(xi, yi)连接，再将该射线按顺时针和逆时针转动很小的角度，通过这些射线找到的截距最短的线段集合就是最终的答案（没找到理论基础，只是直觉上感觉是对的）。最终答案需要排序，不过这题的排序规则没什么意思，其实就是在顺序输出的基础上，有两个例外：如果第n-1条线段可以被看到，交换第n-1条线段的两个顶点；如果第n-1和n-2条线段都可以被看到，交换两条线段。
+
+这道题用到了大量的计算几何模板，不用不知道，一用吓一跳。里面有一些逻辑错误和精度问题。
+</code></pre>
+
+<p>比如以下两个算法：</p>
+
+<pre><code>/* 判断点p是否在线段l上
+条件：(p在线段l所在的直线上)&amp;&amp; (点p在以线段l为对角线的矩形内) */
+bool online(LINESEG l,POINT p)
+{
+     return ((multiply(l.e, p, l.s)==0)
+          &amp;&amp; ( ( (p.x-l.s.x) * (p.x-l.e.x) &lt;=0 ) &amp;&amp; ( (p.y-l.s.y)*(p.y-l.e.y) &lt;=0 ) ) );
+}
+
+
+
+
+// 如果线段l1和l2相交，返回true且交点由(inter)返回，否则返回false
+bool intersection(LINESEG l1,LINESEG l2,POINT &amp;inter)
+{
+     LINE ll1,ll2;
+     ll1=makeline(l1.s,l1.e);
+     ll2=makeline(l2.s,l2.e);
+     if(lineintersect(ll1,ll2,inter)) return online(l1,inter);    //!!!!!
+     else return false;
+}
+</code></pre>
+
+<p>第一个算法的精度有问题，应该把精度调低一些，把0换成EP(1e-10)：</p>
+
+<pre><code>bool online(LINESEG l,POINT p)
+{
+     return (abs(multiply(l.e, p, l.s) &lt;= EP )          //!!!!!
+          &amp;&amp; ( ( (p.x-l.s.x) * (p.x-l.e.x) &lt;= EP ) &amp;&amp; ( (p.y-l.s.y)*(p.y-l.e.y) &lt;= EP ) ) );
+}
+</code></pre>
+
+<p>第二个算法逻辑有问题，求两个线段是否相交，它的思想是先求两线段所在的直线是否相交，再看交点是否在一条直线上，但如果是下图中的情况，那答案就是不对的。</p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/05/image.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/05/image_thumb.png" alt="image" /></a></p>
+
+<p>所以我改成了：</p>
+
+<pre><code>// 如果线段l1和l2相交，返回true且交点由(inter)返回，否则返回false
+bool intersection(LINESEG l1,LINESEG l2,POINT &amp;inter)
+{
+     LINE ll1,ll2;
+     ll1=makeline(l1.s,l1.e);
+     ll2=makeline(l2.s,l2.e);
+     if(lineintersect(ll1,ll2,inter)) return online(l1,inter) &amp;&amp; online(l2, inter);
+     else return false;
+}
+</code></pre>
+
+<p>经过修改，这题终于AC了！关键代码如下：</p>
+
+<pre><code>int nearestLine (LINESEG ray, LINESEG* lines, int num)
+{
+     double curMinDis, tmp;
+     int minIdx, i;
+     POINT interPoint;
+
+     curMinDis = INF;
+     minIdx = -1;
+     //every fence
+     for (i = 0; i &lt; num; i ++)
+     {
+          if ( intersection(lines[i], ray, interPoint) &amp;&amp; (tmp=dist(ray.s, interPoint)) &lt;= curMinDis)
+          {
+               curMinDis = tmp;
+               minIdx =  i;
+          }
+     }
+     return minIdx;
+}
+
+void FindFence ()
+{
+     int k = 200;          //射线延长倍数
+     double delta = 1e-10;     //旋转角度
+     LINESEG ray, line1;
+     POINT interPoint;
+     int i, j;
+     double curMinDis, tmp;
+     int minIdx;
+
+     memset(visible, 0, sizeof(visible));
+     ray.s = ob;
+     //every point
+     for (i = 0; i &lt; n; i ++)
+     {
+          ray.e = point[i];
+
+          ray.e.x = k * (ray.e.x - ray.s.x) + ray.s.x;
+          ray.e.y = k * (ray.e.y - ray.s.y) + ray.s.y;
+
+          line1.s = ray.s;
+          line1.e = rotate(ray.s, delta, ray.e);
+          minIdx = nearestLine(line1, fence, n);
+          if ( minIdx != -1 )
+          {
+               visible[minIdx] = 1;
+          }
+
+          line1.e = rotate(ray.s, -1 * delta, ray.e);
+          minIdx = nearestLine(line1, fence, n);
+          if ( minIdx != -1 )
+          {
+               visible[minIdx] = 1;
+          }
+     }
+}
+
+void Output ()
+{
+     int i, cnt = 0;
+
+     for (i = 0; i &lt; n; i ++)
+          if ( visible[i] )
+               ++ cnt;
+
+     printf("%dn", cnt);
+     if ( visible[n-1] )
+     {
+          swap(fence[n-1].s, fence[n-1].e);
+          if ( visible[n-2] )
+               swap(fence[n-2], fence[n-1]);
+     }
+     for (i = 0; i &lt; n; i ++)
+     {
+          if ( visible[i] )
+          {
+               printf("%.0lf %.0lf %.0lf %.0lfn", fence[i].s.x, fence[i].s.y, fence[i].e.x, fence[i].e.y);
+          }
+     }
+}
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/05/10/to-parallel-computing-from-the-scala/">从Scala到并行计算</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-05-10T23:37:29+08:00" pubdate data-updated="true">May 10<span>th</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>这段时间闲来无事，正在学习Scala语言。Scala语言，简单的说，就是一种运行在JVM上的具有面向对象和函数式编程特性的语言，具体介绍可以看到<a href="http://www.scala-lang.org">官方网站</a>看看。至于当初为什么决定学Scala，还是受到了<a href="http://www.infoq.com/cn/news/2008/07/scala-vs-erlang">《多核危机：Scala vs. Erlang》</a>这篇文章的“诱惑”。</p>
+
+<p>为什么现在有关Scala这样的重视并行计算的语言会受到越来越多的关注？我觉得原因有两点：一是性能，二是成本。</p>
+
+<p>性能，很好理解的。企业随着规模越来越大，用户对于系统服务的请求频率也会越来越高。对于企业来说，系统服务的请求响应肯定是越短越好，系统的并发程度肯定是越高越好。但是对于已有的硬件条件、系统框架，性能达到了瓶颈，这时必然要考虑改变已有的一个或者多个因素，以达到性能的再次提升。改变系统的框架、所实现的语言，这是一种解决方案。就像当年淘宝的系统是用perl完成的，结果当系统和用户规模提高时，系统的性能就无法满足要求了，于是淘宝决定把原有系统推翻，改用Java的框架实现，问题得到了解决。现在，已经有一些企业，将原有的系统改为用Scala实现了。</p>
+
+<p>成本，有两个方面吧：硬件成本和开发维护成本。企业花大价钱买了多核的高性能服务器，结果发现使用已有的系统，服务器的资源使用率和性能都不高。或者，可以开发出性能更高的系统，但是开发难度巨大、潜在bug无数、可能迟迟不能交付。这两种关于成本的窘境，可能都是现在许多企业正在面临的，那么大家肯定都会寻找既能充分利用已有计算机硬件资源，开发难度又不大的语言或者某种解决方案。</p>
+
+<p>关于Scala在并行需求下的效率，我目前只是在概念上有所体会，今后要实际用实验测试一下看看，大家可以看看QCon上《<a href="http://www.qconbeijing.com/2010/download/dengcaoyuan-scala.pdf">并行需求下的Scala和Erlang比较</a>》这篇演讲。</p>
+
+<p>另外，Scala语言的一个特点是函数式编程，可以让我们用更严谨、更不易出错的方式表达问题，解决问题，使我们从平时的命令式语言的思维中跳跃出来，用另一个角度思考问题。说到这，我们还需要思考一下，目前大学里面上的计算机课程，是不是有些落后于目前业界的需求了？当外面的世界早已都是分布式计算、并行计算、多核编程的时候，大学里面的许多课程都还是重点考察学生对于某种语言的语法掌握情况，而不是用某种语言解决现实世界的问题的能力。:(</p>
+
+<p>今后的硬件（服务器、PC、手机、各种嵌入式设备）都是多核的，能够高校利用多核硬件资源、进行高性能并行计算的语言，用到的地方还是会很多的，我看好Scala语言！</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/05/02/sort-out-ideas/">整理一下思路</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-05-02T23:45:32+08:00" pubdate data-updated="true">May 2<span>nd</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>前段时间，经历了种种的不顺和纠结，有实习方面的，有“学术”方面的，也有个人感情方面的。还好，现在这些事情基本上都算过去了，整理一下思路，为最近这几个月作个初步计划。</p>
+
+<p><strong>编程</strong></p>
+
+<p>编程还是我们程序员的基本功的，每天至少要进行1～2小时的编程。最近在看<a href="http://zh.wikipedia.org/zh/Scala">Scala</a>语言，多编几个例子实践一下，然后做个小工程。有时间再做做<a href="http://train.usaco.org/usacogate">USACO</a>，看毕业前能不能把里面的训练题都做完。最后，抓住一切可以锻炼自己编程能力的机会！</p>
+
+<p><strong>读书</strong></p>
+
+<p>不能不读书啊，不管是专业书还是杂书。</p>
+
+<p>先看这些专业书籍吧：</p>
+
+<ul>
+<li><p>《Unix环境高级编程》</p></li>
+<li><p>《Programming in Scala》</p></li>
+<li><p>《编程之美》</p></li>
+</ul>
+
+
+<p>还想找几本关于软件构架方面的书，求推荐。</p>
+
+<p>杂书方面，先把白岩松的《幸福了吗》还有《智慧书》，然后再找其他的看</p>
+
+<p><strong>博客</strong></p>
+
+<p>要坚持写<a href="http://www.qxavier.me/">博客</a>，要有自己对于软件行业的看法（哪怕是错的），要多总结、多分析，不应只是复制已有的文字以及对于知识的初步概括，要写的有点深度才可以。</p>
+
+<p><strong>锻炼</strong></p>
+
+<p>每周进行2～3次健身，2～3次慢跑，周末有时间找人一起爬爬山。</p>
+
+<p><strong>英语</strong></p>
+
+<p>一直没有突破，但却从未放弃，还是从VOA入手吧，多听多写多读。还有就是口语，先把最近买的《疯狂口语900句》读完再说吧。</p>
+
+<p><strong>工作</strong></p>
+
+<p>最近找个实习是不大可能了，就安心准备8、9月份开始的招聘吧。得把专业相关的知识系统地复习一下了，数据结构、算法、设计模式、操作系统、数据库、网络，这些至少得过一遍。</p>
+
+<p><strong>个人感情</strong></p>
+
+<p>种种迹象表明，我还是个比较痴情的人的，另外本着<strike>宁滥勿缺</strike>宁缺勿滥的原则，所以如果没有十分合适的话，这件事还是先放一放吧。不该联系的人就不要再联系了，多花点时间在家人和朋友的身上。</p>
+
+<p><strong>“学术”</strong></p>
+
+<p>哦，对了，还有所谓的“学术”。虽然我对中国的学术已经表示有些失望了，虽然每次谈到中国的学术，我总有退学的冲动。但我还是尽力吧，坚持每天都看论文，多与导师讨论，把毕设搞好。（虽然我现在还是不知道我的毕设应该从何入手……）</p>
+
+<p>好了，思路整理的差不多了，下面就是做好时间规划，一项一项专心的去做吧！</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/04/29/chrome-plugin-web-browsing-time-statistics/">Chrome Plugin: 网页浏览时间统计</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-04-29T22:51:25+08:00" pubdate data-updated="true">Apr 29<span>th</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>前几天刚经过<a href="http://www.qxavier.me/2011/04/22/practice-u0026quotfarceu0026quot/">实习闹剧</a>，回到学校，导师暂时还没布置什么任务，比较无聊，于是突发奇想，准备搞个chrome插件玩玩。做个什么功能的插件呢？平时发现许多人（当然也包括我）总会把大把的时间花在一些网站上，做事情的效率变低下不说，还白白浪费了时间、浪费了生命，这样多不好啊！那就做个统计某些网页浏览时间的插件吧。用了三天的晚上空余时间，做了一个雏形。</p>
+
+<p>在option页面中，可以添加你想要监控的网站URL，如下图：</p>
+
+<p><a href="http://quxiao.github.io/images/2011-04-29-chrome-plugin-web-browsing-time-statistics/image_thumb6.png"><img src="http://quxiao.github.io/images/2011-04-29-chrome-plugin-web-browsing-time-statistics/image_thumb6.png" alt="image" /></a></p>
+
+<p>然后，你就可以向平时一样正常的浏览网页了。当想要查看浏览时间统计的时候，只需点击插件按钮即可。效果如下图：</p>
+
+<p><a href="http://quxiao.github.io/images/2011-04-29-chrome-plugin-web-browsing-time-statistics/image_thumb7.png"><img src="http://quxiao.github.io/images/2011-04-29-chrome-plugin-web-browsing-time-statistics/image_thumb7.png" alt="image" /></a></p>
+
+<p>统计信息通过饼图和柱状图展示，显示的是自使用该插件以来，你所花（或者称浪费）在你已监控网站上的时间，以及这些时间占你一生时间（假设你能活100年吧）的比例。</p>
+
+<p>Chrome插件开发起来倒还容易，就是javascript+HTML+CSS，熟悉web开发尤其是前端开发的人应该可以很快上手。我是好久没搞web前端开发了，开发时还花了不少时间复习。开发过程中，还用到了<a href="http://jquery.com/">jQuery</a>和<a href="http://www.highcharts.com/">Highcharts</a>，节省了不少开发时间啊。</p>
+
+<p>其实，我觉得这个插件并没什么技术含量。那为啥要做呢？原因有以下几点：</p>
+
+<ul>
+<li><p>我感觉这个点子不错</p></li>
+<li><p>培养自己的执行力</p></li>
+<li><p>作为“学术”之外的调剂
+反正，别让自己闲下来，至少别让自己把大把时间花在没有太多意义的事情上！有些事情，不管你喜欢不喜欢，都是要做的。不过，当你能有自己可以控制的时间，还是多做些更有意义的事情吧！（哎呀，貌似扯远了，最近比较火大 :)）</p></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/04/22/practice-u0026quotfarceu0026quot/">实习“闹剧”</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-04-22T01:48:06+08:00" pubdate data-updated="true">Apr 22<span>nd</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>这学期开始的时候，导师让我们写论文发表，自己试着写了一部分，但感觉很垃圾。三月底的时候，听说一家我十分想去的公司在招实习生，于是投了简历，经过电话面试，自己得到了实习的机会！好了，下一关，征求导师的同意。写邮件给导师，第二天导师回复了我。从他回复我的邮件可以看出，他是不太愿意我去，但没有明确说不能去，只是说“随便我”。我自认为搞定了，收拾了下行李，过了两天就出发了。</p>
+
+<p>虽然实习的公司在外地，也因为算是我第一次出远门，各种情况都需要适应，各种问题需要自己独立解决，但自打进了公司开始实习，我就感觉自己来对地方了，这就是我向往的地方！公司的氛围十分轻松，也十分单纯，重视技术，尊重有技术的工程师，公司里面的许多技术框架也都是自己研发的。在那里交流十分平等，没什么等级的概念，组织结构相对扁平化。不管是刚进来的实习生，还是某个团队的leader，大家都可以当面或者通过IM、邮件对某一问题进行讨论。看到几个看上去30多岁的员工对于某行代码进行讨论，那是常有的事。对于培训，公司做的也十分出色。公司会不定期通过邮件告知课程信息，你可以根据自己的兴趣或者所在团队的业务，选择是否参加。我们团队每隔1～2周也会让其中的一个成员给我们分享一下某个方面的技术问题。公司内网也有各种文档资源，你可以自由搜索、查阅。另外，公司的工作时间也十分宽松。不用打卡，一般早上9点到就可以了，晚上吃过晚饭，待一会儿就可以走了。（但我们这些新人一般会选择晚上10点钟以后走，没有人强迫我们，只是愿意待在公司再学点东西）</p>
+
+<p>经过一周左右的适应，打算正式开工了！不料，好景不长，导师打电话给我，把我训了一顿，说我未经同意擅自出去实习，还说如果不能按期毕业的话后果自负。我说，“当时您不是随便我吗？”他说，“你应该能听得出我这句话背后的意思。”我跟导师说尽量缩短实习时间，尽快回学校。但他的态度很强硬，甚至说可以去实习，不过每周都要给他汇报学术进展，两周不汇报的话就采取相应行动，而且还有在规定日期前发表一篇论文。身在屋檐下，哪能不低头啊，想想还是毕业要紧，只好跟公司说明了情况。公司这边没有为难我，很顺利的办理了离职，然后收拾收拾行李就回去了，一场闹剧就这样（暂时）结束了。</p>
+
+<p>虽然有可能就此跟导师的关系不会那么融洽了，虽然这次去实习还没拿到offer，但我一点没有因为当初选择去实习的决定而有丝毫的后悔，甚至感觉挺好玩的，因为至少我去了自己向往的地方，哪怕只待了短短十几天的时间而已。如果在生命中，发现了你向往的东西，是应该去追随的，哪怕可能因此付出巨大的代价。这就好像如果遇到一个你喜欢的女孩，就算之后自己会被拒绝，就算会把自己搞得很痛苦，那也还是要追求的啊！否则人生就没什么意思了。</p>
+
+<p>事情虽然暂时告一段落了，但是这场“闹剧”还是给了我一些思考和教训的：</p>
+
+<ul>
+<li><p>沟通很重要     <br/>
+如果当初跟导师好好沟通，了解了他真正的意思，或者他明确告诉我不可以去，那我也就不会去了，也就不会有这档子事了。另外，还要多想想对方的难处。其实，导师对我们还是不错的，和我们的关系其实很近，这次去实习做得的确有些不太“地道”。</p></li>
+<li><p>学生是弱势群体（尤其是研究生）     <br/>
+除了得到应有的学分以及完成毕业设计论文，导师对你的评价也是你是否可以毕业的重要因素。如果跟导师关系没处好，到时候导师给你个延期毕业，自己的很多事情就都会被耽误。即使导师整天让你研究你认为没什么用的科研，即使导师整天让你写XXX策划书，你所能做的只能是忍着，并且尽量把这些事情做好。</p></li>
+<li><p>找工作和搞科研是对立的     <br/>
+这其实是我们教研室的一个同学说的，对于那些以后不会读博或者不会去研究所的同学来说，事情就是这样的，因为你研究生阶段搞的所谓“研究”和你以后的工作是没什么关系的（除了“研究”给你带来的文凭和一份更好的工作之间的关系），而时间大家都是差不多的。所以，怎样在两者间把握一个平衡，就看个人的本事了。</p></li>
+</ul>
+
+
+<p>回学校大概还要跟导师再聊一两次，希望我们之间不要产生无法弥补的裂痕，理解万岁啊！</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/04/08/decorator_pattern/">Decorator模式初探</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-04-08T19:03:06+08:00" pubdate data-updated="true">Apr 8<span>th</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Decorator模式，又称装饰模式。在实际编程中，如果希望能在原有基础上动态的添加新的功能或者扩展已有功能，那么Decorator模式提供了一种很好的解决方案。Decorator模式如下图所示：</p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/04/image5.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/04/image_thumb5.png" alt="image" /></a></p>
+
+<p>具体的实现类ConcreteComponent和装饰类Decorator均实现了Component接口，装饰类含有一个Component类作为其成员。这样，当需要在ConcreteComponent基础上添加新的功能时，只需扩展Decorator形成具有某一特定功能的Decorator即可。由于不同的Decorator都是遵循Component接口，当需要扩展新功能时，在原有的Decorator上再套一层Decorator就可以啦。</p>
+
+<p>来用一个简单的例子解释一下吧。比如现在有个手机类SimplePhone，实现了Phone接口：</p>
+
+<pre><code>public interface Phone {
+    String getDescription();
+    int getCost();
+}
+
+package org.quxiao.phone;
+
+public class SimplePhone implements Phone {
+
+    @Override
+    public String getDescription() {
+        return "simple phone";
+    }
+
+    @Override
+    public int getCost() {
+        return 100;
+    }
+
+}
+</code></pre>
+
+<p>为了能动态增加功能，做一个抽象的Decorator：</p>
+
+<pre><code>public abstract class AbstractPhoneDecorator implements Phone {
+    protected Phone phone;
+
+    public AbstractPhoneDecorator(Phone phone)
+    {
+        this.phone = phone;
+    }
+}
+</code></pre>
+
+<p>现在需要给手机添加GPS模块，扩展抽象的Decorator：</p>
+
+<pre><code>public class GPSPhoneDecorator extends AbstractPhoneDecorator {
+
+    public GPSPhoneDecorator(Phone phone) {
+        super(phone);
+    }
+
+    @Override
+    public String getDescription() {
+        // TODO Auto-generated method stub
+        return phone.getDescription() + " and GPS";
+    }
+
+    @Override
+    public int getCost() {
+        // TODO Auto-generated method stub
+        return phone.getCost() + 100;
+    }
+
+}
+</code></pre>
+
+<p>同理，再添加蓝牙的模块：</p>
+
+<pre><code>public class BlueToothPhoneDecorator extends AbstractPhoneDecorator {
+
+    public BlueToothPhoneDecorator(Phone phone) {
+        super(phone);
+    }
+
+    @Override
+    public String getDescription() {
+        return phone.getDescription() + " and blue tooth";
+    }
+
+    @Override
+    public int getCost() {
+        return phone.getCost() + 200;
+    }
+
+}
+</code></pre>
+
+<p>这样，我们就可以给SimplePhone类动态的添加模块了</p>
+
+<pre><code>public class Main {
+
+    public static void main(String[] args) {
+        Phone simplePhone = new SimplePhone();
+        Phone GPSPhone = new GPSPhoneDecorator(simplePhone);
+        Phone myPhone = new GPSPhoneDecorator(new BlueToothPhoneDecorator(new SimplePhone()));
+
+        System.out.println("simplePhone description : " + simplePhone.getDescription());
+        System.out.println("simplePhone cost : " + simplePhone.getCost());
+        System.out.println("GPSPhone description : " + GPSPhone.getDescription());
+        System.out.println("GPSPhone cost : " + GPSPhone.getCost());
+        System.out.println("myPhone description : " + myPhone.getDescription());
+        System.out.println("myPhone cost : " + myPhone.getCost());
+    }
+}
+</code></pre>
+
+<blockquote><p>simplePhone description : simple phone
+simplePhone cost : 100
+GPSPhone description : simple phone and GPS
+GPSPhone cost : 200
+myPhone description : simple phone and blue tooth and GPS
+myPhone cost : 400</p></blockquote>
+
+<p>其实，Java I/O库中就是用了Decorator模式。</p>
+
+<p>在基于Stream的输入中，所有数据都抽象成InputStream类，其子类FilterInputStream就相当于InputStream的装饰类。<a href="http://download.oracle.com/javase/6/docs/api/java/io/BufferedInputStream.html">BufferedInputStream</a>, <a href="http://download.oracle.com/javase/6/docs/api/java/util/zip/CheckedInputStream.html">CheckedInputStream</a>, <a href="http://download.oracle.com/javase/6/docs/api/javax/crypto/CipherInputStream.html">CipherInputStream</a>, <a href="http://download.oracle.com/javase/6/docs/api/java/io/DataInputStream.html">DataInputStream</a>, <a href="http://download.oracle.com/javase/6/docs/api/java/util/zip/DeflaterInputStream.html">DeflaterInputStream</a>, <a href="http://download.oracle.com/javase/6/docs/api/java/security/DigestInputStream.html">DigestInputStream</a>,<a href="http://download.oracle.com/javase/6/docs/api/java/util/zip/InflaterInputStream.html">InflaterInputStream</a>, <a href="http://download.oracle.com/javase/6/docs/api/java/io/LineNumberInputStream.html">LineNumberInputStream</a>, <a href="http://download.oracle.com/javase/6/docs/api/javax/swing/ProgressMonitorInputStream.html">ProgressMonitorInputStream</a>, <a href="http://download.oracle.com/javase/6/docs/api/java/io/PushbackInputStream.html">PushbackInputStream</a>都扩展自FilterInputStream，每个都对应于一个特定的功能。比如哦BufferedInputStream具有缓存功能，DataInputStream可将读出基本（primitive）类型的数据。因此，当我们使用Java I/O库进行输入输出时，总会生成一堆的类，就像这样：</p>
+
+<pre><code>DataInputStream dis = new DataInputStream( new BufferedInputStream( new FileInputStream(FILE_LOC)));
+</code></pre>
+
+<p>之前一直不明白为什么Java的输入输出会这么麻烦，原来是因为用到了Decorator模式。现在明白了其中的原理，也觉得不那么复杂了。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/04/05/cglib-dynamic-proxy-mode/">CGLib动态代理模式</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-04-05T17:30:52+08:00" pubdate data-updated="true">Apr 5<span>th</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>CGLib，即code generation library，原理是通过动态生成类以实现代理的功能。<a href="http://www.qxavier.me/2011/04/03/aop-and-dynamic-proxy-mode/">上一篇</a>文章中，我们提到了AOP（面向切片编程）以及AOP的一种实现方法——Java Dynamic Proxy。需要注意的是，Java动态代理是面向接口的，即被代理的类必须实现某个接口，代理类以该接口的形式出现，而使用CGLib，则没有这方面的限制，任意一个类都是可以的。</p>
+
+<p>简单的说，使用CGLib代理某个类，需要在Enhancer对象中设置好基类（也就是被代理类），以及一系列回调函数Callback。Callback是一个接口，CGLib提供了6个它的子接口：</p>
+
+<p><strong>Callback子接口</strong></p>
+
+<p><strong>用途（有待确认）</strong></p>
+
+<p><a href="http://cglib.sourceforge.net/apidocs/net/sf/cglib/proxy/Dispatcher.html">Dispatcher</a></p>
+
+<p>分发给其他Callback</p>
+
+<p><a href="http://cglib.sourceforge.net/apidocs/net/sf/cglib/proxy/FixedValue.html">FixedValue</a></p>
+
+<p>仅仅返回被代理类方法的返回值，对于限定某一些特定方法很有用（因为返回值必须和被代理类方法的返回值类型相匹配）</p>
+
+<p><a href="http://cglib.sourceforge.net/apidocs/net/sf/cglib/proxy/InvocationHandler.html">InvocationHandler</a></p>
+
+<p>主要用于Proxy（替代Java动态代理），也可以用户Enhancer</p>
+
+<p><a href="http://cglib.sourceforge.net/apidocs/net/sf/cglib/proxy/LazyLoader.html">LazyLoader</a></p>
+
+<p>与Dispatcher类似，当代理类的第一个lazily-load方法调用时才会被调用</p>
+
+<p><a href="http://cglib.sourceforge.net/apidocs/net/sf/cglib/proxy/MethodInterceptor.html">MethodInterceptor</a></p>
+
+<p>普通用途的回调方法，在处理逻辑（advice）前后进行处理</p>
+
+<p><a href="http://cglib.sourceforge.net/apidocs/net/sf/cglib/proxy/NoOp.html">NoOp</a></p>
+
+<p>直接调用基类（被代理类）的方法调用</p>
+
+<p>好，那我们来假设一个场景吧。</p>
+
+<p>有这样一个类RealObject，它可以查询、保存资源，比如是这样：</p>
+
+<pre><code>public class RealObject {
+    public void queryA ()
+    {
+        System.out.println("queryA");
+    }
+    public void queryB ()
+    {
+        System.out.println("queryB");
+    }
+    public void saveA ()
+    {
+        System.out.println("saveA");
+    }
+    public void saveB ()
+    {
+        System.out.println("saveB");
+    }
+}
+</code></pre>
+
+<p>我们有这样的需求：保存资源时，需要加入事务功能。那么可以实现自己的MethodInterceptor，实现其中的intercept方法：</p>
+
+<pre><code>public class MyMethodInterceptor implements MethodInterceptor {
+
+    @Override
+    public Object intercept(Object obj, Method method, Object[] args,
+            MethodProxy proxy) throws Throwable {
+        // TODO Auto-generated method stub
+        System.out.println(obj.getClass());
+        //模拟事务功能
+        if ( method.getName().startsWith("save") )
+        {
+            System.out.println("begin transaction");
+        }
+        Object result = proxy.invokeSuper(obj, args);
+        if ( method.getName().startsWith("save") )
+        {
+            System.out.println("end transaction");
+        }
+        System.out.println("************************\n");
+        return result;
+    }
+}
+</code></pre>
+
+<p>再来写主入口：</p>
+
+<pre><code>public class Main {
+
+    /**
+     * @param args
+     */
+    public static void main(String[] args) {
+        // TODO Auto-generated method stub
+        Enhancer enhancer = new Enhancer();
+        //将需要代理的类作为基类
+        enhancer.setSuperclass(RealObject.class);
+        //设置回调功能，这里使用的是拦截器，
+        //当被代理类调用方法时，会执行拦截器的intercept方法
+        enhancer.setCallback(new MyMethodInterceptor());
+        RealObject realObj = (RealObject) enhancer.create();
+        consume(realObj);
+    }
+
+    private static void consume(RealObject realObj)
+    {
+        realObj.queryA();
+        realObj.queryB();
+        realObj.saveA();
+        realObj.saveB();
+    }
+}
+</code></pre>
+
+<p>运行一下，看看效果吧！</p>
+
+<pre><code>class org.quxiao.RealObject$$EnhancerByCGLIB$$91eddf0b
+queryA
+************************
+
+class org.quxiao.RealObject$$EnhancerByCGLIB$$91eddf0b
+queryB
+************************
+
+class org.quxiao.RealObject$$EnhancerByCGLIB$$91eddf0b
+begin transaction
+saveA
+end transaction
+************************
+
+class org.quxiao.RealObject$$EnhancerByCGLIB$$91eddf0b
+begin transaction
+saveB
+end transaction
+************************
+</code></pre>
+
+<p>我们可以看到，CGLib动态生成了一个叫RealObject$$EnhancerByCGLIB$$91eddf0b的类，这个类就是RealObject的代理类。以后有时间来反编译一下，研究研究CGLib动态生成类的原理。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/04/03/aop-and-dynamic-proxy-mode/">AOP以及动态代理模式</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-04-03T14:00:53+08:00" pubdate data-updated="true">Apr 3<span>rd</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>AOP，即面向方面的编程（面向“切片”的编程应该更合适）。按我的理解，就是对业务逻辑中的某一阶段进行抽取，以达到逻辑模块之前低耦合的编程方法。举个例子，一个系统有许多资源，只有当用户登录系统之后才能访问。那么，验证用户登录就可以抽象成一个“切片”，插在了用户和系统资源之间，编写各个业务模块的人就不用去关心验证用户登录的工作了，验证登录的工作会进行统一配置。</p>
+
+<p>Spring采用的是动态AOP，即通过动态代理模式，在目标对象调用方法前后进行相应处理。</p>
+
+<p>Spring中的动态AOP是基于以下两种方式实现的：</p>
+
+<ul>
+<li><p>Java Dynamic Proxy</p></li>
+<li><p>CGLIB（code generation library）</p></li>
+</ul>
+
+
+<p>Java Dynamic Proxy是面向接口的，而CGLIB是面向类的。两者的关系可以参考这张图：
+<a href="http://www.qxavier.me/wp-content/uploads/2011/04/image4.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/04/image_thumb4.png" alt="image" /></a></p>
+
+<p>UserDAOImp是我们需要代理的类，Java动态代理类需要实现了UserDAOImp所实现的接口，（这也要求UserDAOImp必须实现某个接口），而CGLIB则是扩展了UserDAOImp类。</p>
+
+<p>我们先来利用Java Dynamic Proxy实现代理功能。比如目前有一个类RealObject，它实现了接口Interface</p>
+
+<p>Interface</p>
+
+<pre><code>public interface Interface {
+    void funcA ();
+    void funcB (String str);
+    void saveXXX ();
+}
+</code></pre>
+
+<p>RealObject</p>
+
+<pre><code>public class RealObject implements Interface {
+
+    @Override
+    public void funcA() {
+        // TODO Auto-generated method stub
+        System.out.println("funcA() in RealObject");
+    }
+
+    @Override
+    public void funcB(String str) {
+        // TODO Auto-generated method stub
+        System.out.println("funcB() in RealObject : " + str);
+    }
+
+    @Override
+    public void saveXXX() {
+        // TODO Auto-generated method stub
+        System.out.println("saveXXX() in RealObject");
+    }
+}
+</code></pre>
+
+<p>假设我们需要代理RealObject，在调用方法前后进行相应处理（输出信息），那么我们就需要一个实现了InvacationHandler接口的类，比如说是ProxyInvacationHandler</p>
+
+<p>ProxyInvacationHandler</p>
+
+<pre><code>public class ProxyInvocationHandler implements InvocationHandler {
+
+    private Object proxied;
+
+    public ProxyInvocationHandler (Object proxied)
+    {
+        this.proxied = proxied;
+    }
+
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args)
+            throws Throwable {
+        // TODO Auto-generated method stub
+        Object result = null;
+
+        System.out.print("n*******************n");
+        System.out.println(proxy.getClass());   //invoke中第一个参数proxy意义何在？
+        //模拟增加事务处理功能
+        if ( method.getName().startsWith("save") )
+        {
+            System.out.println("transaction begins");
+        }
+        System.out.println("before " + method);
+        //被代理的类调用实际的方法
+        result = method.invoke(proxied, args);
+
+        System.out.println("after " + method);
+        if ( method.getName().startsWith("save") )
+        {
+            System.out.println("transaction ends");
+        }
+        System.out.print("*******************n");
+        return result;
+    }
+
+}
+</code></pre>
+
+<p>其中的invoke方法就表示当被代理的类调用方法的前后，我们可以做的操作。甚至可以根据方法的不同，选择不同的操作。</p>
+
+<p>最后，再通过Proxy的newProxyInstance静态方法动态生成代理类，因为代理类也是实现Interface接口的，所以操作代理类就像操作被代理类一样。</p>
+
+<p>以下是运行结果：</p>
+
+<pre><code>funcA() in RealObject
+funcB() in RealObject : 123
+saveXXX() in RealObject
+
+*******************
+class $Proxy0
+before public abstract void org.quxiao.Interface.funcA()
+funcA() in RealObject
+after public abstract void org.quxiao.Interface.funcA()
+*******************
+
+*******************
+class $Proxy0
+before public abstract void org.quxiao.Interface.funcB(java.lang.String)
+funcB() in RealObject : 123
+after public abstract void org.quxiao.Interface.funcB(java.lang.String)
+*******************
+
+*******************
+class $Proxy0
+transaction begins
+before public abstract void org.quxiao.Interface.saveXXX()
+saveXXX() in RealObject
+after public abstract void org.quxiao.Interface.saveXXX()
+transaction ends
+*******************
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/04/02/webx3-sample-project-login-webx3-tutorial-study-notes-a/">Webx3样例工程login-webx3-tutorial学习笔记（一）</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-04-02T17:48:09+08:00" pubdate data-updated="true">Apr 2<span>nd</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>在eclipse中部署好工程，然后再通过jetty启动server，工程的功能相当简单，就是将表单中的字符串提交后显示。通过运行和调试，初步了解了webx的运行流程。</p>
+
+<p>首先看一下WEB-INF中的配置文件</p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/04/image.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/04/image_thumb.png" alt="image" /></a></p>
+
+<p>web.xml是J2EE工程必须的配置文件，webx.xml以及common中的xml都是webx框架公用的配置文件，而app1文件夹以及webx-app1.xml就是名为&#8221;app1&#8221;的模块配置文件。</p>
+
+<p>配置文件的详细设置我们稍后再谈，我们直接通过运行实例来讲解流程吧。</p>
+
+<p>打开首页，内容是通过Velocity生成的：</p>
+
+<p>index.vm</p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/04/image1.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/04/image_thumb1.png" alt="image" /></a></p>
+
+<p>提交表单之后，即会运行com.alibaba.webx.tutorial.app1.module.action.SimpleAction中的doGreeting方法。那为什么会跳转到这边呢？其实都是写在配置文件中的。</p>
+
+<p>来看看webx-app1.xml</p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/04/image2.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/04/image_thumb2.png" alt="image" /></a></p>
+
+<p>它指定了app1模块所在的包。再看index.vm，“simple_action”表示查找SimpleAction类，“event_submit_do_greeting”表示执行SimlieAction类中的doGreeting方法。（name是否一定设为“action”我还不确定）</p>
+
+<p>试着修改一下，我们将index.vm中的simple_action修改为my_action、event_submit_do_greeting改为event_submit_do_my_greeting，再在com.alibaba.webx.tutorial.app1.module.action包中加入MyAction类，并添加doMyGreeting方法。重启服务器，就可看到效果。输入111，结果就会变成my111。</p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/04/image3.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/04/image_thumb3.png" alt="image" /></a></p>
+
+<p>好，基本知道了解流程了，但理解得还是很凌乱，尤其是配置文件加载以及动态定位到某个类的原理。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+      <a class="prev" href="/blog/page/6/">&larr; Older</a>
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+    <a class="next" href="/blog/page/4/">Newer &rarr;</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/01/31/test/">Test</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/30/information_retrievial_in_practice_note_architecture/">《Information Retrieval in Practice》笔记——整体架构</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/22/presentation-based-development/">“基于演示的开发”</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating&#8230;</li>
+  </ul>
+  
+  <a href="https://github.com/quxiao">@quxiao</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'quxiao',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Xavier -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

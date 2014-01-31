@@ -1,0 +1,722 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Xavier Blog</title>
+  <meta name="author" content="Xavier">
+
+  
+  <meta name="description" content="有这样一种集合，集合元素为长度N（1～31）的二进制串，并且每个二进制串中1的个数小于等于L，求这个集合中第I大的元素是多少？ 最开始很天真的想枚举每个数，计算其中1的个数，结果第8组测试数据开始就超时的不行了。 枚举不行，来试试构造可不可以，假设我们有一个长度为n，1个数&lt;= &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://quxiao.github.io/blog/page/7">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Xavier Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Xavier Blog</a></h1>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:quxiao.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/02/16/usaco-section-3-2-stringsobits/">USACO Section 3.2 Stringsobits</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-02-16T13:06:10+08:00" pubdate data-updated="true">Feb 16<span>th</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>有这样一种集合，集合元素为长度N（1～31）的二进制串，并且每个二进制串中1的个数小于等于L，求这个集合中第I大的元素是多少？</p>
+
+<p>最开始很天真的想枚举每个数，计算其中1的个数，结果第8组测试数据开始就超时的不行了。</p>
+
+<p>枚举不行，来试试构造可不可以，假设我们有一个长度为n，1个数&lt;=l的二进制串的集合，那么怎么把它们从大到小区分呢？我们一位一位来，根据第n位，可以将集合划为2部分：第n位是0的，第n为是1的。好了，递推式突然就变得很明显了。如何设num[N][L]为长度为N，1个数小于等于L的二进制串的个数，那么：</p>
+
+<p>num[N][L] = num[N-1][L] + num[N-1][L-1]   <br/>
+（第n位是0） （第n位是1）</p>
+
+<p>个数有了，那么第I个数是多少怎么求呢？说来也简单，就是用递归的思想，看I落在num[N-1][L]和num[N-1][L-1]的哪一部分，看下面的代码应该就明白了：</p>
+
+<pre><code>&lt;span style="color: #0000ff"&gt;void&lt;/span&gt; Print (&lt;span style="color: #0000ff"&gt;int&lt;/span&gt; len, &lt;span style="color: #0000ff"&gt;int&lt;/span&gt; num1, &lt;span style="color: #0000ff"&gt;long&lt;/span&gt; &lt;span style="color: #0000ff"&gt;long&lt;/span&gt; idx)
+{
+     &lt;span style="color: #0000ff"&gt;if&lt;/span&gt; ( len == 0 )
+          &lt;span style="color: #0000ff"&gt;return&lt;/span&gt;;
+     &lt;span style="color: #0000ff"&gt;if&lt;/span&gt; ( num[len-1][num1] &gt;= idx )
+     {
+          putchar('0');
+          Print(len-1, num1, idx);
+     }
+     &lt;span style="color: #0000ff"&gt;else&lt;/span&gt;
+     {
+          putchar('1');
+          Print(len-1, num1-1, idx-num[len-1][num1]);
+     }
+}
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/02/14/usaco-section-3-2-factorials/">USACO Section 3.2 Factorials</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-02-14T15:09:13+08:00" pubdate data-updated="true">Feb 14<span>th</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>问你N阶乘的最低非零位上是什么数字。(0 &lt;= N &lt;= 4220)</p>
+
+<p>从1一直乘到N，如果能整除10，就除以10，可以吗？不行，因为即使去掉低位的0，高位的非0位仍然很大，无法保存下来。</p>
+
+<p>可以将N!这样表示：    <br/>
+N! = 2<sup>K</sup> * 5<sup>L</sup> * V(N)     <br/>
+= 2<sup>K-L</sup> * V(N) * 10<sup>L</sup> ( K >= L 如何证明呢？)</p>
+
+<p>10<sup>L</sup>不影响N!最低非零位，这个数由(K-L)以及V(N)的个位数所决定。K和L容易得到，V(N)的个位数也好得到，只要枚举i（从1到N），去除因子2和5（因子个数加到K和L），将其个位数乘以中间结果就可以了。</p>
+
+<p>关键代码如下：</p>
+
+<pre><code>&lt;span style="color: #0000ff"&gt;const&lt;/span&gt; &lt;span style="color: #0000ff"&gt;int&lt;/span&gt; f2 [] = {6, 2, 4, 8};
+
+&lt;span style="color: #0000ff"&gt;int&lt;/span&gt; i, tmp, n2, n5;
+&lt;span style="color: #0000ff"&gt;int&lt;/span&gt; ans = 1;
+n2 = n5 = 0;
+&lt;span style="color: #0000ff"&gt;for&lt;/span&gt; ( i = 1; i &lt;= n; i ++)
+{
+    tmp = i;
+    &lt;span style="color: #0000ff"&gt;while&lt;/span&gt; ( tmp % 2 == 0 )
+    {
+        n2 ++;
+        tmp /= 2;
+    }
+    &lt;span style="color: #0000ff"&gt;while&lt;/span&gt; ( tmp % 5 == 0 )
+    {
+        n5 ++;
+        tmp /= 5;
+    }
+    ans = (( tmp % 10) * ans) % 10;
+}
+ans = ( ans * f2[( n2- n5)%4] ) % 10;
+printf( "&lt;span style="color: #8b0000"&gt;%d\n&lt;/span&gt;", ans);
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/02/12/usaco-section-3-1-stamps/">USACO Section 3.1 Stamps</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-02-12T11:58:43+08:00" pubdate data-updated="true">Feb 12<span>th</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>有N(1&lt;=N&lt;=50)种不同面值邮票，由这些邮票组成面值1～M，1、2、……、M每种面值均由不超过K(1&lt;=K&lt;=200)数目的邮票组成，求最大的M为多少？邮票最大面值为10000</p>
+
+<p>一开始想到DP，数组canComprise[10000*200][200]，canComprise[i][j]表示用j张邮票是否可以组成面值i，但数组太大，放弃。</p>
+
+<p>后来改用深搜，优化了许久，最后几组数组仍然超时，放弃。</p>
+
+<p>又回头想DP，如果canComprise[i][j1]和canComprise[i][j2]均为true，j1 &lt; j2，那么canComprise[i][j1]肯定是更优的解，因为j1可以扩展更多i+stamps[x]。所以，只要用一维数组保存答案就可以了，比如minStamp[i] = j就表示组成i所用到的最少邮票数为j，递推式很容易想到：</p>
+
+<p>minStamp[i] = Min{ minStamp[i-stamp[x]] + 1 } ( i – stamp[x] >= 0 )</p>
+
+<p><strong>同一种情况，表达解的方式可能有多种，尽量使用最精简的方式，已达到降维的效果。</strong></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/02/01/usaco-section-3-1-shaping-regions/">USACO Section 3.1 Shaping Regions</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-02-01T20:54:47+08:00" pubdate data-updated="true">Feb 1<span>st</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>一道几何题，解决方法很容易想到，不过要细心。</p>
+
+<p>随着输入的顺序，将矩形一个个放入集合，如果新的矩形与集合中的旧矩形相交，就将旧矩形分解，删除旧矩形，放入新矩形和分解的矩形。</p>
+
+<p>设矩形R1、R2，宽和高分别为(W1, H1)和(W2, H2)，两矩形中心坐标分别为(X1, Y1)以及(X2, Y2)。判断两矩形是否相交（也就是是否有面积相重合），就看两矩形中心坐标的竖直和水平距离是否小于两矩形高的和的一半以及两矩形宽的和的一半。即：</p>
+
+<p>( |X1 &ndash; X2| &lt; (W1 + W2) / 2 ) &amp;&amp; ( |Y1 &ndash; Y2| &lt; (H1 + H2) / 2 )</p>
+
+<p>如果条件满足，R1和R2即相交。</p>
+
+<p>那相交会有几种情况呢？我想到了16种：</p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/02/image.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/02/image_thumb.png" alt="image" /></a></p>
+
+<p>根据不同的情况，可以将原来的矩形分解为0～4个小矩形，这样就可以解出来了。</p>
+
+<p>（做几何题可真费草稿纸啊，看来以后得学学matlab了，低碳、环保！）</p>
+
+<p>另外，USACO还有一种解法，就是将矩形的四条边进行离散化处理，将线段排序，然后再依次扫描，大体思路是这样的，具体细节没怎么看。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/01/30/usaco-section-3-1-humble-numbers/">USACO Section 3.1 Humble Numbers</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-01-30T16:59:01+08:00" pubdate data-updated="true">Jan 30<span>th</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>最直接的想法是枚举每个数，看是否能用S中的元素将其分解，但1&lt;=N&lt;=100000，第N个数肯定会很大，这样做肯定超时，放弃。</p>
+
+<p>后来想利用STL中的set来解决，枚举某一个数，如果属于set，将其与S中各元素相乘的数放入set，如此循环，直至找到第N个数，提交后还是超时。看来即便是set，毕竟存取的效率不是O(1)，性能还是有影响。</p>
+
+<p>突然想到，这题不是跟poj的<a href="http://poj.org/problem?id=1338">Ugly Number</a>挺像的嘛，是Ugly Number的加强版。具体思想是：对于S中的每个元素p[i]，设置一个下标pIdx[i]，pIdx[i]指向humble number数组。进行N次循环，每次找出最小的p[i] * humble[pIdx[i]]，将该数加入humble数组，然后pIdx[minIdx]++。这样就能由小到大找出第N个humble number了。</p>
+
+<p>PS：其实这种方法生成的humble number只能保证非降序，比如2×3和3×2就会生成相同的humble number，这种情况要排除。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/01/25/usaco-section-2-4-cow-tours/">USACO Section 2.4 Cow Tours</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-01-25T22:02:37+08:00" pubdate data-updated="true">Jan 25<span>th</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>一个图，有至少2个连通分量，用分别属于不同连通分量的点对将这两个连通分量连接，使其“直径”最小，问最小直径为多少。（直径的定义为连通分量中点对的最短路径中最长的路径）</p>
+
+<p>我的思路是：</p>
+
+<p>1、Floyd算出点对最短路径</p>
+
+<p>2、深搜找出不同连通分量</p>
+
+<p>3、枚举同一连通分量中的点对最短路径，最大的作为该连通分量的直径，顺便算出一点到连通分量中最远点的距离</p>
+
+<p>4、枚举不同连通分量的任意点对a和b，找出以下的最大值</p>
+
+<p>a所在连通分量的直径   <br/>
+b所在连通分量的直径    <br/>
+ab的距离 + a到本连通分量最远距离 + b到本连通分量最远距离</p>
+
+<p>5、找出这些最大值中的最小值</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/01/22/usaco-section-2-3-controlling-companies/">USACO Section 2.3 Controlling Companies</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-01-22T16:22:28+08:00" pubdate data-updated="true">Jan 22<span>nd</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>明明是一道难度不大的题，我却做了N天才做出来，惭愧惭愧！看到题的第一想法就是如果A控制了B，就把B所占有的股份传给A以及A的母公司，并且这样递归下去。可自己编程会发生股份重复计算的情况，解决方法是当将B的股份更新到A上时（通过母公司的关系找到A），如果之前A已经直接或间接控制了B，那么如果再加就算是重复计算了。但在判断A是否直接或间接控制B时，又要判断是否有环。</p>
+
+<p>后来在网上找到了一种解法：当发现A控制B时，将B的股份传给A，如果发现增加股份之后，A中的股份[A][i] > 50 并且A还没有控制i，则将(A, i)加入队列。一直循环操作，直至队列为空为止。</p>
+
+<p>官方的解题报告中，其实就是我一开始想的递归的方法，他在更新（A, B）时：</p>
+
+<ol>
+<li><p> 如果A已经控制B，退出</p></li>
+<li><p> 若没有，control[A][B] = 1</p></li>
+<li><p> 将B的股份传给A</p></li>
+<li><p> 枚举已控制了A的i，递归更新（i, B）</p></li>
+<li><p> 枚举A的股份[A][k]，如果大于50，递归更新（A, k）</p></li>
+</ol>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/01/10/usaco-section-2-3-cow-pedigrees/">USACO Section 2.3 Cow Pedigrees</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-01-10T20:00:23+08:00" pubdate data-updated="true">Jan 10<span>th</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>一棵树，每个节点有0或2个孩子，共N个节点，高度为K，问可以组成多少种不同的结构？</p>
+
+<p>假设，当前树的节点问n，高度为k，那么子树可分为3种情况：</p>
+
+<ol>
+<li><p> 左子树高度为k-1，右子树高度为1～k-2</p></li>
+<li><p> 右子树高度为k-1，左子树高度为1～k-2</p></li>
+<li><p> 左右子树均为k-1</p></li>
+</ol>
+
+
+<p>并且，满足题目要求的树的节点与高度有这样的关系：2*k-1 &lt;= n &lt;= 2<sup>k</sup>-1，可是根据这个关系枚举左右子树的节点数</p>
+
+<p>于是就可以用递归+DP的方法解出这道题了。</p>
+
+<p>（在对n &lt;= 2<sup>k</sup>-1进行转化时，自己居然写成了k >= log(n+1.0)/log(2.0)，其实应该是k >= floor (log(n+1.0)/log(2.0))，还是太粗心啦）</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/01/06/usaco-section-2-3-longest-prefix/">USACO Section 2.3 Longest Prefix</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-01-06T22:30:52+08:00" pubdate data-updated="true">Jan 6<span>th</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>给定一字符串集合Pn, 1&lt;=n&lt;=200, 1&lt;=strlen(Pn)&lt;=10，再给定一个字符串S，1&lt;=strlen(s)&lt;=200000。问能用字符串集合组成的S的最长前缀的长度。</p>
+
+<p>之前想的是用KMP将每一个集合中的Pn与S匹配，找出Pn能构成S子串的位置，组成200×200000的矩阵，再在这个矩阵上进行搜索。可是发现时间和内存的限制都无法满足</p>
+
+<p>题目有这样的特点：S的长度很长(200000)，而Pn的长度却很短(10)，而且组成的字符只有A-Z二十六个。那么，Pn中有许多字符串的前缀是重合的，可否利用这一特点避免许多重复的搜索。</p>
+
+<p>例如：Pn={A, AB}，S=“ABA”，用P0=A对S[0]=A查找完之后，再查找S[1]=B时，能否直接转到P1=AB的B呢？</p>
+
+<p>后来发现，用Trie可以存下所有Pn的信息，而且Pn中的重复前缀会放在一起，这样就避免了重复查找。（以前听过Tire，感觉很神秘，原来就是字典树啊，之前也用过啊）</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/01/04/usaco-section2-2-party-lamps/">USACO Section2.2 Party Lamps</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-01-04T10:21:20+08:00" pubdate data-updated="true">Jan 4<span>th</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>一开始是想，给定某一盏灯的最终状态，就可知道相关按钮拨动次数的奇偶。比如，state[1] = 0，我就可以知道B1+B2+B4为偶数。因此，对于给出的部分灯的最终状态，就可得到一系列的关于按钮的约束条件（可能有重复），再枚举B1～B4的情况，使其既满足B1+B2+B3+B4 = C，又满足上述约束条件，就可以得到合理的按钮拨动次数的集合了。但编程实现下来，发现C<sup>4</sup>无法满足时限，而且代码想到丑陋！</p>
+
+<p>后来通过网上一些文章的提示，想到某一按钮按两次跟没有按是同样的情况，所以每种按钮只有按0次和按1次这两种情况，复杂度一下就降到2<sup>4</sup>了。对于按钮的每种情况，分析以下属性：</p>
+
+<ul>
+<li><p>按1次按钮的总个数CBn。它代表了按钮至少按下了CBn次，因此因满足条件C >= CBn</p></li>
+<li><p>CBn的奇偶性。它应该跟C的奇偶性相同</p></li>
+<li><p>已确定的部分灯的状态是否与其相符</p></li>
+</ul>
+
+
+<p>如果满足了这三个约束条件，就是答案之一了。</p>
+
+<p>////////////////////////////////////////////////////////////////////////////////////////////</p>
+
+<p>看了USACO的官方分析后，发现题目中还有许多巧妙的地方：</p>
+
+<ul>
+<li><p>无论n和c为多大，最终灯的状态都是以长度6为循环的</p></li>
+<li><p>大于4且为偶数的c，可以转化为4；大于3且为奇数的c，可以转化为3</p></li>
+</ul>
+
+
+<p>对于c=4，可分为：</p>
+
+<ul>
+<li><p>4个不同的按钮按下；</p></li>
+<li><p>2个不同的按钮按下；</p></li>
+<li><p>0个按钮按下。</p></li>
+</ul>
+
+
+<p>对于c=3，可分为：</p>
+
+<ul>
+<li><p>3个不同的按钮按下；</p></li>
+<li><p>1个不同的按钮按下。</p></li>
+</ul>
+
+
+<p>对于c=2：</p>
+
+<ul>
+<li><p>2个不同按钮按下；</p></li>
+<li><p>0个不同按钮按下。</p></li>
+</ul>
+
+
+<p>对于c=1：</p>
+
+<ul>
+<li>1个不同按钮按下</li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+      <a class="prev" href="/blog/page/8/">&larr; Older</a>
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+    <a class="next" href="/blog/page/6/">Newer &rarr;</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/01/31/test/">Test</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/30/information_retrievial_in_practice_note_architecture/">《Information Retrieval in Practice》笔记——整体架构</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/22/presentation-based-development/">“基于演示的开发”</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating&#8230;</li>
+  </ul>
+  
+  <a href="https://github.com/quxiao">@quxiao</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'quxiao',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Xavier -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

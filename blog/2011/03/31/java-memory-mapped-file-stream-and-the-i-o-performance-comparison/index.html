@@ -1,0 +1,450 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Java中Stream和Memory-mapped File的I/O性能对比 - Xavier Blog</title>
+  <meta name="author" content="Xavier">
+
+  
+  <meta name="description" content="建立和使用I/O系统，不管对于哪一种语言都是困难的（在Java中使用I/O库尤其困难）。在Java中，会有多种方式对于文件或者设备进行I/O操作。方法不同，性能很有差异。今天我们来对比一下通过Stream以及Memory-mapped File这两种方式的I/O性能对比。 Stream “流”是I &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://quxiao.github.io/blog/2011/03/31/java-memory-mapped-file-stream-and-the-i-o-performance-comparison">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Xavier Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Xavier Blog</a></h1>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:quxiao.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Java中Stream和Memory-mapped File的I/O性能对比</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-03-31T20:15:33+08:00" pubdate data-updated="true">Mar 31<span>st</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>建立和使用I/O系统，不管对于哪一种语言都是困难的（在Java中使用I/O库尤其困难）。在Java中，会有多种方式对于文件或者设备进行I/O操作。方法不同，性能很有差异。今天我们来对比一下通过Stream以及Memory-mapped File这两种方式的I/O性能对比。</p>
+
+<p><strong>Stream</strong></p>
+
+<p>“流”是I/O系统中通常使用的抽象概念，表示可以发出或者接受数据的点（source / sink）。“流”的概念也屏蔽掉了不同设备间的细节差异。   <br/>
+Input stream通常可以为：</p>
+
+<ul>
+<li><p>字节数组</p></li>
+<li><p>String对象</p></li>
+<li><p>文件</p></li>
+<li><p>管道（pipe）</p></li>
+<li><p>其他流（将多个流组成一个流）</p></li>
+<li><p>网络设备等</p></li>
+</ul>
+
+
+<p>Output stream通常可以为：</p>
+
+<ul>
+<li><p>字节数组</p></li>
+<li><p>文件</p></li>
+<li><p>管道</p></li>
+</ul>
+
+
+<p><strong>Memory-mapped File</strong></p>
+
+<p>对于那些很大的文件，将整个文件全部读进内存，将会极大地影响性能。通过Memory-mapped File可以只将文件的一部分读入内存，其他部分被换出（swap out），这样就能效率很高的读写大文件。</p>
+
+<p>在Java的nio包中，用到了两种更接近于操作系统具体实现的数据结构：channel和buffer，memory-mapped file中就用到了channel。这种I/O方式，用户不需要跟数据源打交道，而只需把数据放到channel和buffer中，然后再调相应函数就可以了，通过这种“底层”的操作，已得到最大的I/O性能。（这种方式其实就跟C中的read和write一样了）</p>
+
+<p>通过测试程序，我们可以看到两种方式性能的对比：</p>
+
+<p>(注：表格中的文件大小N表示文件中含有N个char，而读写时间为ms)</p>
+
+<p>读写方式  文件大小</p>
+
+<p>10</p>
+
+<p>100</p>
+
+<p>2<sup>10</sup></p>
+
+<p>2<sup>20</sup></p>
+
+<p>2<sup>21</sup></p>
+
+<p>2<sup>22</sup></p>
+
+<p>Stream Write</p>
+
+<p>1.874</p>
+
+<p>1.974</p>
+
+<p>1.828</p>
+
+<p>161.258</p>
+
+<p>368.252</p>
+
+<p>656.428</p>
+
+<p>Memory-mapped File Write</p>
+
+<p>2.5</p>
+
+<p>6.648</p>
+
+<p>1.265</p>
+
+<p>11.774</p>
+
+<p>20.23</p>
+
+<p>46.262</p>
+
+<p>Stream Read</p>
+
+<p>0.122</p>
+
+<p>0.174</p>
+
+<p>0.58</p>
+
+<p>158.352</p>
+
+<p>313.37</p>
+
+<p>627.531</p>
+
+<p>Memory-mapped File Read</p>
+
+<p>0.428</p>
+
+<p>0.463</p>
+
+<p>0.382</p>
+
+<p>10.797</p>
+
+<p>19.381</p>
+
+<p>39.749</p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/03/image.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/03/image_thumb.png" alt="image" /></a></p>
+
+<p>可以看到，文件很小时，Memory-mapped方式是没有优势的，而当读写大文件时，优势就十分明显了。</p>
+
+<p>关键代码如下：</p>
+
+<pre><code>public class IOPerComp {
+
+    /**
+     * @param args
+     */
+    public static void main(String[] args) {
+        // TODO Auto-generated method stub
+        int[] intSizes = {10, 100, 1&lt;&lt;10, 1&lt;&lt;20, 1&lt;&lt;21, 1&lt;&lt;22};
+        for (int i = 0; i &lt; intSizes.length; i ++)
+        {
+            INT_SIZE = intSizes[i];
+            System.out.println("file size : " + INT_SIZE);
+            for (Tester tester : tests)
+            {
+                tester.runTest();
+            }
+            System.gc();
+            System.out.println("**********************");
+        }
+    }
+
+    private static final String FILE_LOC = "D:/tmpFile.txt";
+    private static int INT_SIZE = 1024 * 1024;
+    private abstract static class Tester {
+        private String name;
+        public Tester () {}
+        public Tester (String name)
+        {
+            this.name = name;
+        }
+        public void runTest ()
+        {
+            System.out.println("name : " + name);
+            long start = System.nanoTime();
+            try
+            {
+                test();
+            }
+            catch (IOException ioe)
+            {
+                ioe.printStackTrace();
+            }
+            start = System.nanoTime() - start;
+            System.out.format("time : %.3fn", start/1.0e6);
+        }
+        public abstract void test() throws IOException;
+    }
+
+    private static Tester[] tests= {
+        new Tester("Stream Write")
+        {
+            public void test() throws IOException
+            {
+                File f = new File (FILE_LOC);
+                if ( f.exists() )
+                    f.delete();
+                DataOutputStream dos = new DataOutputStream(
+                        new BufferedOutputStream(
+                                new FileOutputStream(FILE_LOC)));
+                for (int i = 0; i &lt; INT_SIZE; i ++)
+                    dos.writeInt(i);
+                dos.close();
+            }
+        },
+        new Tester("Mapped Write")
+        {
+            public void test() throws IOException
+            {
+                FileChannel fc = new RandomAccessFile(FILE_LOC, "rw").getChannel();
+                IntBuffer ib = fc.map(FileChannel.MapMode.READ_WRITE, 0, fc.size()).asIntBuffer();
+                for (int i = 0; i &lt; INT_SIZE; i ++)
+                    ib.put(i);
+                fc.close();
+            }
+        },
+        new Tester("Stream Read")
+        {
+            public void test() throws IOException
+            {
+                DataInputStream dis = new DataInputStream(
+                        new BufferedInputStream(
+                                new FileInputStream(FILE_LOC)));
+                for (int i = 0; i &lt; INT_SIZE; i ++)
+                {
+                    dis.readInt();
+                }
+                dis.close();
+            }
+        },
+        new Tester("Mapped Read")
+        {
+            public void test() throws IOException
+            {
+                FileChannel fc = new FileInputStream(FILE_LOC).getChannel();
+                IntBuffer ib = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size()).asIntBuffer();
+                while ( ib.hasRemaining() )
+                {
+                    ib.get();
+                }
+                fc.close();
+            }
+        }
+    };
+}
+</code></pre>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">admin</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-03-31T20:15:33+08:00" pubdate data-updated="true">Mar 31<span>st</span>, 2011</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/development/'>Development</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2011/03/15/linux-api-practice-the-signal-sent-waiting-and-arrival/" title="Previous Post: Linux API实践：信号的发出、等待以及到达">&laquo; Linux API实践：信号的发出、等待以及到达</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2011/04/02/webx3-sample-project-login-webx3-tutorial-study-notes-a/" title="Next Post: Webx3样例工程login-webx3-tutorial学习笔记（一）">Webx3样例工程login-webx3-tutorial学习笔记（一） &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/01/31/test/">Test</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/30/information_retrievial_in_practice_note_architecture/">《Information Retrieval in Practice》笔记——整体架构</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/22/presentation-based-development/">“基于演示的开发”</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/quxiao">@quxiao</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'quxiao',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Xavier -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

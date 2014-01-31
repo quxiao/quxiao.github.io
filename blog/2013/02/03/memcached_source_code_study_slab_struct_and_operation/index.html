@@ -1,0 +1,296 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>memcached源码学习——Slab结构及操作 - Xavier Blog</title>
+  <meta name="author" content="Xavier">
+
+  
+  <meta name="description" content="memcached的内存结构中，内存被分为一个一个的页（slab），每一个slab会被分到不同的slab_class。不同的slab_class，申请的item大小就不一样。 slab_class所对应的数据结构如下： typedef struct { // &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://quxiao.github.io/blog/2013/02/03/memcached_source_code_study_slab_struct_and_operation">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Xavier Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Xavier Blog</a></h1>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:quxiao.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">memcached源码学习——Slab结构及操作</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-02-03T23:15:55+08:00" pubdate data-updated="true">Feb 3<span>rd</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>memcached的内存结构中，内存被分为一个一个的页（slab），每一个slab会被分到不同的slab_class。不同的slab_class，申请的item大小就不一样。</p>
+
+<p>slab_class所对应的数据结构如下：</p>
+
+<pre><code>typedef struct {
+
+    //当前slab_class的最大item大小
+    unsigned int size;      /* sizes of items */
+    //当前slab_class每一个slab的item数
+    unsigned int perslab;   /* how many items per slab */
+    //被释放过的item的list
+    void **slots;           /* list of item ptrs */
+    //free list大小
+    unsigned int sl_total;  /* size of previous array */
+    //free list下标 
+    unsigned int sl_curr;   /* first free slot */
+    //最近申请的page(slab)的指针
+    void *end_page_ptr;         /* pointer to next free item at end of page, or 0 */
+    //最近申请的page(slab)所剩的item个数
+    unsigned int end_page_free; /* number of items remaining at end of last alloced page */
+    //当前slab_class申请了多少slab(page)
+    unsigned int slabs;     /* how many slabs were allocated for this class */
+    //申请的slab的指针数组
+    void **slab_list;       /* array of slab pointers */
+    unsigned int list_size; /* size of prev array */
+    //没用到？
+    unsigned int killing;  /* index+1 of dying slab, or zero if none */
+    size_t requested; /* The number of requested bytes */
+
+} slabclass_t;
+</code></pre>
+
+<h1>slab初始化</h1>
+
+<p>memcached的slab初始化比较简单，主要是设定一些字段的大小，逻辑如下：</p>
+
+<p>下标i从0开始遍历每一个slab class：</p>
+
+<ul>
+<li><p>对齐当前slab class的size，使其是<code>CHUNK_ALIGN_BYTES</code>字节对齐的。</p></li>
+<li><p>设置slabclass[i] 为size</p></li>
+<li><p>设置当前slab class中，每一页能存放的iterm数据slabclass[i].perslab</p></li>
+<li><p>更新size为下一个slab class的size</p></li>
+<li><p>设置最大的一个slab class，其中<code>size = setting.item_size_max, perslab = 1</code></p></li>
+</ul>
+
+
+<h1> slab分配内存</h1>
+
+<p>如果是采用系统的malloc，就是直接申请；
+如果是预先申请了所有的内存的话，依次通过以下手段获取内存：</p>
+
+<ul>
+<li><p>之前被“free”掉的item的地址会被标记在freelist中，如果freelist中有，则直接从freelist中拿；</p></li>
+<li><p>如果最近申请过的页中还有剩余空间，则从页的末尾申请item</p></li>
+<li><p>申请一个新的page</p></li>
+</ul>
+
+
+<h1>释放slab上的item空间</h1>
+
+<p>如果是系统分配，free指针，mem_malloc &ndash;= size；
+否则，将地址设置到free_list末尾，如果free_list满了，double一下长度</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">admin</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-02-03T23:15:55+08:00" pubdate data-updated="true">Feb 3<span>rd</span>, 2013</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/source-reading/'>Source Reading</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2012/12/30/e68891e8aea4e4b8bae79a84e581a5e5bab7e7949fe6b4bb/" title="Previous Post: 我认为的健康生活">&laquo; 我认为的健康生活</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2013/02/13/memcached_source_code_study_item/" title="Next Post: memcached源码学习——item">memcached源码学习——item &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/01/31/test/">Test</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/30/information_retrievial_in_practice_note_architecture/">《Information Retrieval in Practice》笔记——整体架构</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/22/presentation-based-development/">“基于演示的开发”</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/quxiao">@quxiao</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'quxiao',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Xavier -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

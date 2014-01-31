@@ -1,0 +1,365 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Memcached调研 - Xavier Blog</title>
+  <meta name="author" content="Xavier">
+
+  
+  <meta name="description" content="最近因开发需要，调研了下memcached，share一下！ 什么是memcached Memcached是一个开源的高性能，分布式的内存对象缓存系统，通过键值对的形式来对数据进行存取。 特性 简单的Key Value存储 |&mdash;-Memcached只把key &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://quxiao.github.io/blog/2012/12/06/memcached_study">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Xavier Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Xavier Blog</a></h1>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:quxiao.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Memcached调研</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-12-06T00:28:32+08:00" pubdate data-updated="true">Dec 6<span>th</span>, 2012</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>最近因开发需要，调研了下memcached，share一下！</p>
+
+<h1>什么是memcached</h1>
+
+<p>Memcached是一个开源的高性能，分布式的内存对象缓存系统，通过键值对的形式来对数据进行存取。</p>
+
+<h1>特性</h1>
+
+<h2>简单的Key Value存储</h2>
+
+<p>|&mdash;-Memcached只把key value当作一组字符串来组织，不关心数据的格式
+|&mdash;-没有持久化，所有数据都存储在内存中，当内存用满时，丢弃最旧的数据
+-&mdash;数据只会保存一份，不支持replication，也不支持容错（一些客户端有自己的实现）</p>
+
+<h2>Server和client共同决定操作的行为</h2>
+
+<p>|&mdash;-Server只关心如何获取数据、存储数据、丢弃数据
+-&mdash;Client只关心如何通过key定位server，以及如何和server通信</p>
+
+<h2>Server相互独立</h2>
+
+<p>|&mdash;-Server之间不会有通信，也不知道其他server的存在，但是Client知道所有server的存在。</p>
+
+<h2>所有操作都是常数时间，所有操作也都是原子操作</h2>
+
+<h1>数据组织</h1>
+
+<h2>内部结构</h2>
+
+<p>Memcached将内存分为不同的page（默认为1 Mb）、每个page被（永久）赋给某一个slab。Memcached中有多个级别的slab，每一种slab决定了内存的粒度。举例说明：
+假设memcached可以操作1 Mb的内存，每个page为1Kb，有3类slab：class1、class2、class3。Class1的内存分配粒度为96字节，class2的内存分配粒度为288字节，class3的内存分配粒度为1024字节。那么，memcached的内存结构为下图：</p>
+
+<p><a href="http://qxavier.me/wp-content/uploads/2012/12/memcached_internal_struct.png"><img src="http://qxavier.me/wp-content/uploads/2012/12/memcached_internal_struct.png" alt="" /></a></p>
+
+<p>实际运行效果：</p>
+
+<blockquote><p>./bin/memcached -vv -m 1 -I 1k -f 3 -M -p 11225</p>
+
+<p>slab class   1: chunk size        96 perslab      10</p>
+
+<p>slab class   2: chunk size       288 perslab       3</p>
+
+<p>slab class   3: chunk size      1024 perslab       1</p></blockquote>
+
+<p>class 1中，chunk的大小为96字节，共有10个chunk；
+class 2中，chunk的大小为288字节，共有3个chunk；
+class 3中，chunk的大小为1024字节，共有1个chunk；</p>
+
+<h1>数据处理</h1>
+
+<h2>存储</h2>
+
+<p>数据（item）以key、value的形式进行存储，key最大为250 byte，value最大为1 Mb。
+当存储item时，memcached会找到最“适合”大小的chunk用于保存这个item。例如item大小为200字节，对于上面的例子，这个item会被保存至class 2。</p>
+
+<h2>删除</h2>
+
+<p>Memcached不会主动删除数据，删除数据的情况有两种：</p>
+
+<ol>
+<li><p> 当新数据无法找到合适的位置进行存储时，会删除数据，删除数据的原则是LRU算法。</p></li>
+<li><p> 当client查找一个数据，server发现其已经过期时，就会删除该数据。</p></li>
+</ol>
+
+
+<p>对于情况1，具体来说，当对一个item进行存储时，如果在适合的slab class中，既找不到空闲的chunk，又找不着这个slab class中空闲的page，memcached就会选择数据进行删除。Memcached首先会在处于LRU队列尾部的几个数据中，查找已经过期的数据；如果找不到过期的数据，就在队列尾部选择一个未过期的数据进行删除。</p>
+
+<h1>线程工作方式</h1>
+
+<p>Memcached采用libevent库进行多线程请求处理。
+（libevent是一个事件出发的网络库，使用与 windows, linux, mac os 等的高性能跨平台网络库 ,支持的多种I/O 网络模型 epoll poll dev/poll select kqueue 等）
+Memcached中，每个线程拥有一个自己的libevent实例。
+如果memcached采用TCP/IP连接，将采用单线程监听端口，监听线程获取到请求之后，将其分配给其中一个处理线程，选取处理线程的算法为round-robin。
+如果memcached采用UDP连接，所有（空闲的）处理线程都有监听UDP socket，其中一个线程监听到请求之后，进行相应处理。</p>
+
+<h1>操作</h1>
+
+<p>Memcached中，所有操作都是原子操作，操作时间都是常数级别。Memcached的操作有以下几类：</p>
+
+<h2>存储</h2>
+
+<p>Set
+如有没有key对应的value，添加value；如果已存在该key对应的value，更新value。</p>
+
+<p>Add
+如有没有key对应的value，添加value；如果已存在该key对应的value，则操作失败。</p>
+
+<p>Replace
+如果已存在该key对应的value，更新value；如果没有key对应的value，则操作失败。</p>
+
+<p>Append / Prepend
+在key对应的value前/后添加数据</p>
+
+<p>Cas（check and set）
+Client会事先获取一个关于key的64位cas值，更新时，只有当server的cas值与client的cas一致时，才会执行value更新操作，否则操作失败。</p>
+
+<h2>查询</h2>
+
+<p>Get（Mget）
+根据一个key或者一系列key，获取对应的value(s)。</p>
+
+<p>Gets（get with cas）
+获取key所对应的value的同时，也会返回cas值。</p>
+
+<p>Exist
+查询某个key是否存在（不是官方标准，部分client会实现该功能）</p>
+
+<h2>删除</h2>
+
+<p>Del
+删除对应key的value</p>
+
+<h2>自增/自减</h2>
+
+<p>Incr / Decr
+如果value的形式是为64位整数的字符串，Incr / Decr将对该value进行自增/自减操作。</p>
+
+<h2>Flush</h2>
+
+<p>将memcached中的所有item都设置为过期。</p>
+
+<h1>参考</h1>
+
+<ul>
+<li><p><a href="http://memcached.org/">http://memcached.org/</a></p></li>
+<li><p><a href="http://work.tinou.com/2011/04/memcached-for-dummies.html">Memcached for Dummies</a></p></li>
+<li><p><a href="http://docs.oracle.com/cd/E17952_01/refman-5.5-en/ha-memcached-using.html">http://docs.oracle.com/cd/E17952_01/refman-5.5-en/ha-memcached-using.html</a></p></li>
+<li><p><a href="http://libmemcached.org/">http://libmemcached.org/</a></p></li>
+</ul>
+
+
+<p>&mdash;EOF&mdash;</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">admin</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-12-06T00:28:32+08:00" pubdate data-updated="true">Dec 6<span>th</span>, 2012</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/note/'>Note</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2012/11/18/some_interesting_setting_in_vim/" title="Previous Post: 几个实用有趣的Vim设置">&laquo; 几个实用有趣的Vim设置</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2012/12/30/e68891e8aea4e4b8bae79a84e581a5e5bab7e7949fe6b4bb/" title="Next Post: 我认为的健康生活">我认为的健康生活 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/01/31/test/">Test</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/30/information_retrievial_in_practice_note_architecture/">《Information Retrieval in Practice》笔记——整体架构</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/22/presentation-based-development/">“基于演示的开发”</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/quxiao">@quxiao</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'quxiao',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Xavier -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

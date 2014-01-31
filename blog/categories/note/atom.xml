@@ -1,0 +1,692 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Note | Xavier Blog]]></title>
+  <link href="http://quxiao.github.io/blog/categories/note/atom.xml" rel="self"/>
+  <link href="http://quxiao.github.io/"/>
+  <updated>2014-01-31T11:56:48+08:00</updated>
+  <id>http://quxiao.github.io/</id>
+  <author>
+    <name><![CDATA[Xavier]]></name>
+    <email><![CDATA[quxiao86@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[从Wordpres迁移至Jekyll(@github.io)]]></title>
+    <link href="http://quxiao.github.io/blog/2013/11/17/immigrate-from-wordpress/"/>
+    <updated>2013-11-17T00:00:00+08:00</updated>
+    <id>http://quxiao.github.io/blog/2013/11/17/immigrate-from-wordpress</id>
+    <content type="html"><![CDATA[<p>用上Wordpress之后，总体感觉还是很不错的，安装、设置、撰写文章都很方便，但仍然有几点不足：</p>
+
+<ol>
+<li>许多功能都需要插件支持，比如代码语法高亮，首页截取文章摘要</li>
+<li>图片和文章的存储方式，图片需要单独找图床、或者上传到服务器，而文章又是保存
+mysql数据库中的</li>
+<li>数据备份比较麻烦，每次都得使用插件或者人工备份数据</li>
+</ol>
+
+
+<p>因此决定将博客迁移到github上面，即免费又能使用<a href="http://jekyllrb.com/">Jekyll</a>这种静态博客，不需要配置DB、使用git发布、markdown语法。简单、方便、
+很极客！</p>
+
+<h2>建立github.io初始环境</h2>
+
+<p>首先，你需要一个github帐号，然后使用<a href="http://jekyllbootstrap.com/">JekyllBootstrap</a>建立一个初始化的环境，参照<a href="http://jekyllbootstrap.com/usage/jekyll-quick-start.html">教程</a>一步一步来，环境很快就可以搞定。你就可以在USERNAME.github.io上面看到环境了</p>
+
+<p>PS: 教程上面说需要建立的是USERNAME.github.com的repository，需要改为USERNAME.github.io才可以</p>
+
+<h2>备份Wordpress数据</h2>
+
+<p>迁移之前，先备份下数据，如果是使用VPN的话，SSH登录到服务器上，备份数据库</p>
+
+<pre><code>mysqldump -u root -p -h localhost BLOG_TABLE &gt; BLOG_TABLE.sql
+</code></pre>
+
+<p>另外一些静态文件，比如图片什么的，也备份一份</p>
+
+<h2>选择迁移工具</h2>
+
+<p>迁移工具方面，基本上是基于下面两种方式：</p>
+
+<ol>
+<li>使用WordPress导出的xml文件，导出md文档</li>
+<li>连接WordPress的Mysql数据库导出md文档</li>
+</ol>
+
+
+<p>Jekyll有自带的<code>jekyll-import</code>工具，很想使用官方的迁移工具，但我一直“未遂”，说是无法load到<code>jekyll-import</code>模块……</p>
+
+<p>另外，Jekyll官网上还推荐了三个第三方的工具：</p>
+
+<ol>
+<li><a href="https://github.com/thomasf/exitwp">Exitwp</a></li>
+<li><a href="http://vitobotta.com/how-to-migrate-from-wordpress-to-jekyll/">A great
+article</a> ，
+其实是一篇详细的迁移教程</li>
+<li><a href="https://github.com/theaob/wpXml2Jekyll">wpXml2Jekyll</a></li>
+</ol>
+
+
+<p>第二个太过详细，第三个只能运行在Windows下，所以看来只能选择第一个工具了。</p>
+
+<h2>导出WordPress XML文件</h2>
+
+<p>在WordPress的<code>export.php</code>页面上可以轻松导出XML文件。但这一步遇到一个小插曲：blog上面太多spam评论了，结果也会一并export出来，这些spam
+评论会导致后面工具导出markdown文档失败。因为blog上面真实的评论并不多，所以就考
+虑把评论都删除，网上查了资料，只需要将WordPress Mysql表中的<code>wp_comments</code>表删除即可</p>
+
+<pre><code>DROP TABLE wp_comments;
+</code></pre>
+
+<h2>使用exitwp</h2>
+
+<p>这个工具带有鲜明的“反WordPress”风格，使用起来还是比较简单的，按照项目首页的
+README操作即可，你的WordPress文章就变成一个个markdown文档了！</p>
+
+<p>不过使用途中发现有几个问题：</p>
+
+<ol>
+<li>在Mac上使用pip进行依赖安装后，那些依赖的库还是会import失败（是我打开方式不对吗……），还是得自己将一个个依赖下载后安装</li>
+<li>Exitwp虽然支持下载图片，但是文章中的图片链接却没有换过来</li>
+<li>导出后的md文档，对于正文中的特殊字符没有做处理，比如<code>*</code>，会导致<code>jekyll build</code>失败，需要手动修改</li>
+<li>由于系统编码原因，会导致使用exitwp以及jekyll失败，参考这篇<a href="http://www.webplay.pro/linux/set-locale-terminal-settings-mac-os-x.html">文章</a>
+，需要在<code>/etc/profile</code>添加<code>export LANG=zh_CN.UTF-8</code>以及<code>export
+LC_ALL=zh_CN.UTF-8</code></li>
+</ol>
+
+
+<h2>发布！</h2>
+
+<p>发布之前，现在本地使用<code>jekyll server</code>或者<code>rake --preview</code>在本地预览，没问题就可以发布了。</p>
+
+<p>好了，下面将生成的markdown文档以及图片，push到你的github空间即可！Just enjoy it! :)</p>
+
+<p>最后，在使用markdown编写中文文章时，发现jekyll默认的markdown引擎对于中文支持不
+是很好，对于对于全部为中文的列表对完全失效，需要将markdown引擎改为<code>rdiscount</code>
+，在<code>_config.yaml</code>中添加：</p>
+
+<pre><code>markdown: rdiscount
+</code></pre>
+
+<p>就可以了。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[《Effective Go》学习笔记]]></title>
+    <link href="http://quxiao.github.io/blog/2013/10/28/effective-go-learning-note/"/>
+    <updated>2013-10-28T00:29:06+08:00</updated>
+    <id>http://quxiao.github.io/blog/2013/10/28/effective-go-learning-note</id>
+    <content type="html"><![CDATA[<p>最近抽时间把Go语言看了一下，把Go playground玩了一遍，把官方文档上的Effective Go也学习了一番。把一些重点或者说自己觉得比较有特点的地方记录下来，用作备忘和分享。</p>
+
+<h1>未使用的package或者变量是编译错误</h1>
+
+<p>这相当于就在代码层面对开发人员进行了规范，不像C++等其它语言，你多include一个.h文件，或者声明了一个变量但没有使用，这对你编译程序都不会有任何影响，挺多会打些编译warning。这样很容易造成程序编译了没有使用的库和变量，使程序变得臃肿。</p>
+
+<h1><strong>变量的可见性有变量名决定</strong></h1>
+
+<p>一个package中的变量名如果首字母是大写，则对于package外部是可见的，反之则不可见。Go里面没有public, private这样的关键字（至少我目前没看到），直接约定首字母大写的变量是public的，不是大写的是private的，简便并且规范。</p>
+
+<h1>函数可以返回多值</h1>
+
+<p>像Python一样，Go的函数可以返回多个值，这样就很方便的把正常情况下需要返回的数据以及发生错误时error一并返回了。</p>
+
+<h1>关键字defer——return之前执行</h1>
+
+<p>Go里面可以将语句前声明defer关键字，表示目前先不执行这条语句，等待函数return前再执行。这实在是太方便了！特别是对于一些需要管理资源的场景。</p>
+
+<pre><code>// Contents returns the file's contents as a string.
+func Contents(filename string) (string, error) {
+    f, err := os.Open(filename)
+    if err != nil {
+        return "", err
+    }
+    defer f.Close()  // f.Close will run when we're finished.
+
+    var result []byte
+    buf := make([]byte, 100)
+    for {
+        n, err := f.Read(buf[0:])
+        result = append(result, buf[0:n]...) // append is discussed later.
+        if err != nil {
+            if err == io.EOF {
+                break
+            }
+            return "", err  // f will be closed if we return here.
+        }
+    }
+    return string(result), nil // f will be closed if we return here.
+}
+</code></pre>
+
+<p>试想一下，在C++中，如果想要在每个分支都能释放资源，就得采用1）<code>goto</code>或<code>do-while</code>，例如以下代码，或者 2）<code>scoped pointer</code>。</p>
+
+<pre><code>int f1(const char* fname) {
+    int ret = 0;
+    FILE* fp = fopen(fname, "r");
+    if ( NULL == fp ) {
+        return -1;
+    }
+    if (....) {
+        ret = 1;
+        goto FINISH;
+    } else if (....) {
+        ret = 2;
+        goto FINISH;
+    }
+
+FINISH:
+    fclose(fp);
+    return ret;
+}
+
+int f2(const char* fname) {
+    int ret = 0;
+    FILE* fp = fopen(fname, "r");
+    if ( NULL == fp ) {
+        return -1;
+    }
+    do {
+        if (....) {
+            ret = 1;
+            break;
+        } else if (....) {
+            ret = 2;
+            break;
+        }
+    } while(0);
+
+    fclose(fp);
+    return ret;
+}
+</code></pre>
+
+<h1>new &amp; make</h1>
+
+<p>Go语言中的new和C++中的不太一样，它只负责分配一段全为<code>'\0'</code>的内存，不会进行任何其它初始化，需要你自己再做一些工作。
+而make关键字是用来新建slice, map, channel这三中类型的，因为它们内部必须做一些特殊的初始化才能使用。</p>
+
+<h1>结构体可以直接print</h1>
+
+<p>默认情况下，struct就可以直接打印出来，而且还会打印出每个字段的名称和值。这个对于开发人员排查问题，也是极其方便的。</p>
+
+<pre><code>type T struct {
+    a int
+    b float64
+    c string
+}
+t := &amp;T{ 7, -2.35, "abc\tdef" }
+fmt.Printf("%v\n", t)
+fmt.Printf("%+v\n", t)
+fmt.Printf("%#v\n", t)
+</code></pre>
+
+<p>会打印出</p>
+
+<pre><code>&amp;{7 -2.35 abc   def}
+&amp;{a:7 b:-2.35 c:abc     def}
+&amp;main.T{a:7, b:-2.35, c:"abc\tdef"}
+</code></pre>
+
+<p>当然，你也可以定义某个类型T的<strong>String()</strong>方法，用来改变输出的字符串，就像Python中实现<code>__str__</code>方法一样。</p>
+
+<h1>接口“嵌入”</h1>
+
+<p>如果想使用某套接口，在C++中一般都是将满足这套接口的实例作为某个类的成员，再调用这个成员的接口。在Go中，可以在某个接口里面直接“嵌入”其它已经实现的接口，比如需要一个ReadWriter接口，里面有Read()和Write()，但是已经有一个接口Reader里面有Read()，一个接口Writer里面有Write()，就直接使用以下代码就可以了，这样Read()和Writer()就是ReadWriter接口的方法了。</p>
+
+<pre><code>type Reader interface {
+    Read(p []byte) (n int, err error)
+}
+
+type Writer interface {
+    Write(p []byte) (n int, err error)
+}
+
+// ReadWriter is the interface that combines the Reader and Writer interfaces.
+type ReadWriter interface {
+    Reader
+    Writer
+}
+</code></pre>
+
+<h1>goroutine &amp;&amp; channel</h1>
+
+<p>goroutine以及channel可以说是Go语言最重要的特性了。goroutine有一个简单的思想，它就是一个通其它goroutine运行在同一份内存空间的函数。而channel顾名思义，就是一个管道，任何数据可以通过管道进行传输，可以往channel里面放数据，可以从channel里面获取数据。goroutine和channel的配合使用，很好的解释了Go语言“<strong>Do not communicate by sharing memory; instead, share memory by communicating</strong>”的思想，还有一个很好的例子在<a href="http://talks.golang.org/2012/waza.slide#12">这里</a>，这里例子同时也讲解了并发（concurrency）和并行（parallelism）之间的关系和区别。</p>
+
+<p>我觉得，并发是一种工作方式，它把一个整体的复杂的任务分解为小型的逻辑简单的任务；而并行就是真是的同时在做许多事情。就那例子中的任务来说，把一堆书送到另一端的火堆烧掉。如果是并行的话，就是原来是一个人“拿书-运书-烧书”，现在同时有多个人“拿书-运书-烧书”。如果是并发的话：，就是把任务可以分解为：1）一个人把一部分书从书堆中放到车子上；2）一个人把装有书的车子推到火堆旁；3）一个人把火堆旁的书烧掉。每个人各司其职，只需要从一个源头（channel或者其它地方）获取原始数据，自己进行简单的加工，然后堆到另外一边（另一个channel），自己不用管其他人是怎么工作、或者什么时候工作的，只需要把自己分内的事情完成就OK了。Divide and conquer真是一种简单精妙的思想！</p>
+
+<p>好了，暂时就先整理到这里吧~</p>
+
+<p>参考资料：</p>
+
+<p><a href="http://golang.org/doc/effective_go.html">Effetive Go</a>
+<a href="http://talks.golang.org/2012/waza.slide">Concurrency is not Parallelism</a>
+<a href="http://play.golang.org/">Go Playground</a></p>
+
+<p>&mdash;EOF&mdash;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[在脚本中使用文件锁]]></title>
+    <link href="http://quxiao.github.io/blog/2013/09/01/filelock_in_script/"/>
+    <updated>2013-09-01T00:04:09+08:00</updated>
+    <id>http://quxiao.github.io/blog/2013/09/01/filelock_in_script</id>
+    <content type="html"><![CDATA[<p>较早之前，一个模块的reload程序出现过这样一个问题：模块会定期检查一份文件是否被更新，如果被更新了，就reload；但是，如果文件正在被更新（没有写完）并且模块正好检测到更新，模块就会reload到一份不全的文件，导致数据异常。当时的解决方案是：使用一个done文件，推送文件的脚本在完成数据更新后，touch一下done，模块检测done文件的更新来判断是否reload。</p>
+
+<p>最近这个事情又被同们事提起，不过稍微扩展了下，问题变成了：<strong>有没有一种机制，能让许多并行的脚本能串行进行一系列操作</strong>。比如多个脚本对文件进行依次读写，以免产生脏数据。无疑，如果脚本如果shell中有一种“锁”的机制，就可以解决这个问题。原来只使用过API级别的锁，脚本中的锁还真没用过。其实，如果要在shell脚本实现锁，需要满足两个条件：</p>
+
+<ol>
+<li> 一个全局可见的状态</li>
+<li> 一种“检测 + 加锁”的原子操作</li>
+</ol>
+
+
+<p>大家可能会想到使用一个文件来当做锁，如果有这个文件，就表示某个脚本正在操作，其它脚本等待；如果没有这个文件，我就touch这个文件，然后开始我的操作。但是，“检测文件”和“新建文件”不是原子操作，所以是无法保证串行的。</p>
+
+<p>google了一下，还是有几种满足条件的方案的。</p>
+
+<h1>文件夹锁</h1>
+
+<p>检测文件和新建文件无法做到原子性，但是mkdir操作，却能做到原子地检测文件夹和创建文件夹，有点儿意思！所以，当脚本想对于竞争数据进行操作，就<code>mkdir</code>某个文件夹，根据返回码得知申请所是否成功，申请成功、完成操作之后再<code>rm -rf</code>就可以实现了。例如这样：</p>
+
+<p><div>
+  <pre><code class='bash'>&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;#!/bin/sh
+
+if [ $# -ne 2 ]
+then
+    exit 1
+else
+    NUM=&quot;$1&quot;
+    SLEEP_TIME=&quot;$2&quot;
+fi
+
+OUT_FILE=&quot;test.out&quot;
+LOCK_FILE=&quot;lock.file&quot;
+
+while :
+do
+    mkdir ${LOCK_FILE}
+    if [ $? -ne 0 ]
+    then
+        continue
+    fi
+    for ((i=0; i&amp;lt;10; i++))
+    do
+        echo &quot;${NUM} is working in $i step!&quot; &amp;gt;&amp;gt; ${OUT_FILE}
+    done
+    sleep ${SLEEP_TIME}
+    rm -rf ${LOCK_FILE}
+done
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;</code></pre>
+</div>
+</p>
+
+<h1>lockfile命令</h1>
+
+<p>原来直接就有个专门用于文件锁的命令，这个命令比mkdir更强大，可以设置申请文件锁的等待时长、重拾次数、锁的过期时间。但是，在写测试代码的时候，却发现只会有一个脚本一直获取到文件锁，其它脚本都处于申请锁等待并超时的状态，难道我参数用的不对？</p>
+
+<p><div>
+  <pre><code class='bash'>&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;#!/bin/sh
+
+if [ $# -ne 2 ]
+then
+    exit 1
+else
+    NUM=&quot;$1&quot;
+    SLEEP_TIME=&quot;$2&quot;
+fi
+
+OUT_FILE=&quot;test.out&quot;
+LOCK_FILE=&quot;lock.file&quot;
+
+while :
+do
+    echo &quot;${NUM} try to get lockfile&quot; &amp;gt;&amp;gt; ${OUT_FILE}
+    lockfile  ${LOCK_FILE}
+    if [ $? -ne 0 ]
+    then
+        echo &quot;${NUM} wait lock failed&quot; &amp;gt;&amp;gt; ${OUT_FILE}
+        continue
+    fi
+    echo &quot;${NUM} got lockfile&quot; &amp;gt;&amp;gt; ${OUT_FILE}
+    for ((i=0; i&amp;lt;10; i++))
+    do
+        echo &quot;${NUM} is working in $i step!&quot; &amp;gt;&amp;gt; ${OUT_FILE}
+    done
+    sleep ${SLEEP_TIME}
+    echo &quot;${NUM} delete lockfile&quot; &amp;gt;&amp;gt; ${OUT_FILE}
+    rm -rf ${LOCK_FILE}
+done
+
+exit 0
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;</code></pre>
+</div>
+</p>
+
+<h1>设置noclobber + 重定向文件</h1>
+
+<p>shell中有一个参数叫noclobber，设置了这个参数后，当脚本试图重定向文件时，如果发现改文件已经存在，重定向就会失败。这种方法自己没尝试过，下面是从网上抄来的code example：</p>
+
+<p><div>
+  <pre><code class='bash'>&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;if ( set -o noclobber; echo &quot;locked&quot; &amp;gt; &quot;$lockfile&quot;) 2&amp;gt; /dev/null; then
+  trap &#39;rm -f &quot;$lockfile&quot;; exit $?&#39; INT TERM EXIT
+  echo &quot;Locking succeeded&quot; &amp;gt;&amp;amp;2
+  rm -f &quot;$lockfile&quot;
+else
+  echo &quot;Lock failed - exit&quot; &amp;gt;&amp;amp;2
+  exit 1
+fi
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;</code></pre>
+</div>
+</p>
+
+<p>看来在脚本中使用文件锁，还是比较方便的。不过，在我看来在脚本中使用文件锁，有个致命弱点：操作系统不会禁止其它进程对作为锁的文件（或者文件夹）进行操作。相当于一个脚本已经申请到了文件锁并正在操作，但是其它进程完全可以不受限制的删除这个文件锁，这样就会使得期间其它脚本能够成功申请到文件锁。或者一些脚本使用文件锁对竞争资源进行操作，但其它脚本直接操作竞争资源，这种情况也是无法避免的。使用文件锁，完全靠自觉！</p>
+
+<p>另外，文件锁也没有提供像共享锁、排它锁这样的高级功能，这也是文件锁的短板。</p>
+
+<p>参考资料：</p>
+
+<p><a href="http://en.wikipedia.org/wiki/File_locking">http://en.wikipedia.org/wiki/File_locking</a></p>
+
+<p><a href="http://wiki.bash-hackers.org/howto/mutex">Lock your script (against parallel run)</a></p>
+
+<p>&mdash;EOF&mdash;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Memcached调研]]></title>
+    <link href="http://quxiao.github.io/blog/2012/12/06/memcached_study/"/>
+    <updated>2012-12-06T00:28:32+08:00</updated>
+    <id>http://quxiao.github.io/blog/2012/12/06/memcached_study</id>
+    <content type="html"><![CDATA[<p>最近因开发需要，调研了下memcached，share一下！</p>
+
+<h1>什么是memcached</h1>
+
+<p>Memcached是一个开源的高性能，分布式的内存对象缓存系统，通过键值对的形式来对数据进行存取。</p>
+
+<h1>特性</h1>
+
+<h2>简单的Key Value存储</h2>
+
+<p>|&mdash;-Memcached只把key value当作一组字符串来组织，不关心数据的格式
+|&mdash;-没有持久化，所有数据都存储在内存中，当内存用满时，丢弃最旧的数据
+-&mdash;数据只会保存一份，不支持replication，也不支持容错（一些客户端有自己的实现）</p>
+
+<h2>Server和client共同决定操作的行为</h2>
+
+<p>|&mdash;-Server只关心如何获取数据、存储数据、丢弃数据
+-&mdash;Client只关心如何通过key定位server，以及如何和server通信</p>
+
+<h2>Server相互独立</h2>
+
+<p>|&mdash;-Server之间不会有通信，也不知道其他server的存在，但是Client知道所有server的存在。</p>
+
+<h2>所有操作都是常数时间，所有操作也都是原子操作</h2>
+
+<h1>数据组织</h1>
+
+<h2>内部结构</h2>
+
+<p>Memcached将内存分为不同的page（默认为1 Mb）、每个page被（永久）赋给某一个slab。Memcached中有多个级别的slab，每一种slab决定了内存的粒度。举例说明：
+假设memcached可以操作1 Mb的内存，每个page为1Kb，有3类slab：class1、class2、class3。Class1的内存分配粒度为96字节，class2的内存分配粒度为288字节，class3的内存分配粒度为1024字节。那么，memcached的内存结构为下图：</p>
+
+<p><a href="http://qxavier.me/wp-content/uploads/2012/12/memcached_internal_struct.png"><img src="http://qxavier.me/wp-content/uploads/2012/12/memcached_internal_struct.png" alt="" /></a></p>
+
+<p>实际运行效果：</p>
+
+<blockquote><p>./bin/memcached -vv -m 1 -I 1k -f 3 -M -p 11225</p>
+
+<p>slab class   1: chunk size        96 perslab      10</p>
+
+<p>slab class   2: chunk size       288 perslab       3</p>
+
+<p>slab class   3: chunk size      1024 perslab       1</p></blockquote>
+
+<p>class 1中，chunk的大小为96字节，共有10个chunk；
+class 2中，chunk的大小为288字节，共有3个chunk；
+class 3中，chunk的大小为1024字节，共有1个chunk；</p>
+
+<h1>数据处理</h1>
+
+<h2>存储</h2>
+
+<p>数据（item）以key、value的形式进行存储，key最大为250 byte，value最大为1 Mb。
+当存储item时，memcached会找到最“适合”大小的chunk用于保存这个item。例如item大小为200字节，对于上面的例子，这个item会被保存至class 2。</p>
+
+<h2>删除</h2>
+
+<p>Memcached不会主动删除数据，删除数据的情况有两种：</p>
+
+<ol>
+<li><p> 当新数据无法找到合适的位置进行存储时，会删除数据，删除数据的原则是LRU算法。</p></li>
+<li><p> 当client查找一个数据，server发现其已经过期时，就会删除该数据。</p></li>
+</ol>
+
+
+<p>对于情况1，具体来说，当对一个item进行存储时，如果在适合的slab class中，既找不到空闲的chunk，又找不着这个slab class中空闲的page，memcached就会选择数据进行删除。Memcached首先会在处于LRU队列尾部的几个数据中，查找已经过期的数据；如果找不到过期的数据，就在队列尾部选择一个未过期的数据进行删除。</p>
+
+<h1>线程工作方式</h1>
+
+<p>Memcached采用libevent库进行多线程请求处理。
+（libevent是一个事件出发的网络库，使用与 windows, linux, mac os 等的高性能跨平台网络库 ,支持的多种I/O 网络模型 epoll poll dev/poll select kqueue 等）
+Memcached中，每个线程拥有一个自己的libevent实例。
+如果memcached采用TCP/IP连接，将采用单线程监听端口，监听线程获取到请求之后，将其分配给其中一个处理线程，选取处理线程的算法为round-robin。
+如果memcached采用UDP连接，所有（空闲的）处理线程都有监听UDP socket，其中一个线程监听到请求之后，进行相应处理。</p>
+
+<h1>操作</h1>
+
+<p>Memcached中，所有操作都是原子操作，操作时间都是常数级别。Memcached的操作有以下几类：</p>
+
+<h2>存储</h2>
+
+<p>Set
+如有没有key对应的value，添加value；如果已存在该key对应的value，更新value。</p>
+
+<p>Add
+如有没有key对应的value，添加value；如果已存在该key对应的value，则操作失败。</p>
+
+<p>Replace
+如果已存在该key对应的value，更新value；如果没有key对应的value，则操作失败。</p>
+
+<p>Append / Prepend
+在key对应的value前/后添加数据</p>
+
+<p>Cas（check and set）
+Client会事先获取一个关于key的64位cas值，更新时，只有当server的cas值与client的cas一致时，才会执行value更新操作，否则操作失败。</p>
+
+<h2>查询</h2>
+
+<p>Get（Mget）
+根据一个key或者一系列key，获取对应的value(s)。</p>
+
+<p>Gets（get with cas）
+获取key所对应的value的同时，也会返回cas值。</p>
+
+<p>Exist
+查询某个key是否存在（不是官方标准，部分client会实现该功能）</p>
+
+<h2>删除</h2>
+
+<p>Del
+删除对应key的value</p>
+
+<h2>自增/自减</h2>
+
+<p>Incr / Decr
+如果value的形式是为64位整数的字符串，Incr / Decr将对该value进行自增/自减操作。</p>
+
+<h2>Flush</h2>
+
+<p>将memcached中的所有item都设置为过期。</p>
+
+<h1>参考</h1>
+
+<ul>
+<li><p><a href="http://memcached.org/">http://memcached.org/</a></p></li>
+<li><p><a href="http://work.tinou.com/2011/04/memcached-for-dummies.html">Memcached for Dummies</a></p></li>
+<li><p><a href="http://docs.oracle.com/cd/E17952_01/refman-5.5-en/ha-memcached-using.html">http://docs.oracle.com/cd/E17952_01/refman-5.5-en/ha-memcached-using.html</a></p></li>
+<li><p><a href="http://libmemcached.org/">http://libmemcached.org/</a></p></li>
+</ul>
+
+
+<p>&mdash;EOF&mdash;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Python Decorator初体验]]></title>
+    <link href="http://quxiao.github.io/blog/2012/02/29/python-decorator-first-time/"/>
+    <updated>2012-02-29T17:57:15+08:00</updated>
+    <id>http://quxiao.github.io/blog/2012/02/29/python-decorator-first-time</id>
+    <content type="html"><![CDATA[<p>前段时间在看一些有关python web framwork的时候，发现在python语言里竟然有“@”符号，一查资料，原来是python装饰器（python装饰器也可以通过除了“@”的其他语法进行定义）。装饰器，是一种设计模式，用于动态地给对象添加行为，之前的一篇<a href="http://www.qxavier.me/2011/04/08/decorator_pattern/">文章</a>也提到过。python中也有装饰器，不过和普遍意义上的装饰器不同，python中的装饰器实际上是一种“<a href="http://en.wikipedia.org/wiki/Syntactic_sugar">语法糖</a>”，是一种语句的简便写法。比如，<code>a[idx]</code>就是<code>*(a+idx)</code>的一种简便写法，也算是一种语法糖。 假设有如下写法：</p>
+
+<pre><code>@dec
+def func():
+  pass
+</code></pre>
+
+<p>它等同于：</p>
+
+<pre><code>func = dec(func)
+</code></pre>
+
+<p>dec也是一个函数，只不过这个函数比较特殊，它的参数是一个函数（就是原先被装饰的函数func），它的返回值是一个函数。这样，再运行func()时，就是运行经过“装饰”的函数了。 python decorator可以帮助我们轻松地为函数或者类添加行为，而不用像普通的装饰器模式那样基于某个接口，大概这也算是动态语言的优势之一吧。 好，来看一些例子。</p>
+
+<p><strong>面向切面的编程</strong></p>
+
+<p>当我们要对许多函数进行相同的测试或者进行其他处理的时候，如果在每个函数都写一遍的话，代码太过重复，不利于统一管理。我们可以写一些统一的函数，然后在需要进行处理的函数前面加上decorator就行了。</p>
+
+<pre><code>def before(f):
+    def wrapper():
+        print 'before function'
+        f()
+    return wrapper
+
+def after(f):
+    def wrapper():
+        f()
+        print 'after function'
+    return wrapper
+
+@before
+@after
+def func():
+    print 'this is function'
+
+if __name__ == '__main__':
+    func()
+</code></pre>
+
+<p>这样，就可以在函数前后进行相应的处理了。程序输出如下：</p>
+
+<pre><code>before function
+
+this is function
+
+after function
+</code></pre>
+
+<p><strong>Singleton模式</strong></p>
+
+<pre><code>def singleton(cls):
+    instances = {}
+    def wrapper():
+        if cls not in instances:
+            instances[cls] = cls()
+        return instances[cls]
+    return wrapper
+
+@singleton
+class MyClass:
+    def __init__(self):
+        self.num = 0
+
+if __name__ == '__main__':
+    c1 = MyClass()
+    print c1.num
+    c2 = MyClass()
+    c2.num = 1
+    print c1.num
+    print (c1 == c2)
+</code></pre>
+
+<p>这样，每次“新建”MyClass类型，得到的都会是同一个实例。程序输出如下：</p>
+
+<pre><code>0
+
+1
+
+True
+</code></pre>
+
+<p><strong>检验函数参数和返回值的类型</strong></p>
+
+<pre><code>def accepts(*types):
+    def check_args(f):
+        #若去掉该断言，则代码可正常运行
+        assert len(types) == f.func_code.co_argcount, 'type len: %d args len: %d' %(len(types), f.func_code.co_argcount)
+        def new_f(*args, **kwds):
+            for (a, t) in zip(args, types):
+                assert isinstance(a, t), 'arg %r does not match %s' % (a, t)
+            return f(*args, **kwds)
+        new_f.func_name = f.func_name   # why?
+        return new_f
+    return check_args
+
+def returns(rtype):
+    def check_ret(f):
+        def new_f(*args, **kwds):
+            ret = f(*args, **kwds)
+            assert isinstance(ret, rtype), 'return value %r does not match %s' %(ret, rtype)
+            return ret
+        new_f.func_name = f.func_name
+        return new_f
+    return check_ret
+
+@returns((int, float))
+@accepts(int, (int, float))
+def func(arg1, arg2):
+    return arg1 + arg2
+
+if __name__ == '__main__':
+    print func(1, 2.0)
+    print func('1', '2')
+</code></pre>
+
+<p>在这段代码中，accepts函数用来保证被装饰的函数有两个参数，第一个参数为int型，第二个参数为int或float型，returns函数保证返回值为int或float型。那么，运行func(1, 2.0)，assert就能通过，而func(&lsquo;1&rsquo;, &lsquo;2&rsquo;)就不能通过。</p>
+
+<p>Todo：这里还有一个问题，就是当@returns和@accepts语句交换顺序之后，accepts中检测函数参数个数的assert就无法通过，输出参数个数为0，还不知道是什么原因，待解决。</p>
+
+<p>若去掉check_args函数中的对于f的参数个数的assert判断，则returns和accepts两个decorator无论什么顺序，代码均可正常运行。是由于<code>new_f(*args, **kwds)</code>改变了实际传入的参数的个数？</p>
+
+<p>参考资料：</p>
+
+<ul>
+<li><p><a href="http://www.python.org/dev/peps/pep-0318/">PEP 318 &mdash; Decorators for Functions and Methods</a></p></li>
+<li><p><a href="http://wiki.python.org/moin/PythonDecorators?action=fullsearch&amp;context=180&amp;value=linkto%3A%22PythonDecorators%22">PythonDecorators</a></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Syntactic_sugar">Syntactic sugar</a></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Decorator_pattern">Decorator pattern</a></p></li>
+</ul>
+
+
+<p>&mdash;EOF&mdash;</p>
+]]></content>
+  </entry>
+  
+</feed>

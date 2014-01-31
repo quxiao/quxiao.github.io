@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Other | Xavier Blog]]></title>
+  <link href="http://quxiao.github.io/blog/categories/other/atom.xml" rel="self"/>
+  <link href="http://quxiao.github.io/"/>
+  <updated>2014-01-31T11:56:48+08:00</updated>
+  <id>http://quxiao.github.io/</id>
+  <author>
+    <name><![CDATA[Xavier]]></name>
+    <email><![CDATA[quxiao86@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[我认为的健康生活]]></title>
+    <link href="http://quxiao.github.io/blog/2012/12/30/e68891e8aea4e4b8bae79a84e581a5e5bab7e7949fe6b4bb/"/>
+    <updated>2012-12-30T12:55:09+08:00</updated>
+    <id>http://quxiao.github.io/blog/2012/12/30/e68891e8aea4e4b8bae79a84e581a5e5bab7e7949fe6b4bb</id>
+    <content type="html"><![CDATA[<p>工作已有大半年，身为一个coder，工作还是挺辛苦的，生活也有时难免不规律，比如需要临时排查一个问题，或者要在晚上上线等等。但是，另一方面，正因为工作辛苦，健康对于我们来说就更为重要，毕竟身体是革命的本钱啊。经常看到关于IT从业者猝死的新闻，真是让人唏嘘不已。如果他们能够进行“可持续发展”，肯定能对社会有更大的贡献。</p>
+
+<p>那么，什么样的生活才是健康的呢？才是可持续的？我想了想，至少应该有这么几点：</p>
+
+<h1>早睡早起</h1>
+
+<p>首先是要睡得早，你睡得晚必定起得就不会早。尽量能在23点上床睡觉，最好不要超过23：30。睡觉前泡泡脚，喝点牛奶蜂蜜啥的，有助睡眠。早上7点左右起床，在家吃好早饭，然后不急不忙的去上班。因为去公司比较早，人比较少，你还可以在比较安静的环境下高效的工作1.5个小时左右。在我们公司，上班的大部分时间都是十分吵闹的，各种交流、各种讨论，但是，coding有是项需要集中精力才能完成的事情，周围环境很吵闹的话，工作效率就不会很高（即使你戴上耳机听音乐）。因此，比别人早来公司的那段时间，就显得无比宝贵了。高效的完成一天的工作，你也就可以按时下班了。
+可能人们心中会有这种等式：“生活规律” == “碌碌无为”，或者是“很晚下班” == “工作努力”。我觉得，很少部分情况下，这个等式才是成立的，绝大部分情况，只是说明你工作效率低下而已。</p>
+
+<h1>饮食清淡</h1>
+
+<p>现在，大家的午餐和晚餐基本上都是在外面吃了，其实是还是一个人住的时候。不过大家都知道，我国的食品，尤其是饭店的食品，可以说没什么安全可言。所以，能不在外面吃，就尽量不在外面吃，能自己做菜最好。不过可能也会中这样的烦恼：下班太晚，都没时间买菜、烧菜了。其实，只要能做到早点来公司并且工作效率较高的话，还是可以早点下班买菜的。
+另外，就是吃的东西应该尽量清淡些，多吃蔬菜少吃肉。现在生活条件多好了，在外面吃的东西，基本都是很多肉、很多油的，我们早就摄入的过多了。所以当自己可以选择吃什么的时候，还是选择清淡些为好。</p>
+
+<h1>定期锻炼</h1>
+
+<p>工作了之后，锻炼的机会越来越少了，而且坐的时候越来越长了，这样子迟早会出问题的。坐了1、2个小时就站起来走走，去倒杯水，或者做些简单的操。（现在公司每天下午3点，大家会做广播体操，这个很赞）也可以去办张健身卡，用“既成事实法”，先把钱花出去，然后“逼迫”自己去锻炼，况且健身房的氛围也不错，也不用怕外面天气太冷或太热。</p>
+
+<h1>养成看书的习惯</h1>
+
+<p>身体需要锻炼，思想同样需要锻炼。不过，现在生活节奏快，发现我以及周围许多人，己经连读一篇几百字的文章的耐心都没有了，有个同事甚至开玩笑说，“我现在的头脑里面的内存很小，只有140字节，读太长的文章就溢出了”。
+尽量争取每天读一篇比较有意义、有深度的文章，可以是和业界相关的，也可以说一些杂书里面的文章，不用太长时间，30分钟就足够了。少逛一次人人，少刷一次微博，时间就省下来了。</p>
+
+<p>&mdash;EOF&mdash;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Chrome Plugin: 网页浏览时间统计]]></title>
+    <link href="http://quxiao.github.io/blog/2011/04/29/chrome-plugin-web-browsing-time-statistics/"/>
+    <updated>2011-04-29T22:51:25+08:00</updated>
+    <id>http://quxiao.github.io/blog/2011/04/29/chrome-plugin-web-browsing-time-statistics</id>
+    <content type="html"><![CDATA[<p>前几天刚经过<a href="http://www.qxavier.me/2011/04/22/practice-u0026quotfarceu0026quot/">实习闹剧</a>，回到学校，导师暂时还没布置什么任务，比较无聊，于是突发奇想，准备搞个chrome插件玩玩。做个什么功能的插件呢？平时发现许多人（当然也包括我）总会把大把的时间花在一些网站上，做事情的效率变低下不说，还白白浪费了时间、浪费了生命，这样多不好啊！那就做个统计某些网页浏览时间的插件吧。用了三天的晚上空余时间，做了一个雏形。</p>
+
+<p>在option页面中，可以添加你想要监控的网站URL，如下图：</p>
+
+<p><a href="/images/2011-04-29-chrome-plugin-web-browsing-time-statistics/image_thumb6.png"><img src="/images/2011-04-29-chrome-plugin-web-browsing-time-statistics/image_thumb6.png" alt="image" /></a></p>
+
+<p>然后，你就可以向平时一样正常的浏览网页了。当想要查看浏览时间统计的时候，只需点击插件按钮即可。效果如下图：</p>
+
+<p><a href="/images/2011-04-29-chrome-plugin-web-browsing-time-statistics/image_thumb7.png"><img src="/images/2011-04-29-chrome-plugin-web-browsing-time-statistics/image_thumb7.png" alt="image" /></a></p>
+
+<p>统计信息通过饼图和柱状图展示，显示的是自使用该插件以来，你所花（或者称浪费）在你已监控网站上的时间，以及这些时间占你一生时间（假设你能活100年吧）的比例。</p>
+
+<p>Chrome插件开发起来倒还容易，就是javascript+HTML+CSS，熟悉web开发尤其是前端开发的人应该可以很快上手。我是好久没搞web前端开发了，开发时还花了不少时间复习。开发过程中，还用到了<a href="http://jquery.com/">jQuery</a>和<a href="http://www.highcharts.com/">Highcharts</a>，节省了不少开发时间啊。</p>
+
+<p>其实，我觉得这个插件并没什么技术含量。那为啥要做呢？原因有以下几点：</p>
+
+<ul>
+<li><p>我感觉这个点子不错</p></li>
+<li><p>培养自己的执行力</p></li>
+<li><p>作为“学术”之外的调剂
+反正，别让自己闲下来，至少别让自己把大把时间花在没有太多意义的事情上！有些事情，不管你喜欢不喜欢，都是要做的。不过，当你能有自己可以控制的时间，还是多做些更有意义的事情吧！（哎呀，貌似扯远了，最近比较火大 :)）</p></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+</feed>

@@ -1,0 +1,371 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Memcached源码学习——线程模型 - Xavier Blog</title>
+  <meta name="author" content="Xavier">
+
+  
+  <meta name="description" content="Memcached中有以下几类线程： 主线程
+工作线程
+维护线程 主线程，又可以叫分发线程，除了完成程序的各种参数、以及其他线程的初始化以外，还会listen端口，新建连接，并且将该连接分发到其他的工作线程。 工作线程，大部分实际的工作都是他们干的，包括读取请求的协议内容、解析、进行具体存、取、 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://quxiao.github.io/blog/2013/05/31/memcached_source_code_study_thread_model">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Xavier Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Xavier Blog</a></h1>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:quxiao.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Memcached源码学习——线程模型</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-05-31T09:30:39+08:00" pubdate data-updated="true">May 31<span>st</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Memcached中有以下几类线程：</p>
+
+<ul>
+<li>主线程</li>
+<li>工作线程</li>
+<li>维护线程</li>
+</ul>
+
+
+<p>主线程，又可以叫分发线程，除了完成程序的各种参数、以及其他线程的初始化以外，还会listen端口，新建连接，并且将该连接分发到其他的工作线程。</p>
+
+<p>工作线程，大部分实际的工作都是他们干的，包括读取请求的协议内容、解析、进行具体存、取、更新、删除kv的操作，最后返回结果。</p>
+
+<p>另外，还有一个维护线程，它的工作就是在需要的时候（存放的item大于总量的2/3）对hash表进行扩展。</p>
+
+<p>Memcached处理请求时，采用的是单进程多线程的Master-Worker模型，通过libevent这个事件响应库来实现的。</p>
+
+<p>首先来看一下主线程和工作线程之间是怎么交互的吧：</p>
+
+<p>工作线程在初始化的时候，会建立一个pipe（管道），两端分别为：<code>notify_receive_fd</code>，<code>以及notify_send_fd</code>：</p>
+
+<div>
+  <pre><code class='cpp'>for (i = 0; i &lt; nthreads; i++) {
+        int fds[2];
+        if (pipe(fds)) {
+            perror(&quot;Can&#39;t create notify pipe&quot;);
+            exit(1);
+        }
+
+        threads[i].notify_receive_fd = fds[0];
+        threads[i].notify_send_fd = fds[1];
+
+        setup_thread(&amp;threads[i]);
+        /* Reserve three fds for the libevent base, and two for the pipe */
+        stats.reserved_fds += 5;
+    }</code></pre>
+</div>
+
+
+<p>也就是说当其他线程向<code>notify_send_fd</code>文件描述符写内容的时候，<code>notify_receive_fd</code>就可以接受到。</p>
+
+<p>接着，就用到了libevent的API：</p>
+
+<div>
+  <pre><code class='cpp'>me-&gt;base = event_init();
+
+    /* Listen for notifications from other threads */
+    event_set(&amp;me-&gt;notify_event, me-&gt;notify_receive_fd,
+              EV_READ | EV_PERSIST, thread_libevent_process, me);
+    event_base_set(me-&gt;base, &amp;me-&gt;notify_event);
+
+    if (event_add(&amp;me-&gt;notify_event, 0) == -1) {
+        fprintf(stderr, &quot;Can&#39;t monitor libevent notify pipe\n&quot;);
+        exit(1);
+    }</code></pre>
+</div>
+
+
+<p>每个工作线程都新建一个libevent实例(<code>me-&gt;base</code>)，并且将<code>notify_event</code>绑定在这个实例上。</p>
+
+<p><code>notify_event</code>什么时候触发？
+当<code>notify_receive_fd</code>有内容的时候被触发。</p>
+
+<p>触发了执行什么函数？
+执行<code>thread_libevent_process (me)</code>函数。</p>
+
+<p>那在哪个地方会写<code>notify_send_fd</code>呢？
+在主线程将新建的连接分发给工作时，就会向某个线程的<code>notify_send_fd</code>写一个空的字符串用来唤醒这个线程。下面的代码一目了然：</p>
+
+<div>
+  <pre><code class='cpp'>void dispatch_conn_new(int sfd, enum conn_states init_state, int event_flags,
+                           int read_buffer_size, enum network_transport transport) {
+        CQ_ITEM *item = cqi_new();
+        /*这就是所谓的round robin*/
+        int tid = (last_thread + 1) % settings.num_threads;
+    
+        LIBEVENT_THREAD *thread = threads + tid;
+    
+        last_thread = tid;
+    
+        item-&gt;sfd = sfd;
+        /* ... */
+    
+        cq_push(thread-&gt;new_conn_queue, item);
+    
+        if (write(thread-&gt;notify_send_fd, &quot;&quot;, 1) != 1) {
+            perror(&quot;Writing to thread notify pipe&quot;);
+        }
+    }</code></pre>
+</div>
+
+
+<p>首先来看看主线程，当他把其他工作线程、维护线程启起来之后，就开始侦听socket端口了（可以在memcached的源码中看出tcp和udp在处理逻辑上有很多不同的地方，但我不知道为什么不一样，就只看了处理tcp部分的代码，看来改补一补网络通信的知识了……），主要逻辑在<code>server_sockets</code>函数中：</p>
+
+<div>
+  <pre><code class='cpp'>if (IS_UDP(transport)) {
+        int c;
+
+        for (c = 0; c &lt; settings.num_threads_per_udp; c++) {
+            /* this is guaranteed to hit all threads because we round-robin */
+            dispatch_conn_new(sfd, conn_read, EV_READ | EV_PERSIST,
+                              UDP_READ_BUFFER_SIZE, transport);
+        }
+    } else {
+        if (!(listen_conn_add = conn_new(sfd, conn_listening,
+                                         EV_READ | EV_PERSIST, 1,
+                                         transport, main_base))) {
+            fprintf(stderr, &quot;failed to create listening connection\n&quot;);
+            exit(EXIT_FAILURE);
+        }
+        listen_conn_add-&gt;next = listen_conn;
+        listen_conn = listen_conn_add;
+    }</code></pre>
+</div>
+
+
+<p><code>conn_new</code>函数建立了连接之后，将socket文件描述符于<code>event_handler</code>函数绑定，当有socket请求过来的时候，就执行<code>event_handler</code>。在<code>event_handler</code>中，就是直接调用<code>drive_machine</code>这个大大的状态转移函数，一次连接的所有状态就都在这个函数里面处理了。</p>
+
+<p>主线程首先达到<code>drive_machine</code>中的<code>conn_listenning</code>状态，然后通过<code>dispatch_conn_new</code>将这次的连接分配给某个工作线程，工作线程再经历其他的状态，完成一次请求。</p>
+
+<p><code>drive_machine</code>的具体逻辑比较复杂，这里就不讲了。</p>
+
+<p>好，最后简单回顾下这个工作流程：</p>
+
+<ol>
+<li> 主线程接受到memcached客户端的请求（是在哪儿一直接收请求的？）</li>
+<li> 主线程通过round robin找到一个工作线程</li>
+<li> 主线程将创建的连接push到工作线程的连接队列中，然后唤醒这个工作线程</li>
+<li> 工作线程被唤醒后，从自己的线程队列中取出一个连接</li>
+<li> 解析请求、对hash表进行相应的操作，写入返回</li>
+</ol>
+
+
+<p>整体看下来，感觉memcached的源码并没有什么高深的算法，用的都是很朴素的链表、底层的网络通信、线程间互斥、字符串解析等等，感觉除了网络通信比较繁琐以外，其他的地方都是一个刚毕业的计算机专业的学生可以也应该掌握的。通过对一些简单、实用的东西进行有效的组合，就可以获取一个功能更强大的合成体。</p>
+
+<p>&mdash;EOF&mdash;</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">admin</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-05-31T09:30:39+08:00" pubdate data-updated="true">May 31<span>st</span>, 2013</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/source-reading/'>Source Reading</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/05/13/the_diseases_in_big_company/" title="Previous Post: 我也来说说大公司的那些“病”">&laquo; 我也来说说大公司的那些“病”</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2013/07/06/intrusive-list/" title="Next Post: Intrusive list">Intrusive list &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/01/31/test/">Test</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/30/information_retrievial_in_practice_note_architecture/">《Information Retrieval in Practice》笔记——整体架构</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/22/presentation-based-development/">“基于演示的开发”</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/quxiao">@quxiao</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'quxiao',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Xavier -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

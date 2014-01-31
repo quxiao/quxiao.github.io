@@ -1,0 +1,572 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Development | Xavier Blog]]></title>
+  <link href="http://quxiao.github.io/blog/categories/development/atom.xml" rel="self"/>
+  <link href="http://quxiao.github.io/"/>
+  <updated>2014-01-31T11:56:48+08:00</updated>
+  <id>http://quxiao.github.io/</id>
+  <author>
+    <name><![CDATA[Xavier]]></name>
+    <email><![CDATA[quxiao86@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[日常工作中用到的Shell/Python命令——文本篇]]></title>
+    <link href="http://quxiao.github.io/blog/2013/04/08/shell_and_python_in_daily_work_part1_text_processing/"/>
+    <updated>2013-04-08T22:44:54+08:00</updated>
+    <id>http://quxiao.github.io/blog/2013/04/08/shell_and_python_in_daily_work_part1_text_processing</id>
+    <content type="html"><![CDATA[<p>作为一名RD，作为一名后端RD，每天大部分的工作都是在终端上面完成的，除了在vim上面编写代码，也需要分析日志、数据，定时跑一些任务，因此各种shell、各种脚本语言也是不少用。罗列些自己平时工作中用到查看、处理文本的命令：</p>
+
+<h2>查看日志</h2>
+
+<p>平常查看模块打印的日志，肯定是必需的，比如需要知道一个模块重启后运行是否正常，需要查看请求返回的一些字段。日志比较小的话（100Mb以内），可以直接用<code>vim</code>打开，否则会把服务器内存全部吃掉，甚至把服务器搞挂。。。</p>
+
+<p>文件太大的话，可以用<code>less</code>或者<code>more</code>命令打开，这样不会把整个文件都load到内存，然后再使用“/”或者"?&ldquo;向后或者向前查找需要的字符串</p>
+
+<p>有时只需要看看文件的头尾几行，看看日志的格式如何，用<code>head</code>以及<code>tail</code>就可以，特别，如果需要实时查看日志，则可以使用<code>tail -f</code>。</p>
+
+<h2>过滤日志</h2>
+
+<p>有时只需要获取日志的某些行，比如查找哪些行包含"FATAL"，就可以用</p>
+
+<p><code>grep "FATAL" xxx.log</code></p>
+
+<p>如果先是想看看有没有这类日志存在，就用管道结合<code>wc -l</code></p>
+
+<p><code>grep "FATAL" xxx.log | wc -l</code></p>
+
+<p>也可以结合之前的<code>less</code>、<code>head</code>、<code>tail</code>查看部分日志</p>
+
+<p><code>grep "FATAL" xxx.log | less</code></p>
+
+<p>如果是想获取日志中的某些字段，可以使用<code>cut</code>命令进行分割</p>
+
+<p>假设有如下日志：</p>
+
+<blockquote><p>1 2 3 4 5</p></blockquote>
+
+<p>11 12 13 14 15</p>
+
+<p>获取第三列，用<code>cat xxx.log | cut -d'\t' -f3</code>，就可以得到</p>
+
+<blockquote><p>3</p></blockquote>
+
+<p>13</p>
+
+<p>有时候，日志比较复杂，比如：</p>
+
+<blockquote><p>a=1,b=2,c=3</p></blockquote>
+
+<p>比如还是获取第三列，则可以：</p>
+
+<p><code>cat xxx.log | cut -d',' -f3 | cut -d'=' -f2</code></p>
+
+<p>过滤日志，也可以使用<code>awk</code>，但感觉如何不是对于日志的数据进行计算，只用<code>awk</code>进行过滤，未免有些大材小用了，呵呵。</p>
+
+<h2>计算日志字段</h2>
+
+<p>好，这个时候<code>awk</code>就可以排上用场了，它不但能对字段进行过滤、累加、对日志按类似C语言<code>printf()</code>的格式进行输出，还可以进行dict运算。比如有一份日志保存着每次请求的query字段：</p>
+
+<blockquote><p>htc</p></blockquote>
+
+<p>iphone4s</p>
+
+<p>htc</p>
+
+<p>sumsung</p>
+
+<p>xiaomi</p>
+
+<p>我需要知道每个query的频次，用几行python应该也能很快搞定，不过用<code>awk</code>，仅需用一行：</p>
+
+<pre><code>cat xxx.log | awk '{dict[$1]++;} END{for(i in dict){printf "query:[%s] pv:[%d]\n", i, dict[i];}}'
+</code></pre>
+
+<blockquote><p>query:[xiaomi] pv:[1]</p></blockquote>
+
+<p>query:[sumsung] pv:[1]</p>
+
+<p>query:[htc] pv:[2]</p>
+
+<p>query:[iphone4s] pv:[1]</p>
+
+<h2>遍历文件</h2>
+
+<p>有时候需要依次对一些文件进行相同的处理，如果只是想遍历文件一个文件夹下面的某些文件，可以直接</p>
+
+<pre><code>for file in ./*.log; do echo "$file"; done
+</code></pre>
+
+<blockquote><p>./zhixin_stat.log
+./zhixin_stat.py.log</p></blockquote>
+
+<p>有时候需要构造一些序列，一般情况，用类似C语言的for循环，比如：</p>
+
+<pre><code>for ((i=0; i&lt;=10; i++)); do echo 201304$i; done
+</code></pre>
+
+<blockquote><p>2013040
+2013041
+2013042
+2013043
+2013044
+2013045
+2013046
+2013047
+2013048
+2013049
+20130410</p></blockquote>
+
+<p>但是可以发现，生成的序列宽度是不一样的，就需要用到seq命令了，它可能生成固定宽度的序列：</p>
+
+<pre><code>for i in `seq -w 1 10`; do echo 201304$i; done
+</code></pre>
+
+<blockquote><p>20130401
+20130402
+20130403
+20130404
+20130405
+20130406
+20130407
+20130408
+20130409
+20130410</p></blockquote>
+
+<h2>用python进行排序</h2>
+
+<p>统计数据，难免需要对某几个维度进行分析，在python中进行排序，无非就是对于一个<code>list</code>进行排序，<code>list</code>中的元素一般为某个<code>class</code>或者一个<code>dict</code>。</p>
+
+<p>对于排序class，需要定义'&lt;&lsquo;, &rsquo;>&lsquo;, &rsquo;&lt;=&lsquo;, &rsquo;>=&lsquo;, &rsquo;==&lsquo;, &rsquo;!=&lsquo;六种比较行为，就好像C++中的operator重载一样。具体Python doc中这篇<a href="http://docs.python.org/2/howto/sorting.html">HowTo</a>讲解的很清楚，这里不再赘述了。</p>
+
+<p>对于dict进行排序，如果需要按照dict的某个key进行排序，则可以这么写：</p>
+
+<pre><code>from operator import itemgetter
+#按照name字段进行排序  
+newlist = sorted(list_to_be_sorted, key=itemgetter('name'))
+</code></pre>
+
+<h2>用python发送邮件</h2>
+
+<p>好了，文本统计完了，生成了一份统计报表，这时候可能就需要我们通过邮件的形式发送给同事看。用<code>crontab</code>每天凌晨开始抓数据、跑统计、然后把统计数据邮件给大家，显得专业！</p>
+
+<p>发送邮件的功能，可以用python + sendmail实现：</p>
+
+<pre><code>from os import path
+import datetime
+import time
+import sys
+import subprocess
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
+
+sender = 'quxiao@somewhere.com'
+receiver = 'someone@somewhere.com'
+
+def main(date):
+    EmailBody = 'blablabla'
+    msg = MIMEMultipart()
+    msg['Subject'] = 'some subject'
+    msg['From'] = sender
+    msg['To'] = receiver
+    msg.attach(MIMEText(EmailBody,'html','GB18030'))
+    #send
+    proc = subprocess.Popen(['/usr/lib/sendmail','-t'],stdin = subprocess.PIPE)
+    proc.stdin.write(str(msg))
+    proc.stdin.close()
+</code></pre>
+
+<p>&mdash;EOF&mdash;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[C++虚函数的实现]]></title>
+    <link href="http://quxiao.github.io/blog/2012/11/01/virtual-function-implement-in-cpp/"/>
+    <updated>2012-11-01T22:47:02+08:00</updated>
+    <id>http://quxiao.github.io/blog/2012/11/01/virtual-function-implement-in-cpp</id>
+    <content type="html"><![CDATA[<p>前段时间公司进行校招，大家那段时间也顺带看看一些面试题目。其中一道经典的题目就是C++中的虚函数是如何实现的？要是直接问我，我还真不记得了。（现在让我再去面试，肯定完蛋）</p>
+
+<p>所谓虚函数，就是函数声明前使用virtual关键字，作用是当基类指针指向子类对象时，通过基类指针调用虚函数，运行的就是实际子类的对应函数，而不是基类的。这种特性在像Java这种“纯”面向对象的语言中，是默认实现的，在C++中就要进行显示声明。如果不显示声明的话，运行的就会是基类的函数。</p>
+
+<p>C++中的虚函数是通过虚表（virtual table）实现的。声明类时，编译器会放一个隐藏的指针，这个指针放在了类的最开始位置，并且指向的就是虚表，虚表里面存放着这个类声明的各个虚函数的地址。假设如果有基类Base：</p>
+
+<pre><code>class Base {
+    virtual void f1();
+    virtual void f2();
+}
+</code></pre>
+
+<p>那么Base类的虚表的结构就是：</p>
+
+<pre><code>Base
+    __vptr    --&gt;    Base::f1(), Base::f2()
+    .....（其他成员）
+</code></pre>
+
+<p>假设还有类D：</p>
+
+<pre><code>class D: public Base {
+    virtual void f1();
+}
+</code></pre>
+
+<p>那么D的虚表就是下面这个样子的：</p>
+
+<pre><code>D
+    __vptr    --&gt;    D::f1(), Base::f2()
+    .....
+</code></pre>
+
+<p>这样的话，当Base类的指针p_base= D()并且p_base->f1()的时候，调用的就是D的f1()了。注意，因为Base和D的虚表的结构一致，所以才能保证调用了正确的函数。</p>
+
+<p>那么，如果是多重继承，即有多个基类时，结果如何呢？C++中，一个类的每一个基类，都有一个单独的虚表与之对应。假设类结构如下：</p>
+
+<pre><code>class B1 {
+    virtual void f1();
+    virtual void f3();
+}
+
+class B2 {
+    virtual void f2();
+    virtual void f3();
+}
+
+class D: public B1, public B2 {
+    virtual void f1();
+    virtual void f2();
+}
+</code></pre>
+
+<p>那么D类的虚表结构就是：</p>
+
+<pre><code>D
+    __vptr  --&gt; D::f1(), B1::f3()
+            --&gt; D::f2(), B2::f3()
+    .....
+</code></pre>
+
+<p>还有种情况，那就是在多重继承的情况下，子类声明了不属于任何父类的虚函数。例如：</p>
+
+<pre><code>class B1 {
+    virtual void f1();
+    virtual void f3();
+}
+
+class B2 {
+    virtual void f2();
+    virtual void f3();
+}
+
+class D: public B1, public B2 {
+    virtual void f1();
+    virtual void f2();
+    virtual void f4();
+}
+</code></pre>
+
+<p>子类声明的不属于任何父类的虚函数地址就会继续向第一个虚表的结尾放。</p>
+
+<pre><code>D
+    __vptr  --&gt; D::f1(), B1::f3(), D::f4()
+            --&gt; D::f2(), B2::f3()
+    .....
+</code></pre>
+
+<p>这样的话，不管你用什么类的声明，声明类的虚表结构和实际类的就会是一致的（准确的说应该是父类虚表的结构一定是子类对应的虚表的前缀），这样就实现了基类指针调用子类函数的功能。</p>
+
+<p>参考文章：</p>
+
+<p><a href="http://blog.csdn.net/haoel/article/details/1948051">C++ 虚函数表解析</a></p>
+
+<p><a href="http://www.learncpp.com/cpp-tutorial/125-the-virtual-table/">The virtual table</a></p>
+
+<p><a href="http://coldattic.info/shvedsky/s/blogs/a-foo-walks-into-a-bar/posts/3">Busting C++ myths: virtual function calls are slow</a></p>
+
+<p>&mdash;EOF&mdash;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[利用Expect添加开机启动程序]]></title>
+    <link href="http://quxiao.github.io/blog/2012/05/13/add-startup-programe-with-expect/"/>
+    <updated>2012-05-13T15:54:10+08:00</updated>
+    <id>http://quxiao.github.io/blog/2012/05/13/add-startup-programe-with-expect</id>
+    <content type="html"><![CDATA[<p>都说“懒”是程序员的美德，如果“懒”是指想尽一切办法让计算机来完成重复的事情，那么这句话完全正确！</p>
+
+<p>最近遇到一个问题，让我忍不住想要“懒”一下，情况是这样的：</p>
+
+<p>5、6年前买的笔记本，我现在依然在使用，不过它实在太老，已经沦为“上网本”，我只能在上面装上Ubuntu+Chrome，平时上上网。但是，每次开机，我都要重复的做3件事：</p>
+
+<ol>
+<li><p> 开启ssh，为了能看看墙外的世界</p></li>
+<li><p> 打开含有ssh账户密码的文本文件</p></li>
+<li><p> 打开Chrome</p></li>
+</ol>
+
+
+<p>这实在是在麻烦了！我得想个办法，让计算机能自动完成这些工作。关键的问题在于如何在ssh提示你输入密码的时候，能够自动输入，而不用我把密码贴过去。终于，我找到了一个在linux下可以和其他程序“talk”的程序——Expect。</p>
+
+<p>Expect有3个关键的命令：<strong>expect</strong>、<strong>send</strong>、<strong>spawn</strong></p>
+
+<p>expect——期待程序给我某个信息</p>
+
+<p>send——Expect给程序发送某个信息</p>
+
+<p>spawn——启动某程序</p>
+
+<p>那么，目前我需要Expect的“逻辑”是这样的：</p>
+
+<ol>
+<li><p> 利用spawn启动ssh</p></li>
+<li><p> 期待（expect）ssh程序提示输入密码</p></li>
+<li><p> 把密码send给ssh程序</p></li>
+</ol>
+
+
+<p>如果逻辑不复杂的话，Expect的语法还是相对简单的，可以参考《<a href="http://oreilly.com/catalog/expect/chapter/ch03.html">Exploring Expect</a>》和<a href="http://linux.die.net/man/1/expect">man expect</a>。</p>
+
+<p>Expect的代码如下：</p>
+
+<pre><code>#!/usr/bin/expect --
+
+#一直等待程序的输入
+set timeout -1
+
+#设置变量
+set username blablabla
+set hostname blablabla.com
+set password blablabla
+
+#不知为何利用-f -n将ssh转入后台就无法成功运行，待解决
+#spawn ssh -qTfnN -D 7070 $username@$hostname
+#启动ssh程序
+spawn ssh -qTN -D 7070 $username@$hostname
+#匹配ssh程序的输出，如果含有“password”，就将密码send给ssh
+expect "password" {send "$password\r"}
+
+#之后将ssh控制权转交给用户
+interact
+</code></pre>
+
+<p>应该还是比较通俗易懂的吧。</p>
+
+<p>好，现在Expect的工作完成了， 在再之前加上启动gnome-terminal和用bash启动Expect，然后最后加上自启动Chrome，这样就大功告成了！之前寻找各种添加开机启动脚本的方法，都没能成功（怀疑和启动时还未进行gnome桌面环境有关），最后只能通过Ubuntu的"System"&ndash;>&ldquo;Preferences&rdquo;&ndash;>&ldquo;Startup Applications"来添加启动命令，分别添加一下两条命令：</p>
+
+<pre><code>#开启gnome模拟终端
+gnome-terminal -e "bash -l -c '~/test_expect.sh'" &amp;
+#开启Chrome浏览器
+/opt/google/chrome/google-chrome
+</code></pre>
+
+<p>好了，这样我就可以每次开机让计算机替我完成之前重复的工作了，not perfect, but practical !</p>
+
+<p>参考资料：</p>
+
+<ul>
+<li><p>《<a href="http://oreilly.com/catalog/expect/chapter/ch03.html">Exploring Expect</a>》</p></li>
+<li><p><a href="http://linux.die.net/man/1/expect">man expect</a></p></li>
+<li><p><a href="http://pastebin.com/Y48pM73C">开机启动时快速进入开发环境</a></p></li>
+<li><p><a href="http://zhu8337797.blog.163.com/blog/static/1706175492011101282720246/">用于shell脚本无交互的ssh自动登陆</a> （这篇文章出现在许多地方，不知道原出处在哪……）</p></li>
+</ul>
+
+
+<p>-EOF-</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Python Decorator初体验]]></title>
+    <link href="http://quxiao.github.io/blog/2012/02/29/python-decorator-first-time/"/>
+    <updated>2012-02-29T17:57:15+08:00</updated>
+    <id>http://quxiao.github.io/blog/2012/02/29/python-decorator-first-time</id>
+    <content type="html"><![CDATA[<p>前段时间在看一些有关python web framwork的时候，发现在python语言里竟然有“@”符号，一查资料，原来是python装饰器（python装饰器也可以通过除了“@”的其他语法进行定义）。装饰器，是一种设计模式，用于动态地给对象添加行为，之前的一篇<a href="http://www.qxavier.me/2011/04/08/decorator_pattern/">文章</a>也提到过。python中也有装饰器，不过和普遍意义上的装饰器不同，python中的装饰器实际上是一种“<a href="http://en.wikipedia.org/wiki/Syntactic_sugar">语法糖</a>”，是一种语句的简便写法。比如，<code>a[idx]</code>就是<code>*(a+idx)</code>的一种简便写法，也算是一种语法糖。 假设有如下写法：</p>
+
+<pre><code>@dec
+def func():
+  pass
+</code></pre>
+
+<p>它等同于：</p>
+
+<pre><code>func = dec(func)
+</code></pre>
+
+<p>dec也是一个函数，只不过这个函数比较特殊，它的参数是一个函数（就是原先被装饰的函数func），它的返回值是一个函数。这样，再运行func()时，就是运行经过“装饰”的函数了。 python decorator可以帮助我们轻松地为函数或者类添加行为，而不用像普通的装饰器模式那样基于某个接口，大概这也算是动态语言的优势之一吧。 好，来看一些例子。</p>
+
+<p><strong>面向切面的编程</strong></p>
+
+<p>当我们要对许多函数进行相同的测试或者进行其他处理的时候，如果在每个函数都写一遍的话，代码太过重复，不利于统一管理。我们可以写一些统一的函数，然后在需要进行处理的函数前面加上decorator就行了。</p>
+
+<pre><code>def before(f):
+    def wrapper():
+        print 'before function'
+        f()
+    return wrapper
+
+def after(f):
+    def wrapper():
+        f()
+        print 'after function'
+    return wrapper
+
+@before
+@after
+def func():
+    print 'this is function'
+
+if __name__ == '__main__':
+    func()
+</code></pre>
+
+<p>这样，就可以在函数前后进行相应的处理了。程序输出如下：</p>
+
+<pre><code>before function
+
+this is function
+
+after function
+</code></pre>
+
+<p><strong>Singleton模式</strong></p>
+
+<pre><code>def singleton(cls):
+    instances = {}
+    def wrapper():
+        if cls not in instances:
+            instances[cls] = cls()
+        return instances[cls]
+    return wrapper
+
+@singleton
+class MyClass:
+    def __init__(self):
+        self.num = 0
+
+if __name__ == '__main__':
+    c1 = MyClass()
+    print c1.num
+    c2 = MyClass()
+    c2.num = 1
+    print c1.num
+    print (c1 == c2)
+</code></pre>
+
+<p>这样，每次“新建”MyClass类型，得到的都会是同一个实例。程序输出如下：</p>
+
+<pre><code>0
+
+1
+
+True
+</code></pre>
+
+<p><strong>检验函数参数和返回值的类型</strong></p>
+
+<pre><code>def accepts(*types):
+    def check_args(f):
+        #若去掉该断言，则代码可正常运行
+        assert len(types) == f.func_code.co_argcount, 'type len: %d args len: %d' %(len(types), f.func_code.co_argcount)
+        def new_f(*args, **kwds):
+            for (a, t) in zip(args, types):
+                assert isinstance(a, t), 'arg %r does not match %s' % (a, t)
+            return f(*args, **kwds)
+        new_f.func_name = f.func_name   # why?
+        return new_f
+    return check_args
+
+def returns(rtype):
+    def check_ret(f):
+        def new_f(*args, **kwds):
+            ret = f(*args, **kwds)
+            assert isinstance(ret, rtype), 'return value %r does not match %s' %(ret, rtype)
+            return ret
+        new_f.func_name = f.func_name
+        return new_f
+    return check_ret
+
+@returns((int, float))
+@accepts(int, (int, float))
+def func(arg1, arg2):
+    return arg1 + arg2
+
+if __name__ == '__main__':
+    print func(1, 2.0)
+    print func('1', '2')
+</code></pre>
+
+<p>在这段代码中，accepts函数用来保证被装饰的函数有两个参数，第一个参数为int型，第二个参数为int或float型，returns函数保证返回值为int或float型。那么，运行func(1, 2.0)，assert就能通过，而func(&lsquo;1&rsquo;, &lsquo;2&rsquo;)就不能通过。</p>
+
+<p>Todo：这里还有一个问题，就是当@returns和@accepts语句交换顺序之后，accepts中检测函数参数个数的assert就无法通过，输出参数个数为0，还不知道是什么原因，待解决。</p>
+
+<p>若去掉check_args函数中的对于f的参数个数的assert判断，则returns和accepts两个decorator无论什么顺序，代码均可正常运行。是由于<code>new_f(*args, **kwds)</code>改变了实际传入的参数的个数？</p>
+
+<p>参考资料：</p>
+
+<ul>
+<li><p><a href="http://www.python.org/dev/peps/pep-0318/">PEP 318 &mdash; Decorators for Functions and Methods</a></p></li>
+<li><p><a href="http://wiki.python.org/moin/PythonDecorators?action=fullsearch&amp;context=180&amp;value=linkto%3A%22PythonDecorators%22">PythonDecorators</a></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Syntactic_sugar">Syntactic sugar</a></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Decorator_pattern">Decorator pattern</a></p></li>
+</ul>
+
+
+<p>&mdash;EOF&mdash;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Hadoop中的一些概念]]></title>
+    <link href="http://quxiao.github.io/blog/2011/11/14/some_concepts_in_hadoop/"/>
+    <updated>2011-11-14T15:09:09+08:00</updated>
+    <id>http://quxiao.github.io/blog/2011/11/14/some_concepts_in_hadoop</id>
+    <content type="html"><![CDATA[<p>Hadoop，在不同的上下文的环境下，会表示不同范围的概念。有人可能把Hadoop单单理解为一个分布式文件系统，我感觉欠妥，因为也有很多其他的分布式文件系统。Hadoop之所以称为Hadoop，其核心在于它的MapReduce框架。所以，Hadoop的最精简的理解应该是HDFS （Hadoop Distributed File System）+ MapReduce。除了核心，也可以算上它的许多子项目，例如Hbase、Pig、Hive等等，可以通过下图来了解下Hadoop的Big Picture:</p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/11/hadoop_ecosys.jpg"><img src="http://www.qxavier.me/wp-content/uploads/2011/11/hadoop_ecosys_thumb.jpg" alt="hadoop_ecosys" /></a></p>
+
+<p>既然HDFS以及MapReduce是Hadoop的核心，对于它们的一些概念就要有所掌握。好，下面来讲解一下。</p>
+
+<h3>HDFS中的重要概念：</h3>
+
+<p><strong>NameNode
+</strong>它是整个HDFS的核心，里面包含了整个文件系统中的所有文件的路径，并且监控存有文件的服务器，NameNode本身并不存储文件。NameNode就相当于一个接口，当用户想要对HDFS中的文件进行读/写/添加/删除时，首先要询问NameNode，然后NameNode再给你一个存储着文件的服务器（DataNode）的列表。
+注意：HDFS中只有一个NameNode （除非使用ZooKeeper），也就是意味着如果NameNode失效了，整个HDFS也就失效了。</p>
+
+<p><strong>DataNode
+</strong>存放HDFS数据的节点，一般来说，HDFS都有多个DataNode，一个数据会在不同的DataNode上存储多份，以防止部分节点失效后数据丢失。DataNode启动后，会一直试图通知NameNode，以便让NameNode知道它的存在。</p>
+
+<p><strong>SecondaryNameNode
+</strong>为了弥补NameNode单点失效的缺点，可以在一台单独机器上配置SecondaryNameNode。不过，SecondaryNameNode只是保存一些记录点（check point），并不会对数据进行冗余保存。</p>
+
+<h3>MapReduce计算模型中的重要概念：</h3>
+
+<p><strong>TaskTracker
+</strong>集群中真正执行计算的节点，它的操作包括：Map、Reduce以及Shuffle。每个TaskTracker都设置了一系列的slot，表示这个TaskTracker可以同时接受任务的数量。</p>
+
+<p><strong>JobTracker
+</strong>分发MapReduce任务的节点。这个（活动的）JobTracker在一个MapReduce服务中只有一个，因此JobTracker也是单点失效的，如果JobTracker失效了，所有TaskTracker中的任务都会停止。</p>
+
+<p>JobTracker和TaskTracker的交互过程：</p>
+
+<ul>
+<li><p>用户提交一个MapReduce任务（Job）给JobTracker</p></li>
+<li><p>JobTracker与NameNode通信，以确定数据的位置</p></li>
+<li><p>根据数据的位置，定位那些1）在数据节点或者在数据节点附近 2）有可用slot的TaskTracker</p></li>
+<li><p>JobTracker向TaskTracker提交对应的任务</p></li>
+<li><p>JobTracker开始监控TaskTracker，如果监控不到TaskTracker的心跳，或者TaskTracker上面执行的任务失败，就将任务提交到其他TaskTracker</p></li>
+<li><p>当TaskTracker上的任务完成后，JobTracker会更新它的状态</p></li>
+</ul>
+
+
+<p>嗯，差不多就这么多吧，有时间再深入研究研究！</p>
+
+<p>&mdash;EOF&mdash;</p>
+]]></content>
+  </entry>
+  
+</feed>

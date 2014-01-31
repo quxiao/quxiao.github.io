@@ -1,0 +1,324 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>USACO Section 3.4 Raucous Rockers - Xavier Blog</title>
+  <meta name="author" content="Xavier">
+
+  
+  <meta name="description" content="题目大意：有N(&lt;=20)首歌，打算放在M(&lt;=20)张CD中，每张CD可存储T(&lt;=20)分钟的音乐，给定每首歌的时长，问如何将歌曲按照日期（也就是输入）的顺序，存在这M张CD中，并且每首歌不可以分开存在多张CD上，使得存储的歌曲的数目最多。 来看给的样例： 4 5 2
+4 3 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://quxiao.github.io/blog/2011/05/31/usaco-section-3-4-raucous-rockers">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Xavier Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Xavier Blog</a></h1>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:quxiao.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">USACO Section 3.4 Raucous Rockers</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-05-31T10:52:29+08:00" pubdate data-updated="true">May 31<span>st</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>题目大意：有N(&lt;=20)首歌，打算放在M(&lt;=20)张CD中，每张CD可存储T(&lt;=20)分钟的音乐，给定每首歌的时长，问如何将歌曲按照日期（也就是输入）的顺序，存在这M张CD中，并且每首歌不可以分开存在多张CD上，使得存储的歌曲的数目最多。</p>
+
+<p>来看给的样例：</p>
+
+<pre><code>4 5 2
+4 3 4 2
+</code></pre>
+
+<p>答案是3，可以直接看出，存放的方案是将第1首4分钟的歌存入第1张CD，然后将第2首3分钟和第4首2分钟的歌存入第2张CD。</p>
+
+<p>思路：</p>
+
+<pre><code>一看到题，就冲动的想到搜索。后来理智还是打败了冲动，20层的搜索还是有些接受不了。于是试着看这题能不能DP。DP的关键就是能否准确的记录子问题，我们来想一想子问题应该如何表示。很自然的，子问题可以表示为：前n首歌考虑放入前m张CD，所能放入的最大歌曲数。然后我们就可以将问题逐渐扩展，直至N、M的规模。但是，子问题如何扩展呢？那就是将[n][m]的情况下，考虑第n+1首歌。如果不放这首歌，就转化为[n+1][m]；如果放这首歌，可以分两种情况：将第n+1首歌放在第m张CD上，将第n+1首歌放在第m+1张CD上。那怎么判断第n+1首歌可以放入第m张CD上呢？因此，还需要一个维度，那就是在[n][m]的规模下，第m张CD还剩余的时长。最后，子问题就可以表示成如下的形式：
+</code></pre>
+
+<p><code>maxSong[songNum][diskNum][remain]</code></p>
+
+<ul>
+<li><p>songNum表示已考虑到的前songNum首歌</p></li>
+<li><p>diskNum表示已考虑到的前diskNum张CD</p></li>
+<li><p>remain表示在第diskNum张CD上剩余的时长</p></li>
+</ul>
+
+
+<p><code>maxSong[songNum][diskNum][remain]</code>（假设值为n）可以扩展为以下状态：</p>
+
+<ol>
+<li><p> <code>maxSong[songNum+1][diskNum][remain]</code>( = n ) 不放第songNum+1首歌</p></li>
+<li><p> <code>maxSong[songNum+1][diskNum][remain-songTime[songNum+1]]</code>( = n+1 ) 将第songNum+1首歌放入第diskNum张CD</p></li>
+<li><p> <code>maxSong[songNum+1][diskNum+1][T-songTime[songNum+1]]</code>( = n + 1 ) 将第songNum+1首歌放入第diskNum+1张CD</p></li>
+</ol>
+
+
+<p>这样，按n、m和t的规模从小到大一次进行扩展，最终maxSong中最大的值即为答案。</p>
+
+<p>关键代码如下：</p>
+
+<pre><code>void Expand(int songNum, int diskNum, int remain)
+{
+     if ( maxSong[songNum][diskNum][remain] == -1 )
+           return;
+     if ( songNum == N &amp;&amp; diskNum == M )
+           return;
+     int curMax = maxSong[songNum][diskNum][remain];
+     if ( remain &gt;= songTime[songNum+1] )
+     {
+          maxSong[songNum+1][diskNum][remain-songTime[songNum+1]] =
+                max( maxSong[songNum+1][diskNum][remain-songTime[songNum+1]], curMax+1);
+     }
+     if ( T &gt;= songTime[songNum+1] )
+     {
+           maxSong[songNum+1][diskNum+1][T-songTime[songNum+1]] =
+                max( maxSong[songNum+1][diskNum+1][T-songTime[songNum+1]], curMax+1);
+     }
+     maxSong[songNum+1][diskNum][remain] = max( maxSong[songNum+1][diskNum][remain], curMax);
+}
+
+void Solve ()
+{
+     int i, j, k, ans;
+     ans = -1;
+     memset(maxSong, -1, sizeof(maxSong));
+     maxSong[0][0][0] = 0;
+     for (i = 0; i &lt;= M; i ++)
+     {
+           for (j = 0; j &lt;= N; j ++)
+           {
+                for (k = 0; k &lt;= T; k ++)
+                {
+                     Expand(j, i, k);
+                }
+           }
+     }
+
+     for (i = 0; i &lt;= M; i ++)
+     {
+           for (j = 0; j &lt;= N; j ++)
+           {
+                for (k = 0; k &lt;= T; k ++)
+                {
+                     if ( maxSong[j][i][k] &gt; ans )
+                     {
+                           ans = maxSong[j][i][k];
+                     }
+                }
+           }
+     }
+     printf("%d\n", ans);
+}
+</code></pre>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">admin</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-05-31T10:52:29+08:00" pubdate data-updated="true">May 31<span>st</span>, 2011</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/usaco/'>USACO</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2011/05/23/usaco-section-3-4-american-heritage/" title="Previous Post: USACO Section 3.4 American Heritage">&laquo; USACO Section 3.4 American Heritage</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2011/06/23/usaco-section-4-1-beef-mcnuggets/" title="Next Post: USACO Section 4.1 Beef McNuggets">USACO Section 4.1 Beef McNuggets &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/01/31/test/">Test</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/30/information_retrievial_in_practice_note_architecture/">《Information Retrieval in Practice》笔记——整体架构</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/22/presentation-based-development/">“基于演示的开发”</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/quxiao">@quxiao</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'quxiao',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Xavier -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

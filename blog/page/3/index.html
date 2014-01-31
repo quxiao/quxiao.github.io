@@ -1,0 +1,1100 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Xavier Blog</title>
+  <meta name="author" content="Xavier">
+
+  
+  <meta name="description" content="在我的潜意识里，以前总有种不知从何而来的误解，认为QA（测试人员）只是在开发完的软件或者网页上点点鼠标，初步看看程序有没有错。有错的话，就会把RD（开发人员）喊过来，用鼠标复现一次错误，然后让RD去改代码；没有错的话，就算是大功告成了。 工作了才发现，事实并不是这样的。 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://quxiao.github.io/blog/page/3">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Xavier Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Xavier Blog</a></h1>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:quxiao.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/08/28/rde5ba94e8afa5e5838fqae4b880e6a0b7e6809de88083/">RD应该像QA一样思考</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-08-28T09:23:46+08:00" pubdate data-updated="true">Aug 28<span>th</span>, 2012</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>在我的潜意识里，以前总有种不知从何而来的误解，认为QA（测试人员）只是在开发完的软件或者网页上点点鼠标，初步看看程序有没有错。有错的话，就会把RD（开发人员）喊过来，用鼠标复现一次错误，然后让RD去改代码；没有错的话，就算是大功告成了。</p>
+
+<p>工作了才发现，事实并不是这样的。在一个同事身上发生过这样一件事情：他本来在QA部门实习，等到转正面试的时候，面试官对他说，你的能力大概还不能胜任QA，你可以考虑去做RD！这件事让我着实有些震惊。不过在公司工作了一段时间，发现身边的QA的确不比RD弱，无论是技术方面，还是工作态度方面。刚来公司实习的一个QA mm，什么Shell、Python都很熟，写test case，找bug也不在话下。有时候会一起和RD看代码、调bug，有次甚至一直到晚上十点半才下班，真是令人钦佩。还听说公司的好多中高层，都是QA出身，看来其中必定是有原因的。</p>
+
+<p>RD常常会有一种莫名的优越感，认为是我把这个程序从无到有写出来的，大部分的功劳应该归我。代码写出来了，至于测试这种“小事”，就让QA来做吧。如果有了这种“优越感”，那么思维就会有局限，在这种思维里，下意识把开始写代码看作是起点，把程序可以运行起来并且貌似没什么问题看作是终点，其他部分，都不怎么关心。</p>
+
+<p>QA同学则不然，QA更多时间是用来考虑代码写完之后的事情，他们不但会把整个软件当作是一个黑盒，去设计各种test case，之后还会进行压力测试，以检验代码在不同场景下的性能。有时发现了bug，还会自己去看RD的代码，进行静态的走查……所以说，QA应该是最了解需求的，无论是功能上的，还是性能上的，因为这些需求就是他们进行测试的依据。而RD通常都是听到一个需求之后，感觉自己懂了，然后就开始码代码了，这样往往容易考虑的过于细节，而把宏观的Big Picture抛在脑后。</p>
+
+<p>可能RD的确要比QA思考的更细节一些，比如这个数据结构是用数组还是用链表，应该调用哪个API等等，但是RD也应该像QA一样思考，时时不忘功能的需求，以及性能上的指标。一个合格的RD，写出代码应该只是开发的第一步，后续还应该写一个测试用例、性能测试程序等等，对于自己写出的代码要负责到底。既然QA会走查RD写出的代码，那么RD为什么不能和QA一起测试呢？: ) 另外，在编码阶段或者在编码完成立刻发现的bug，比过了一段时间再测试时发现的bug，所处理的成本要低得多。</p>
+
+<p>不妨向QA同学多取取经，问问他们是怎么设计测试用例的，用了哪些自动化测试的框架，有了哪些代码静态检查、压力测试的工具。最关键的，是要学习QA是如何确认软件是符合当初分析时的种种需求和规范的。这些如果都能学好，对RD应该大有裨益。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/07/26/32e4bd8defbc9f64e4bd8defbc9f/">32位？64位？</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-07-26T22:46:20+08:00" pubdate data-updated="true">Jul 26<span>th</span>, 2012</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>前两天室友买了台Dell Inspiron 14R，装机的时候向我要Win7 64位的安装盘，我略感惊讶，原来笔记本也普及64位了，我还停留在Windows XP的3.2G的“美好”回忆里。借此机会，正好看看平常所说的“32位”“64位”到底有什么不同。</p>
+
+<h1>到底是哪个地方的“位”？</h1>
+
+<p>本质上，讲的就是一个地方的“位”——CPU，也就是CPU进行一次运算支持的数据位数，或者是CPU一条基本指令的位数。</p>
+
+<p>CPU的位数决定了运算的范围或者说是精确程度，也决定了计算机内存的寻址范围。</p>
+
+<p>说到数字的精度，下面是IEEE754的标准中，32位浮点数（float）和64位浮点数（double）在内存中分别是如下形式：</p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2012/07/image.png"><img src="http://www.qxavier.me/wp-content/uploads/2012/07/image_thumb.png" alt="image" /></a></p>
+
+<p><img src="http://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/IEEE_754_Double_Floating_Point_Format.svg/618px-IEEE_754_Double_Floating_Point_Format.svg.png" alt="IEEE 754 Double Floating Point Format.svg" /></p>
+
+<p>其中，</p>
+
+<p>float的计算方式为<a href="http://www.qxavier.me/wp-content/uploads/2012/07/image1.png"><img src="http://www.qxavier.me/wp-content/uploads/2012/07/image_thumb1.png" alt="image" /></a>，数值范围为1.18 × 10−38 ～ 3.4 × 1038 。</p>
+
+<p>double的计算方式为<a href="http://www.qxavier.me/wp-content/uploads/2012/07/image2.png"><img src="http://www.qxavier.me/wp-content/uploads/2012/07/image_thumb2.png" alt="image" /></a>，数值范围为2.2250738585072014 x 10−308 ～ 1.7976931348623157 x 10308</p>
+
+<p>大家也可以看一下斯坦福大学的公开课《<a href="http://v.163.com/special/opencourse/paradigms.html">范式编程</a>》，前2节课讲的就是各种基础类型是如何在内存中存储的。</p>
+
+<p>至于寻址范围，理论上32位的寻址范围是2<sup>32</sup>，64位的就是2<sup>64</sup>。但实际用户能用到的并没有那么多，32位机器也就3.4G左右可供用户使用，而64位机器一般是支持100～200G左右的内存，64位Windows 7专业版支持最大192G。</p>
+
+<h1>CPU –> OS –> Application</h1>
+
+<p><img src="http://www.techsupportalert.com/files/images/pc_freeware/64bit-software/32-bit-64-bit-explained-442-322.jpg" alt="Processor, OS and application hierarchy" /></p>
+
+<p>CPU、OS和Application，是一个前者决定后者的关系。是否可以运行64位的应用程序，得看OS是不是64位的；能不能安装64位的OS，得看CPU（以前主板等硬件）是否是支持64位的。下表可以清晰的各种情况的CPU、OS和Application是否兼容的情况：</p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2012/07/image3.png"><img src="http://www.qxavier.me/wp-content/uploads/2012/07/image_thumb3.png" alt="image" /></a></p>
+
+<p>&mdash;EOF&mdash;</p>
+
+<p><a href="http://www.techsupportalert.com/content/32-bit-and-64-bit-explained.htm">http://www.techsupportalert.com/content/32-bit-and-64-bit-explained.htm</a></p>
+
+<p><a href="http://en.wikipedia.org/wiki/IEEE_floating_point">http://en.wikipedia.org/wiki/IEEE_floating_point</a></p>
+
+<p><a href="http://v.163.com/special/opencourse/paradigms.html">http://v.163.com/special/opencourse/paradigms.html</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/05/13/add-startup-programe-with-expect/">利用Expect添加开机启动程序</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-05-13T15:54:10+08:00" pubdate data-updated="true">May 13<span>th</span>, 2012</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>都说“懒”是程序员的美德，如果“懒”是指想尽一切办法让计算机来完成重复的事情，那么这句话完全正确！</p>
+
+<p>最近遇到一个问题，让我忍不住想要“懒”一下，情况是这样的：</p>
+
+<p>5、6年前买的笔记本，我现在依然在使用，不过它实在太老，已经沦为“上网本”，我只能在上面装上Ubuntu+Chrome，平时上上网。但是，每次开机，我都要重复的做3件事：</p>
+
+<ol>
+<li><p> 开启ssh，为了能看看墙外的世界</p></li>
+<li><p> 打开含有ssh账户密码的文本文件</p></li>
+<li><p> 打开Chrome</p></li>
+</ol>
+
+
+<p>这实在是在麻烦了！我得想个办法，让计算机能自动完成这些工作。关键的问题在于如何在ssh提示你输入密码的时候，能够自动输入，而不用我把密码贴过去。终于，我找到了一个在linux下可以和其他程序“talk”的程序——Expect。</p>
+
+<p>Expect有3个关键的命令：<strong>expect</strong>、<strong>send</strong>、<strong>spawn</strong></p>
+
+<p>expect——期待程序给我某个信息</p>
+
+<p>send——Expect给程序发送某个信息</p>
+
+<p>spawn——启动某程序</p>
+
+<p>那么，目前我需要Expect的“逻辑”是这样的：</p>
+
+<ol>
+<li><p> 利用spawn启动ssh</p></li>
+<li><p> 期待（expect）ssh程序提示输入密码</p></li>
+<li><p> 把密码send给ssh程序</p></li>
+</ol>
+
+
+<p>如果逻辑不复杂的话，Expect的语法还是相对简单的，可以参考《<a href="http://oreilly.com/catalog/expect/chapter/ch03.html">Exploring Expect</a>》和<a href="http://linux.die.net/man/1/expect">man expect</a>。</p>
+
+<p>Expect的代码如下：</p>
+
+<pre><code>#!/usr/bin/expect --
+
+#一直等待程序的输入
+set timeout -1
+
+#设置变量
+set username blablabla
+set hostname blablabla.com
+set password blablabla
+
+#不知为何利用-f -n将ssh转入后台就无法成功运行，待解决
+#spawn ssh -qTfnN -D 7070 $username@$hostname
+#启动ssh程序
+spawn ssh -qTN -D 7070 $username@$hostname
+#匹配ssh程序的输出，如果含有“password”，就将密码send给ssh
+expect "password" {send "$password\r"}
+
+#之后将ssh控制权转交给用户
+interact
+</code></pre>
+
+<p>应该还是比较通俗易懂的吧。</p>
+
+<p>好，现在Expect的工作完成了， 在再之前加上启动gnome-terminal和用bash启动Expect，然后最后加上自启动Chrome，这样就大功告成了！之前寻找各种添加开机启动脚本的方法，都没能成功（怀疑和启动时还未进行gnome桌面环境有关），最后只能通过Ubuntu的&#8221;System&#8221;&ndash;>&ldquo;Preferences&rdquo;&ndash;>&ldquo;Startup Applications&#8221;来添加启动命令，分别添加一下两条命令：</p>
+
+<pre><code>#开启gnome模拟终端
+gnome-terminal -e "bash -l -c '~/test_expect.sh'" &amp;
+#开启Chrome浏览器
+/opt/google/chrome/google-chrome
+</code></pre>
+
+<p>好了，这样我就可以每次开机让计算机替我完成之前重复的工作了，not perfect, but practical !</p>
+
+<p>参考资料：</p>
+
+<ul>
+<li><p>《<a href="http://oreilly.com/catalog/expect/chapter/ch03.html">Exploring Expect</a>》</p></li>
+<li><p><a href="http://linux.die.net/man/1/expect">man expect</a></p></li>
+<li><p><a href="http://pastebin.com/Y48pM73C">开机启动时快速进入开发环境</a></p></li>
+<li><p><a href="http://zhu8337797.blog.163.com/blog/static/1706175492011101282720246/">用于shell脚本无交互的ssh自动登陆</a> （这篇文章出现在许多地方，不知道原出处在哪……）</p></li>
+</ul>
+
+
+<p>-EOF-</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/02/29/python-decorator-first-time/">Python Decorator初体验</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-02-29T17:57:15+08:00" pubdate data-updated="true">Feb 29<span>th</span>, 2012</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>前段时间在看一些有关python web framwork的时候，发现在python语言里竟然有“@”符号，一查资料，原来是python装饰器（python装饰器也可以通过除了“@”的其他语法进行定义）。装饰器，是一种设计模式，用于动态地给对象添加行为，之前的一篇<a href="http://www.qxavier.me/2011/04/08/decorator_pattern/">文章</a>也提到过。python中也有装饰器，不过和普遍意义上的装饰器不同，python中的装饰器实际上是一种“<a href="http://en.wikipedia.org/wiki/Syntactic_sugar">语法糖</a>”，是一种语句的简便写法。比如，<code>a[idx]</code>就是<code>*(a+idx)</code>的一种简便写法，也算是一种语法糖。 假设有如下写法：</p>
+
+<pre><code>@dec
+def func():
+  pass
+</code></pre>
+
+<p>它等同于：</p>
+
+<pre><code>func = dec(func)
+</code></pre>
+
+<p>dec也是一个函数，只不过这个函数比较特殊，它的参数是一个函数（就是原先被装饰的函数func），它的返回值是一个函数。这样，再运行func()时，就是运行经过“装饰”的函数了。 python decorator可以帮助我们轻松地为函数或者类添加行为，而不用像普通的装饰器模式那样基于某个接口，大概这也算是动态语言的优势之一吧。 好，来看一些例子。</p>
+
+<p><strong>面向切面的编程</strong></p>
+
+<p>当我们要对许多函数进行相同的测试或者进行其他处理的时候，如果在每个函数都写一遍的话，代码太过重复，不利于统一管理。我们可以写一些统一的函数，然后在需要进行处理的函数前面加上decorator就行了。</p>
+
+<pre><code>def before(f):
+    def wrapper():
+        print 'before function'
+        f()
+    return wrapper
+
+def after(f):
+    def wrapper():
+        f()
+        print 'after function'
+    return wrapper
+
+@before
+@after
+def func():
+    print 'this is function'
+
+if __name__ == '__main__':
+    func()
+</code></pre>
+
+<p>这样，就可以在函数前后进行相应的处理了。程序输出如下：</p>
+
+<pre><code>before function
+
+this is function
+
+after function
+</code></pre>
+
+<p><strong>Singleton模式</strong></p>
+
+<pre><code>def singleton(cls):
+    instances = {}
+    def wrapper():
+        if cls not in instances:
+            instances[cls] = cls()
+        return instances[cls]
+    return wrapper
+
+@singleton
+class MyClass:
+    def __init__(self):
+        self.num = 0
+
+if __name__ == '__main__':
+    c1 = MyClass()
+    print c1.num
+    c2 = MyClass()
+    c2.num = 1
+    print c1.num
+    print (c1 == c2)
+</code></pre>
+
+<p>这样，每次“新建”MyClass类型，得到的都会是同一个实例。程序输出如下：</p>
+
+<pre><code>0
+
+1
+
+True
+</code></pre>
+
+<p><strong>检验函数参数和返回值的类型</strong></p>
+
+<pre><code>def accepts(*types):
+    def check_args(f):
+        #若去掉该断言，则代码可正常运行
+        assert len(types) == f.func_code.co_argcount, 'type len: %d args len: %d' %(len(types), f.func_code.co_argcount)
+        def new_f(*args, **kwds):
+            for (a, t) in zip(args, types):
+                assert isinstance(a, t), 'arg %r does not match %s' % (a, t)
+            return f(*args, **kwds)
+        new_f.func_name = f.func_name   # why?
+        return new_f
+    return check_args
+
+def returns(rtype):
+    def check_ret(f):
+        def new_f(*args, **kwds):
+            ret = f(*args, **kwds)
+            assert isinstance(ret, rtype), 'return value %r does not match %s' %(ret, rtype)
+            return ret
+        new_f.func_name = f.func_name
+        return new_f
+    return check_ret
+
+@returns((int, float))
+@accepts(int, (int, float))
+def func(arg1, arg2):
+    return arg1 + arg2
+
+if __name__ == '__main__':
+    print func(1, 2.0)
+    print func('1', '2')
+</code></pre>
+
+<p>在这段代码中，accepts函数用来保证被装饰的函数有两个参数，第一个参数为int型，第二个参数为int或float型，returns函数保证返回值为int或float型。那么，运行func(1, 2.0)，assert就能通过，而func(&lsquo;1&rsquo;, &lsquo;2&rsquo;)就不能通过。</p>
+
+<p>Todo：这里还有一个问题，就是当@returns和@accepts语句交换顺序之后，accepts中检测函数参数个数的assert就无法通过，输出参数个数为0，还不知道是什么原因，待解决。</p>
+
+<p>若去掉check_args函数中的对于f的参数个数的assert判断，则returns和accepts两个decorator无论什么顺序，代码均可正常运行。是由于<code>new_f(*args, **kwds)</code>改变了实际传入的参数的个数？</p>
+
+<p>参考资料：</p>
+
+<ul>
+<li><p><a href="http://www.python.org/dev/peps/pep-0318/">PEP 318 &mdash; Decorators for Functions and Methods</a></p></li>
+<li><p><a href="http://wiki.python.org/moin/PythonDecorators?action=fullsearch&amp;context=180&amp;value=linkto%3A%22PythonDecorators%22">PythonDecorators</a></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Syntactic_sugar">Syntactic sugar</a></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Decorator_pattern">Decorator pattern</a></p></li>
+</ul>
+
+
+<p>&mdash;EOF&mdash;</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/01/30/operate_hbase_with_jython/">使用Jython操作HBase</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-01-30T15:59:06+08:00" pubdate data-updated="true">Jan 30<span>th</span>, 2012</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>之前使用Python的<a href="http://www.dabeaz.com/ply/">PLY</a>写了一个操作HBase的类SQL编译器的雏形，目前还只初步完成了词法语法分析器，等开始写后面的预处理器、逻辑计划产生器和物理计划产生器的时候，问题出现了：HBase以及整个Hadoop项目都是用Java写成的，当然是使用Java API最直接。如果想使用其他语言的API接口，可以有这么几种方式：</p>
+
+<ul>
+<li><p><a href="http://wiki.apache.org/hadoop/Hbase/ThriftApi">Thrift API</a></p></li>
+<li><p><a href="http://wiki.apache.org/hadoop/Hbase/Stargate">RESTful API</a></p></li>
+<li><p>其他基于JVM的语言（Jython、Groovy、Scala等）</p></li>
+</ul>
+
+
+<p>现在，如果要完成操作HBase的类SQL编译器的话，有三种方案：</p>
+
+<ol>
+<li><p> 前端继续用Python写编译器，后端用Java API操作HBase，中间的结果用某种形式（比如文件）进行保存</p></li>
+<li><p> 重新用Java写词法语法编译器，然后直接使用HBase的Java API</p></li>
+<li><p> 继续用Python写编译器，然后使用Jython</p></li>
+</ol>
+
+
+<p>对于方案一，中间的结果可能会是比较复杂的数据结构，不便于保存，就算可以保存，读写也会比较麻烦。</p>
+
+<p>对于方案二，风险集中在需要重新寻找和学习Java的词法语法编译器。之前找到了<a href="http://www.antlr.org/">ANTLR</a>、<a href="http://javacc.java.net/">JavaCC</a>等等，但是大多都比较笨重，学习成本较高，况且我预期的类SQL编译器相对简单，不需要那么高级的工具库。</p>
+
+<p>对于方案三，用PLY写的编译器可以说已经完成一半了，使用起来也很轻便，如果Jython能够比较好的操作HBase的话，进度还是可以保证的。试用了Jython一下，感觉还不错！</p>
+
+<p>综合各方面因素，暂时决定采用方案三。</p>
+
+<p>好了，有点跑题了，言归正传，来看看Jython如果操作HBase。（配置Jython和HBase就不在这里讲了）</p>
+
+<p>首先，将HBase启动：</p>
+
+<blockquote><p>bin/start-hbase.sh</p></blockquote>
+
+<p>或者，HBase用到的classpath（因为Jython需要使用在classpath下的Java类），</p>
+
+<blockquote><pre><code>ps auwx | grep java | grep org.apache.hadoop.hbase.master.HMaster | perl -pi -e "s/.*classpath //"
+</code></pre></blockquote>
+
+<p>ps是获取正在运行的进程，其中Java启动的进行的格式类似于</p>
+
+<blockquote><p>/usr/lib/jvm/java-6-sun//bin/java –Xmx1000m … –classpath XXX</p></blockquote>
+
+<p>最后使用的perl就是用来获取<code>-classpath</code>后面的XXX的。-p是指对于输入一行一行的循环操作，i是指不需要对输入文件进行备份，-e是指执行命令<code>s/.*classpath //</code>。（这个命令是把classpath以及之前的字符都去掉，一定能保证-classpath是最后一个参数吗？后面还有与classpath无关的参数怎么办？实际的情况的确有无关的参数，幸好只有一点，这里算是个小bug了。）</p>
+
+<p>将获取的classpath导入到环境变量中</p>
+
+<blockquote><pre><code>export CLASSPATH=XXX
+</code></pre></blockquote>
+
+<p>这样，你就可以用Jython运行python脚本操作HBase了。下面是一个简单的例子：</p>
+
+<pre><code>import java.lang
+from org.apache.hadoop.hbase import HBaseConfiguration, HTableDescriptor, HColumnDescriptor, HConstants
+from org.apache.hadoop.hbase.client import HBaseAdmin, HTable, Put, Get
+
+conf = HBaseConfiguration()
+
+admin = HBaseAdmin(conf)
+
+tablename = "test_jython_hbase"
+
+desc = HTableDescriptor(tablename)
+desc.addFamily(HColumnDescriptor("content"))
+
+# Drop and recreate if it exists
+if admin.tableExists(tablename):
+    admin.disableTable(tablename)
+    admin.deleteTable(tablename)
+admin.createTable(desc)
+
+table = HTable(conf, tablename)
+
+# Add content
+row = 'row_x'
+put_row = Put(row)
+put_row.add('content', 'some_content', 'some_value')
+table.put(put_row)
+
+# Read content
+get = Get(row)
+data_row = table.get(get)
+data = java.lang.String(data_row.value(), "UTF8")
+print "The fetched row contains the value '%s'" % data
+
+# Delete the table.
+admin.disableTable(desc.getName())
+admin.deleteTable(desc.getName())
+</code></pre>
+
+<p>输出结果如下所示：</p>
+
+<pre><code>…………
+12/01/29 23:55:51 DEBUG client.HConnectionManager$HConnectionImplementation: Cached location for .META.,,1.1028785192 is ubuntu2-vmware:60020
+12/01/29 23:55:52 DEBUG client.MetaScanner: Scanning .META. starting at row=test_jython_hbase,,00000000000000 for max=2147483647 rows
+12/01/29 23:55:52 INFO zookeeper.ZooKeeper: Initiating client connection, connectString=ubuntu3-vmware:2181,ubuntu2-vmware:2181 sessionTimeout=180000 watcher=hconnection
+12/01/29 23:55:52 INFO zookeeper.ClientCnxn: Opening socket connection to server ubuntu3-vmware/192.168.1.202:2181
+12/01/29 23:55:52 INFO zookeeper.ClientCnxn: Socket connection established to ubuntu3-vmware/192.168.1.202:2181, initiating session
+12/01/29 23:55:52 INFO zookeeper.ClientCnxn: Session establishment complete on server ubuntu3-vmware/192.168.1.202:2181, sessionid = 0x1352c9556270012, negotiated timeout = 180000
+12/01/29 23:55:52 DEBUG client.HConnectionManager$HConnectionImplementation: Lookedup root region location, connection=org.apache.hadoop.hbase.client.HConnectionManager$HConnectionImplementation@8a2006; hsa=ubuntu3-vmware:60020
+12/01/29 23:55:52 DEBUG client.HConnectionManager$HConnectionImplementation: Cached location for .META.,,1.1028785192 is ubuntu2-vmware:60020
+12/01/29 23:55:52 DEBUG client.MetaScanner: Scanning .META. starting at row=test_jython_hbase,,00000000000000 for max=10 rows
+12/01/29 23:55:52 DEBUG client.HConnectionManager$HConnectionImplementation: Cached location for test_jython_hbase,,1327910151208.09451a5e064db613648741bd8c896eb7. is ubuntu2-vmware:60020
+The fetched row contains the value 'some_value'
+12/01/29 23:55:52 INFO client.HBaseAdmin: Started disable of test_jython_hbase
+12/01/29 23:55:52 DEBUG client.HBaseAdmin: Sleeping= 1000ms, waiting for all regions to be disabled in test_jython_hbase
+12/01/29 23:55:53 DEBUG client.HBaseAdmin: Sleeping= 1000ms, waiting for all regions to be disabled in test_jython_hbase
+12/01/29 23:55:54 INFO client.HBaseAdmin: Disabled test_jython_hbase
+12/01/29 23:55:55 INFO client.HBaseAdmin: Deleted test_jython_hbase
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/01/10/mozilla-wiki-secure-coding-guidelinese7ac94e8aeb0/">Mozilla Wiki Secure Coding Guidelines笔记</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-01-10T12:04:52+08:00" pubdate data-updated="true">Jan 10<span>th</span>, 2012</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>最近网站安全问题频发啊，我在某技术论坛上的帐号也沦陷了（虽然N年不用了）。自己赶紧补补这方面的知识，重点看了下Mozilla Wiki中的Secure Coding Guidelines，记下一些重点和之前忽略的地方。</p>
+
+<h1>密码怎么设计？</h1>
+
+<p>密码设计原则</p>
+
+<ul>
+<li><p>最好是8位或8位以上</p></li>
+<li><p>要有数字、字母的组合，最好是包含字母大小写和特殊字符</p></li>
+<li><p>设置密码黑名单，禁止用户注册过于简单的密码，以防止黑客通过社会工程学猜到密码</p></li>
+</ul>
+
+
+<p>之前做项目只想到第一条，而且还是只要求6位。要是用户只注册含有数字的6为密码，那就可以被轻易破解了。人人网都没有做到以上全部，我的人人密码就是6位数字。。。虽说密码设计应该是用户自己的事情，但是简单的密码实在是太好破解了，还是最好引导用户设计出相对复杂的密码比较好。</p>
+
+<h1>密码怎么保存？</h1>
+
+<p>密码应该用<a href="http://en.wikipedia.org/wiki/HMAC">hmac</a>+<a href="http://en.wikipedia.org/wiki/Bcrypt">bcrypt</a>进行加密保存。</p>
+
+<p>简单的说，hmac是通过含有密钥的hash算法，生成消息认证码（Message Authentication Code），可以进行数据一致性检测和消息认证；bcrypt是一种较“慢”的hash算法，这样可以使得暴力枚举破解的时间成本极大提升。</p>
+
+<p>bcrypt的Python实现<a href="http://www.mindrot.org/projects/py-bcrypt/">py-bcrypt</a>和Java实现<a href="http://www.mindrot.org/projects/jBCrypt/">jBCrypt</a>。</p>
+
+<p>我感觉，即使不用Mozilla推荐的hmac+bcrypt的策略，至少也应该是用md5和sha来保存的。明文是绝对不允许的，否则一抓包，用户名和密码就搞到手了。让黑客暴力破解出密码可能不是你的错，但是直接把密码告诉黑客，就是你的不对了。</p>
+
+<h1>输入是在客户端验证，还是在服务端验证？</h1>
+
+<p>都要！因为即使有客户端的js验证，用户也可以禁用浏览器的js功能，将“脏”数据传到服务端。</p>
+
+<p>在客户端验证，是为了有很好的用户体验，避免什么数据都要先提交到服务端，然后再告诉你提交的数据有误；在服务端验证，则是加上了第二把锁，并且，有的数据是一定要到服务端才能检测的，比如帐号密码。</p>
+
+<p>另外，在验证输入时，应该检测符合要求的格式，即“<strong>accept known good</strong>”，而不是检测不符合要求的格式，即“reject known bad”。符合要求的格式是可以设计全面的，它的补集则不可以。</p>
+
+<h1>输出编码</h1>
+
+<p>输出编码是防止XSS和各种注入的首要手段。（输入验证是次要手段）</p>
+
+<pre><code>输出编码就是将一些HTML、JS、XML等格式中的特殊字符进行转义，比如将&lt;script&gt;转化为&amp;lt;script&amp;gt;。这样，即使用户在之前的输入中填写了恶意代码，等到系统显示的时候，它也不会被执行了。
+</code></pre>
+
+<p>在进行SQL查询时，应该使用参数化的SQL语句（parameterized queries），千万不要使用字符串拼接来进行SQL查询（貌似之前的项目绝大部分都是这么做的 :( ）。一些ORM（比如Hibernate）可以阻止一部分的SQL注入，但是在一些情况下，ORM仍然会使用native SQL，所以ORM不是万能的。</p>
+
+<h1>访问控制</h1>
+
+<p>应该防止一些URL暴露保密的内容，即使你没有提供给用户，一些用户也会有意无意的访问到那些URL（比如通过枚举）。设计某个Web工程的时候，应该先要按照某种原则设计好URL目录，然后根据不同的路径设计不同的访问权限，比如可以通过url filter实现。</p>
+
+<p>安全可是永恒的话题，先写这么多，以后还要在实践中慢慢领悟。</p>
+
+<p>&mdash;EOF&mdash;</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/01/01/e58699e59ca82011e588b02012/">写在2011到2012</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-01-01T00:58:04+08:00" pubdate data-updated="true">Jan 1<span>st</span>, 2012</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>离2012年还有不到一个小时的时间了，不能免俗，还是要总结一下这一年，规划规划新的一年。</p>
+
+<p>家庭方面</p>
+
+<p>2011年初奶奶突然去世了，本来以为只是老年人平常生了点小病，但没有想到会走得那么快。在医院，是我去见奶奶最后一眼的，看着曾经最疼爱我的奶奶一动不动的躺在病床上，怎么喊她也再没有回应，我当时真的已经泣不成声。曾经我还说等毕业找到了工作，好好孝敬她老人家，现在已经无法实现了。父母在这一年身体都还不错，平时都很注意保养，他们平时也经常嘱咐我要开始注意保养了，比如要按时睡觉、不要在电脑前待太久。</p>
+
+<p>学业方面</p>
+
+<p>从研三开始，就准备开始写毕业论文了。做学术研究、写毕业论文，是一件很煎熬的事情，期间需要看很多论文，要想创新点。通过这一年整个做学术研究的过程，我基本上可以肯定我不适合做研究，至少不太适合做理论研究。而且我渐渐感觉到，中国的学术圈比较浮躁，我也没兴趣再待在里面了。但是，在学术方面我也算是尽力了，出了一篇小论文，昨天刚刚完成了毕业设计论文。</p>
+
+<p>工作方面</p>
+
+<p>今年从九月底开始，我就开始边复习专业知识边找工作，整个过程还是挺辛苦的，没有公司的笔试面试，就在学校看专业书籍、看笔经面经，有时也会一天跑两三家公司，来不及好好吃饭，就跑到KFC吃点垃圾食品将就一下，终于有了点赶场子的感觉。最后经过一个多月的求职，自己幸运的找到了一份比较不错的工作，我还是比较满意的。</p>
+
+<p>技术方面</p>
+
+<p>年初一直在做USACO，完成了差不多2/3。然后去了一家公司实习，但没想到实习了20天左右，就被导师强行召回了，具体情况请见<a href="http://www.qxavier.me/2011/04/22/practice-u0026quotfarceu0026quot/">这里</a>，不过现在想想，其实大部分是我的错。被召回之后，平时研究的东西就比较杂了，chrome插件、scala、python、设计模式、数据结构、hadoop…………其中大部分研究的内容都记录在了我的<a href="http://www.qxavier.me">技术博客</a>里面了。</p>
+
+<p>感情方面</p>
+
+<p>仍然没有什么进展啊！这一年我还是喜欢过一个女生的，那个女生很活泼，我们聊的挺愉快。我们一起吃了几次饭、看了一次电影，也互相送了点东西，有时QQ聊天也会聊到很晚。我以为她的想法跟我一样，可没想到她只是把我当作朋友，好吧，是我想多了。。。我曾经一度很伤心、很痛苦，没有再和她联系，但后来想开了，虽然感觉再也回不到之前那么的关系亲密，但也还算是朋友，我也真心希望她好。（刚刚还收到她的祝福元旦快乐的短信，应该是群发的，不过我已经很欣慰了）</p>
+
+<p>嗯……这一年差不多就是这个样子，下面改思考下新的一年应该怎么过了。</p>
+
+<p>先是完成学业，再完善完善论文的实验，以及好好准备答辩</p>
+
+<p>毕业之后，我想去躺北京和天津，去看看帝都，去拜访一些在北京的<del>dcc</del> dccmx、王公公等人，已经在天津的Tom Harvard。</p>
+
+<p>下面就是准备开始工作了，找房子、熟悉工作环境……</p>
+
+<p>另外，在新的一年还希望自己能够坚持做以下事情：</p>
+
+<ul>
+<li><p>坚持锻炼，有了好身体，才能好好生活、好好工作</p></li>
+<li><p>坚持钻研技术，平时多和<del><a href="http://blog.dccmx.com/">dcc</a></del> <a href="http://blog.dccmx.com">dccmx</a>和小新等人讨论讨论，技术博客里面文章的深度还要再加强</p></li>
+<li><p>坚持学英语，希望以后有机会去美国看看那边的同学和朋友，同时也是为了防止哪天在天朝待不下去了，能多一条出路</p></li>
+<li><p>坚持看书，多看一些非专业的杂书，扩展自己的知识面，出来混，没点综合实力怎么行</p></li>
+</ul>
+
+
+<p>好吧，就写这么多吧。总之，新的一年，希望自己能好好生活，好好工作，好好学习，让自己的生活充实起来，真诚的对待身边的每一个人，多关心父母，多关心同学。最后，要感谢同学、朋友、老师、家人在这一年来对我的关心和帮助。又是新的一年啊！加油吧！</p>
+
+<p>&mdash;EOF&mdash;</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/12/04/some_python_plotting_tools/">一些Python图表工具</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-12-04T17:10:39+08:00" pubdate data-updated="true">Dec 4<span>th</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>考虑到最近写毕业论文以及以后自己博客中的实验分析，绘制一些图表就变得在所难免，再加上最近对Python比较感兴趣，于是就找了写利用Python绘制图表的工具库。说实话，一找一大堆，挑了几个自己感觉不错的，作为候选。</p>
+
+<h1><a href="http://matplotlib.sourceforge.net/">matplotlib</a></h1>
+
+<p>matplotlib可谓是matlab的Python版本，可以绘制高质量的2D图表，例如柱状图，饼状图，散点图，以及很多我不知道科学图表。除了能以python script的形式编程，还能通过ipython shell来进行交互。另外，matplotlib不但能进行绘图，还能进行复杂的科学计算（通过 <a href="http://scipy.org/Numpy_Example_List_With_Doc">numpy</a>和<a href="http://matplotlib.sourceforge.net/api/mlab_api.html">matplotlib.mlab</a>）。如果之前熟悉matlab的话，应该能很快上手。    <br/>
+matplotlib很好很强大，图表又好看，就算对于一个搞科研的人来说，也是足够的。不过相应的代价就是学习曲线较陡，尤其是对于之前没有接触过matlab和python的人来说。</p>
+
+<h1><a href="https://bitbucket.org/lgs/pycha/wiki/Home">Pycha</a> (PYthon CHArts)</h1>
+
+<p>Pycha是一个基于<a href="http://www.cairographics.org/">Cairo</a>图形库的、轻量级、易于使用的python包。Pycha在大多数默认情况下能有很漂亮的外观，当然你也可以定制各种细节。它并不像matplotlib那样可以画出几乎所有的图形，只是提供了一些常用的图表类型。</p>
+
+<h1><a href="http://home.gna.org/pychart/">Pychart</a></h1>
+
+<p>也是一个轻量级的python图形库，支持线状图、柱状图、饼状图、范围图，以及Encapsulated Postscript, PDF, PNG, SVG 等多种格式。图表外观朴素不花哨，已经够用了。   <br/>
+有意思的是，官网上，作者还说自己写的这个图形库已经用在了自己发表的几篇论文里面了，还列举了一些与它类似的图形库并讲了他们的优缺点。再一查作者信息，果然是牛人，在HP实验室待过 ，05年去了google。</p>
+
+<p>另外，还有像<a href="http://linil.wordpress.com/2008/09/16/cairoplot-11/">CairoPlot</a>、<a href="http://www.advsofteng.com/product.html">ChartDirector for Python</a>等也是不错的选择。下面是这些图形库的柱状图例子，可以有个直观的感觉。总的来说，如果时间充裕或者今后后大量用到科学图表的话，matplotlib就是最好的选择了。如果就偶尔画一些简单的图形的话，上面介绍的都能基本满足需求，实在不行干脆直接用VISIO！</p>
+
+<p><strong>matplotlib</strong></p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/12/matplotlib.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/12/matplotlib.png" alt="" /></a></p>
+
+<p>//////////////////////////////////////////////////////////////</p>
+
+<p><strong>Pycha</strong></p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/12/pycha.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/12/pycha.png" alt="" />      <br/>
+</a></p>
+
+<p>//////////////////////////////////////////////////////////////</p>
+
+<p><strong>Pychart</strong></p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/12/pychart1.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/12/pychart1-1024x350.png" alt="" /></a></p>
+
+<p>//////////////////////////////////////////////////////////////</p>
+
+<p><strong>CairoPlot</strong></p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/12/cairoplot.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/12/cairoplot.png" alt="" /></a></p>
+
+<p>//////////////////////////////////////////////////////////////</p>
+
+<p><strong>ChartDirector for Python</strong></p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/12/ChartDirector.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/12/ChartDirector.png" alt="" /></a></p>
+
+<p>&mdash;EOF&mdash;</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/11/14/some_concepts_in_hadoop/">Hadoop中的一些概念</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-11-14T15:09:09+08:00" pubdate data-updated="true">Nov 14<span>th</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Hadoop，在不同的上下文的环境下，会表示不同范围的概念。有人可能把Hadoop单单理解为一个分布式文件系统，我感觉欠妥，因为也有很多其他的分布式文件系统。Hadoop之所以称为Hadoop，其核心在于它的MapReduce框架。所以，Hadoop的最精简的理解应该是HDFS （Hadoop Distributed File System）+ MapReduce。除了核心，也可以算上它的许多子项目，例如Hbase、Pig、Hive等等，可以通过下图来了解下Hadoop的Big Picture:</p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/11/hadoop_ecosys.jpg"><img src="http://www.qxavier.me/wp-content/uploads/2011/11/hadoop_ecosys_thumb.jpg" alt="hadoop_ecosys" /></a></p>
+
+<p>既然HDFS以及MapReduce是Hadoop的核心，对于它们的一些概念就要有所掌握。好，下面来讲解一下。</p>
+
+<h3>HDFS中的重要概念：</h3>
+
+<p><strong>NameNode
+</strong>它是整个HDFS的核心，里面包含了整个文件系统中的所有文件的路径，并且监控存有文件的服务器，NameNode本身并不存储文件。NameNode就相当于一个接口，当用户想要对HDFS中的文件进行读/写/添加/删除时，首先要询问NameNode，然后NameNode再给你一个存储着文件的服务器（DataNode）的列表。
+注意：HDFS中只有一个NameNode （除非使用ZooKeeper），也就是意味着如果NameNode失效了，整个HDFS也就失效了。</p>
+
+<p><strong>DataNode
+</strong>存放HDFS数据的节点，一般来说，HDFS都有多个DataNode，一个数据会在不同的DataNode上存储多份，以防止部分节点失效后数据丢失。DataNode启动后，会一直试图通知NameNode，以便让NameNode知道它的存在。</p>
+
+<p><strong>SecondaryNameNode
+</strong>为了弥补NameNode单点失效的缺点，可以在一台单独机器上配置SecondaryNameNode。不过，SecondaryNameNode只是保存一些记录点（check point），并不会对数据进行冗余保存。</p>
+
+<h3>MapReduce计算模型中的重要概念：</h3>
+
+<p><strong>TaskTracker
+</strong>集群中真正执行计算的节点，它的操作包括：Map、Reduce以及Shuffle。每个TaskTracker都设置了一系列的slot，表示这个TaskTracker可以同时接受任务的数量。</p>
+
+<p><strong>JobTracker
+</strong>分发MapReduce任务的节点。这个（活动的）JobTracker在一个MapReduce服务中只有一个，因此JobTracker也是单点失效的，如果JobTracker失效了，所有TaskTracker中的任务都会停止。</p>
+
+<p>JobTracker和TaskTracker的交互过程：</p>
+
+<ul>
+<li><p>用户提交一个MapReduce任务（Job）给JobTracker</p></li>
+<li><p>JobTracker与NameNode通信，以确定数据的位置</p></li>
+<li><p>根据数据的位置，定位那些1）在数据节点或者在数据节点附近 2）有可用slot的TaskTracker</p></li>
+<li><p>JobTracker向TaskTracker提交对应的任务</p></li>
+<li><p>JobTracker开始监控TaskTracker，如果监控不到TaskTracker的心跳，或者TaskTracker上面执行的任务失败，就将任务提交到其他TaskTracker</p></li>
+<li><p>当TaskTracker上的任务完成后，JobTracker会更新它的状态</p></li>
+</ul>
+
+
+<p>嗯，差不多就这么多吧，有时间再深入研究研究！</p>
+
+<p>&mdash;EOF&mdash;</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/10/29/some-programmer-job-summary/">程序员求职的一些总结</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-10-29T19:24:42+08:00" pubdate data-updated="true">Oct 29<span>th</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>从九月底到现在，本人历时一个多月的求职之路算得上基本结束了。回顾整个过程，经历了许多，感觉既辛苦又幸运，整体来说还是蛮好玩的。既然在整个过程中经历了许多事情，自己还是写一些东西吧，一方面是对自己的总结和反省，另一方面也算是对学弟学妹将来找工作的一个参考吧。</p>
+
+<h3>不要“海投”</h3>
+
+<p>在求职期间，千万不要见到是跟自己专业相关的公司就去投简历。第一，现在投简历不是直接发个简历就完事的，每投一个公司，自己就要从头到尾填一遍信息，很是浪费时间；第二，之前投了太多公司，到时候各种宣讲会、笔试、面试就会有很多冲突，即使没有冲突，你的时间也会排得满满的，整天疲于奔命，根本没有时间用来准备专业知识。我建议，一般选择6~8家公司就可以了。
+另外，如果宣讲会只是宣讲会，之后没有投简历、笔试等环节的话，那就没什么必要去了，能听到的信息在网上也能找到的，除非你想要宣讲会上发的小礼品。。。</p>
+
+<h3>选公司要有梯度</h3>
+
+<p>选择要有梯度，这让我突然想起了高考填报志愿的时候，老师就教导我们选学校要有梯度，学校之间拉开水平。选公司的时候，也是同样的道理，可以把公司根据自己的实力分为三个等级。第一等级的公司，基本上是十拿九稳可以拿到offer的，俗称保底offer；第二等级的公司，虽然竞争也很大，但是自己通过前期的准备和复习，可以搞定的概率还是比较大的；第三等级的公司，就是业内一流的公司，如果能进这样的企业，将会对自己的职业生涯有很大的正面影响，这样的企业，可以尽全力试一试，虽然很难进，但是如果不试一下，未免就有点遗憾了。</p>
+
+<h3>有针对性的准备</h3>
+
+<p>每个公司考核求职者的侧重点都不一样，有的偏C/C++，有的偏Java，有的偏逻辑和算法，有的偏项目经验，有的偏网络，有的还会重点考察外语能力。我们求职前期，可以把大体都会考察到的知识点都粗略看一边。等到要进行笔试/面试的前几天，就可以有针对性的准备了，看看网上关于该公司的笔经/面经，把出现次数很多的题目重点看一看，把该公司的整个招聘流程的风格了解下，到时候可以心里有底、处变不惊。</p>
+
+<h3>动手写代码</h3>
+
+<p>可能许多人在复习专业知识的时候，都是抱着几本书看，但是这样是不够的。想一想，作为程序员，最基本的工作是什么？不就是编代码嘛。现在但凡要求高一点的公司，都会让你在面试的时候，现场写代码的。（我的情况是，有三次面试，让我现场在纸上写代码，还有一次电话面试，让我写出可以运行的程序，一小时后交给面试官）所以，复习专业知识的时候，一定要尽量让自己在电脑或纸上写出该部分的程序，不写不知道，一写才发现自己有许多细节没考虑到。并且，尽量自己多写几遍，可能一开始写需要40分钟甚至1小时，只有多多练习，在面试的时候才能在20分钟左右熟练的写出令面试官满意的代码。</p>
+
+<h3>面试时一般不用穿正装</h3>
+
+<p>一开始准备求职之前，我还在想要不要准备一套正装，可以等自己经过了1、2次面试之后，发现完全没有这个必要。我面试的行头一般就是衬衫+牛仔裤+运动鞋，（有一次有家公司突然通知我当天去面试，结果我只好穿着当天的一套运动装就去了。。。）我感觉作为搞技术的去应聘，穿的干净、整洁就可以了，不要搞得太正规，除非你平时就是一直穿着正装的。（嗯，DCC就是这样的 :&ndash;) ）</p>
+
+<h3>至少有一个自己真正参与的项目</h3>
+
+<p>“真正参与”是什么意思，相信大家都懂的！可能你不是项目的leader，你只是负责其中一部分功能，但你应该有“主人翁”意识嘛，项目是什么背景的，用了哪些技术、哪些框架，难点在哪，最有挑战性的地方是什么，有什么优化的措施，这些问题你都应该有所了解。在参与的项目当中，至少有一个项目你能够很清楚的回答出以上这些问题。几乎在所有面试的时候，面试官也都会问你这些问题。
+但是，可能很多人都有这样的困惑，那就是平常没有机会做项目，或者做的项目都是跟公司的业务不相关的，那怎么办？我建议大家平常利用业余时间，一个人或者几个人多做些小项目，总之多创造些实践的机会。这些实践可能对于现在来说好像不是必需的，但是多实践、多总结，对你的前途影响还是很大的，也算是一种培养自信的方式。</p>
+
+<h3>有一个技术博客</h3>
+
+<p>强烈建议大家弄一个自己的技术博客，把自己平时的总结、对于行业的看法等都记录在上面，这是一种技术积累、整理思路的好方法。对于一般只是想记录写文字，对其他没有要求的同学，搞个免费的博客就可以了；如果想要一个独立的博客域名的话，那就弄个虚拟主机，每年付个域名费和服务器空间费用就可以了；更高级的，那就整个VPS，在上面自己搭个博客，正好还能练练Linux下的操作，而且如果有些什么小项目的话，还能直接放到上面，大家就都可以用啦。
+说起来也巧，我在一次面试的过程中，面试官看到我简历上面写有自己的技术博客，就直接在他的电脑上访问了一下我的博客，还饶有兴趣的问了我一些博客文章里面涉及到的技术问题，因为都是自己写的，基本上答得都没什么问题。 可以看出，单从这一点来说，面试官对我的面试表现还是比较满意的。</p>
+
+<p>嗯！想要总结的基本上就是这么多，欢迎拍砖！</p>
+
+<p>&mdash;EOF&mdash;</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+      <a class="prev" href="/blog/page/4/">&larr; Older</a>
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+    <a class="next" href="/blog/page/2/">Newer &rarr;</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/01/31/test/">Test</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/30/information_retrievial_in_practice_note_architecture/">《Information Retrieval in Practice》笔记——整体架构</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/22/presentation-based-development/">“基于演示的开发”</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating&#8230;</li>
+  </ul>
+  
+  <a href="https://github.com/quxiao">@quxiao</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'quxiao',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Xavier -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

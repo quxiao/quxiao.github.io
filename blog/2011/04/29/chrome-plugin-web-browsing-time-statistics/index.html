@@ -1,0 +1,256 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Chrome Plugin: 网页浏览时间统计 - Xavier Blog</title>
+  <meta name="author" content="Xavier">
+
+  
+  <meta name="description" content="前几天刚经过实习闹剧，回到学校，导师暂时还没布置什么任务，比较无聊，于是突发奇想，准备搞个chrome插件玩玩。做个什么功能的插件呢？平时发现许多人（当然也包括我）总会把大把的时间花在一些网站上，做事情的效率变低下不说，还白白浪费了时间、浪费了生命，这样多不好啊！ &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://quxiao.github.io/blog/2011/04/29/chrome-plugin-web-browsing-time-statistics">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Xavier Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Xavier Blog</a></h1>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:quxiao.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Chrome Plugin: 网页浏览时间统计</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-04-29T22:51:25+08:00" pubdate data-updated="true">Apr 29<span>th</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>前几天刚经过<a href="http://www.qxavier.me/2011/04/22/practice-u0026quotfarceu0026quot/">实习闹剧</a>，回到学校，导师暂时还没布置什么任务，比较无聊，于是突发奇想，准备搞个chrome插件玩玩。做个什么功能的插件呢？平时发现许多人（当然也包括我）总会把大把的时间花在一些网站上，做事情的效率变低下不说，还白白浪费了时间、浪费了生命，这样多不好啊！那就做个统计某些网页浏览时间的插件吧。用了三天的晚上空余时间，做了一个雏形。</p>
+
+<p>在option页面中，可以添加你想要监控的网站URL，如下图：</p>
+
+<p><a href="http://quxiao.github.io/images/2011-04-29-chrome-plugin-web-browsing-time-statistics/image_thumb6.png"><img src="http://quxiao.github.io/images/2011-04-29-chrome-plugin-web-browsing-time-statistics/image_thumb6.png" alt="image" /></a></p>
+
+<p>然后，你就可以向平时一样正常的浏览网页了。当想要查看浏览时间统计的时候，只需点击插件按钮即可。效果如下图：</p>
+
+<p><a href="http://quxiao.github.io/images/2011-04-29-chrome-plugin-web-browsing-time-statistics/image_thumb7.png"><img src="http://quxiao.github.io/images/2011-04-29-chrome-plugin-web-browsing-time-statistics/image_thumb7.png" alt="image" /></a></p>
+
+<p>统计信息通过饼图和柱状图展示，显示的是自使用该插件以来，你所花（或者称浪费）在你已监控网站上的时间，以及这些时间占你一生时间（假设你能活100年吧）的比例。</p>
+
+<p>Chrome插件开发起来倒还容易，就是javascript+HTML+CSS，熟悉web开发尤其是前端开发的人应该可以很快上手。我是好久没搞web前端开发了，开发时还花了不少时间复习。开发过程中，还用到了<a href="http://jquery.com/">jQuery</a>和<a href="http://www.highcharts.com/">Highcharts</a>，节省了不少开发时间啊。</p>
+
+<p>其实，我觉得这个插件并没什么技术含量。那为啥要做呢？原因有以下几点：</p>
+
+<ul>
+<li><p>我感觉这个点子不错</p></li>
+<li><p>培养自己的执行力</p></li>
+<li><p>作为“学术”之外的调剂
+反正，别让自己闲下来，至少别让自己把大把时间花在没有太多意义的事情上！有些事情，不管你喜欢不喜欢，都是要做的。不过，当你能有自己可以控制的时间，还是多做些更有意义的事情吧！（哎呀，貌似扯远了，最近比较火大 :)）</p></li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">admin</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-04-29T22:51:25+08:00" pubdate data-updated="true">Apr 29<span>th</span>, 2011</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/other/'>Other</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2011/04/22/practice-u0026quotfarceu0026quot/" title="Previous Post: 实习“闹剧”">&laquo; 实习“闹剧”</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2011/05/02/sort-out-ideas/" title="Next Post: 整理一下思路">整理一下思路 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/01/31/test/">Test</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/30/information_retrievial_in_practice_note_architecture/">《Information Retrieval in Practice》笔记——整体架构</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/22/presentation-based-development/">“基于演示的开发”</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/quxiao">@quxiao</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'quxiao',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Xavier -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

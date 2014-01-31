@@ -1,0 +1,313 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>利用Expect添加开机启动程序 - Xavier Blog</title>
+  <meta name="author" content="Xavier">
+
+  
+  <meta name="description" content="都说“懒”是程序员的美德，如果“懒”是指想尽一切办法让计算机来完成重复的事情，那么这句话完全正确！ 最近遇到一个问题，让我忍不住想要“懒”一下，情况是这样的： 5、6年前买的笔记本，我现在依然在使用，不过它实在太老，已经沦为“上网本”，我只能在上面装上Ubuntu+Chrome，平时上上网。但是， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://quxiao.github.io/blog/2012/05/13/add-startup-programe-with-expect">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Xavier Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Xavier Blog</a></h1>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:quxiao.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">利用Expect添加开机启动程序</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-05-13T15:54:10+08:00" pubdate data-updated="true">May 13<span>th</span>, 2012</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>都说“懒”是程序员的美德，如果“懒”是指想尽一切办法让计算机来完成重复的事情，那么这句话完全正确！</p>
+
+<p>最近遇到一个问题，让我忍不住想要“懒”一下，情况是这样的：</p>
+
+<p>5、6年前买的笔记本，我现在依然在使用，不过它实在太老，已经沦为“上网本”，我只能在上面装上Ubuntu+Chrome，平时上上网。但是，每次开机，我都要重复的做3件事：</p>
+
+<ol>
+<li><p> 开启ssh，为了能看看墙外的世界</p></li>
+<li><p> 打开含有ssh账户密码的文本文件</p></li>
+<li><p> 打开Chrome</p></li>
+</ol>
+
+
+<p>这实在是在麻烦了！我得想个办法，让计算机能自动完成这些工作。关键的问题在于如何在ssh提示你输入密码的时候，能够自动输入，而不用我把密码贴过去。终于，我找到了一个在linux下可以和其他程序“talk”的程序——Expect。</p>
+
+<p>Expect有3个关键的命令：<strong>expect</strong>、<strong>send</strong>、<strong>spawn</strong></p>
+
+<p>expect——期待程序给我某个信息</p>
+
+<p>send——Expect给程序发送某个信息</p>
+
+<p>spawn——启动某程序</p>
+
+<p>那么，目前我需要Expect的“逻辑”是这样的：</p>
+
+<ol>
+<li><p> 利用spawn启动ssh</p></li>
+<li><p> 期待（expect）ssh程序提示输入密码</p></li>
+<li><p> 把密码send给ssh程序</p></li>
+</ol>
+
+
+<p>如果逻辑不复杂的话，Expect的语法还是相对简单的，可以参考《<a href="http://oreilly.com/catalog/expect/chapter/ch03.html">Exploring Expect</a>》和<a href="http://linux.die.net/man/1/expect">man expect</a>。</p>
+
+<p>Expect的代码如下：</p>
+
+<pre><code>#!/usr/bin/expect --
+
+#一直等待程序的输入
+set timeout -1
+
+#设置变量
+set username blablabla
+set hostname blablabla.com
+set password blablabla
+
+#不知为何利用-f -n将ssh转入后台就无法成功运行，待解决
+#spawn ssh -qTfnN -D 7070 $username@$hostname
+#启动ssh程序
+spawn ssh -qTN -D 7070 $username@$hostname
+#匹配ssh程序的输出，如果含有“password”，就将密码send给ssh
+expect "password" {send "$password\r"}
+
+#之后将ssh控制权转交给用户
+interact
+</code></pre>
+
+<p>应该还是比较通俗易懂的吧。</p>
+
+<p>好，现在Expect的工作完成了， 在再之前加上启动gnome-terminal和用bash启动Expect，然后最后加上自启动Chrome，这样就大功告成了！之前寻找各种添加开机启动脚本的方法，都没能成功（怀疑和启动时还未进行gnome桌面环境有关），最后只能通过Ubuntu的&#8221;System&#8221;&ndash;>&ldquo;Preferences&rdquo;&ndash;>&ldquo;Startup Applications&#8221;来添加启动命令，分别添加一下两条命令：</p>
+
+<pre><code>#开启gnome模拟终端
+gnome-terminal -e "bash -l -c '~/test_expect.sh'" &amp;
+#开启Chrome浏览器
+/opt/google/chrome/google-chrome
+</code></pre>
+
+<p>好了，这样我就可以每次开机让计算机替我完成之前重复的工作了，not perfect, but practical !</p>
+
+<p>参考资料：</p>
+
+<ul>
+<li><p>《<a href="http://oreilly.com/catalog/expect/chapter/ch03.html">Exploring Expect</a>》</p></li>
+<li><p><a href="http://linux.die.net/man/1/expect">man expect</a></p></li>
+<li><p><a href="http://pastebin.com/Y48pM73C">开机启动时快速进入开发环境</a></p></li>
+<li><p><a href="http://zhu8337797.blog.163.com/blog/static/1706175492011101282720246/">用于shell脚本无交互的ssh自动登陆</a> （这篇文章出现在许多地方，不知道原出处在哪……）</p></li>
+</ul>
+
+
+<p>-EOF-</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">admin</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-05-13T15:54:10+08:00" pubdate data-updated="true">May 13<span>th</span>, 2012</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/development/'>Development</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2012/02/29/python-decorator-first-time/" title="Previous Post: Python Decorator初体验">&laquo; Python Decorator初体验</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2012/07/26/32e4bd8defbc9f64e4bd8defbc9f/" title="Next Post: 32位？64位？">32位？64位？ &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/01/31/test/">Test</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/30/information_retrievial_in_practice_note_architecture/">《Information Retrieval in Practice》笔记——整体架构</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/22/presentation-based-development/">“基于演示的开发”</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/quxiao">@quxiao</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'quxiao',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Xavier -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

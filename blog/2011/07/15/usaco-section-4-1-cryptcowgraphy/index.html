@@ -1,0 +1,484 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>USACO Section 4.1 Cryptcowgraphy - Xavier Blog</title>
+  <meta name="author" content="Xavier">
+
+  
+  <meta name="description" content="题目大意： 一种字符串加密算法，即在原有字符串的任意位置插入C、O、W，C的下标 &lt; O的下标 &lt; W的下标，将C、O之间和O、W之间子串交换，得到新的字符串。给你一个字符串，问其是否是对字符串Begin the Escape execution at the Break of &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://quxiao.github.io/blog/2011/07/15/usaco-section-4-1-cryptcowgraphy">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Xavier Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Xavier Blog</a></h1>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:quxiao.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">USACO Section 4.1 Cryptcowgraphy</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-07-15T00:00:54+08:00" pubdate data-updated="true">Jul 15<span>th</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>题目大意：</p>
+
+<p>一种字符串加密算法，即在原有字符串的任意位置插入C、O、W，C的下标 &lt; O的下标 &lt; W的下标，将C、O之间和O、W之间子串交换，得到新的字符串。给你一个字符串，问其是否是对字符串Begin the Escape execution at the Break of Dawn经过多次加密过后的字符串。</p>
+
+<p>我的思路：</p>
+
+<p>首先，原字符串中并没有COW三个字母，所以不用判断COW是属于原先的字符还是加密时加上的字符，这样简单很多。另外，对于已加密的字符串，只要找到任意一组COW，交换CO和OW之间的子串，再把COW删掉，得到的字符串就是可能的一种原字符串，再这样递归下去，直到不可能的情况或者字符串变为Begin the Escape execution at the Break of Dawn。</p>
+
+<p>在搜索时，有几种减枝可以排除目前的字符串：</p>
+
+<ul>
+<li><p>如果目前字符串的长度不等于原串长度+3×k，排除。（其实只需在开始时判断一次即可）</p></li>
+<li><p>如果目前字符串中COW三个字母的数目不相等，排除。（也可只判断一次）</p></li>
+<li><p>如果任意COW字符之间的子串，没有出现在原串中，排除。（这个减枝很重要，但是没想到，不应该啊）</p></li>
+<li><p>字符串中，所有出现COW的地方，C应该排在第一个，W应该排在最后一个。否则，无法还原成原字符串。</p></li>
+<li><p>用hash来判断目前字符串之前有没有出现过。（hash表的大小选择很关键，选的太大，可能会超时，选的太小，可能会WA）</p></li>
+</ul>
+
+
+<p>另外，枚举COW时的搜索方式也很重要。如果每一层都会从i到len，像这样：</p>
+
+<pre><code>    for (i = 0; i &lt; l; i ++)
+    {
+        if ( str[i] != 'C' )
+            continue;
+        for (j = i + 1; j &lt; l; j ++)
+        {
+            if ( str[j] != 'O' )
+                continue;
+            for (k = j + 1; k &lt; l; k ++)
+            {
+                if ( str[k] != 'W' )
+                    continue;
+                if ( CheckStr( RestoreString(str, i, j, k)) )
+                    return true;
+            }
+        }
+    }
+</code></pre>
+
+<p>很容易就超时了。</p>
+
+<p>但是，如果先把所有COW的下标先记下来，再在每一层枚举它们的下标，像这样：</p>
+
+<pre><code>    for (i = 0; i &lt; cNum; i ++)
+    {
+        for (j = 0; j &lt; oNum; j ++)
+        {
+            for (k = 0; k &lt; wNum; k ++)
+            {
+                if ( cIdx[i] &lt; oIdx[j] &amp;&amp; oIdx[j] &lt; wIdx[k] )
+                {
+                    if ( CheckStr( RestoreString(str, cIdx[i], oIdx[j], wIdx[k])) )
+                        return true;
+                }
+            }
+        }
+    }
+</code></pre>
+
+<p>就会快很多。</p>
+
+<p>好了，废话不多说，直接上代码：</p>
+
+<pre><code>unsigned int elf_hash(string str)
+{
+    unsigned long h = 0, g, i, l;
+    l = str.length();
+    for (i = 0; i &lt; l; i ++)
+    {
+        h = (h &lt;&lt; 4) + str[i];
+        if (g = h &amp; 0xf0000000l)
+            h ^= g &gt;&gt; 24;
+        h &amp;= ~g;
+    }
+    return h % HASH_NUM;
+}
+
+//COW的数目是否相等，以及数目是多少
+//其实跟CheckStr中的判断有重复，还可以优化！
+int CheckCOWNum (string str)
+{
+    int i, l;
+    int nC, nO, nW;
+    nC= nO = nW = 0;
+    l = str.length();
+
+    for (i = 0; i &lt; l; i ++)
+    {
+        if ( str[i] == 'C' )
+            ++ nC;
+        else if ( str[i] == 'O' )
+        {
+            ++ nO;
+        }
+        else if ( str[i] == 'W' )
+        {
+            ++ nW;
+        }
+    }
+    if ( nC == nO &amp;&amp; nO == nW )
+        return nC;
+    else
+        return -1;
+}
+
+//还原加密的字符串
+//idx1 &lt; idx2 &lt; idx3
+string RestoreString (string now, int idx1, int idx2, int idx3)
+{
+    string pre = "";
+    int i, l;
+    l = now.length();
+    pre = now.substr(0, idx1);
+    pre += now.substr(idx2+1, idx3-idx2-1);
+    pre += now.substr(idx1+1, idx2-idx1-1);
+    pre += now.substr(idx3+1, l-idx3-1);
+
+    return pre;
+}
+
+bool CheckBetweenCOW (string str)
+{
+    int lastIdx;
+    int i, l;
+    lastIdx = -1;
+    l = str.length();
+    for (i = 0; i &lt; l; i ++)
+    {
+        if ( str[i] == 'C' || str[i] == 'O' || str[i] == 'W' )
+        {
+            if ( finalStr.find(str.substr(lastIdx + 1, i - lastIdx - 1)) == string::npos )
+            {
+                return false;
+            }
+            lastIdx = i;
+        }
+    }
+    return true;
+}
+
+bool CheckStr (string str)
+{
+    if ( str == finalStr )
+        return true;
+
+    int hash;
+    hash = elf_hash(str);
+    if ( hashVisited[hash] )
+        return false;
+    hashVisited[hash] = true;
+
+    int i, j, k, l;
+    int cNum, oNum, wNum, allNum;
+    int cIdx[NUM], oIdx[NUM], wIdx[NUM], allIdx[NUM];
+    cNum = oNum = wNum = allNum = 0;
+    l = str.length();
+
+    //记录C O W的下标
+    allIdx[allNum++] = -1;
+    for (i = 0; i &lt; l; i ++)
+    {
+        if ( str[i] == 'C' )
+        {
+            cIdx[cNum++] = i;
+            allIdx[allNum++] = i;
+        }
+        else if ( str[i] == 'O' )
+        {
+            oIdx[oNum++] = i;
+            allIdx[allNum++] = i;
+        }
+        else if ( str[i] == 'W' )
+        {
+            wIdx[wNum++] = i;
+            allIdx[allNum++] = i;
+        }
+    }
+    if ( allIdx[allNum-1] != l - 1 )
+        allIdx[allNum++] = l;
+
+    //所有出现COW的地方，C应该排在第一个，W应该排在最后一个。否则，无法还原成原字符串
+    if ( cNum )
+    {
+        if ( cIdx[0] &gt; oIdx[0] || cIdx[0] &gt; wIdx[0] )
+            return false;
+        if ( wIdx[wNum-1] &lt; cIdx[cNum-1] || wIdx[wNum-1] &lt; oIdx[oNum-1] )
+            return false;
+    }
+
+    //任意COW之间的子串都应该在原串中出现过
+    for (i = 0; i &lt; allNum-1; i ++)
+    {
+        if ( finalStr.find(str.substr(allIdx[i]+1, allIdx[i+1]-allIdx[i]-1)) == string::npos )
+            return false;
+    }
+
+    for (i = 0; i &lt; cNum; i ++)
+    {
+        for (j = 0; j &lt; oNum; j ++)
+        {
+            for (k = 0; k &lt; wNum; k ++)
+            {
+                if ( cIdx[i] &lt; oIdx[j] &amp;&amp; oIdx[j] &lt; wIdx[k] )
+                {
+                    if ( CheckStr( RestoreString(str, cIdx[i], oIdx[j], wIdx[k])) )
+                        return true;
+                }
+            }
+        }
+    }
+
+    //这样就会很慢。。。
+    //  for (i = 0; i &lt; l; i ++)
+    //  {
+    //      if ( str[i] != 'C' )
+    //          continue;
+    //      for (j = i + 1; j &lt; l; j ++)
+    //      {
+    //          if ( str[j] != 'O' )
+    //              continue;
+    //          for (k = j + 1; k &lt; l; k ++)
+    //          {
+    //              if ( str[k] != 'W' )
+    //                  continue;
+    //              if ( CheckStr( RestoreString(str, i, j, k)) )
+    //                  return true;
+    //          }
+    //      }
+    //  }
+
+    return false;
+}
+
+void Solve ()
+{
+    if ( (str.length() - finalStr.length()) % 3 != 0 )
+    {
+        printf("0 0\n");
+        return;
+    }
+
+    int nCOW = CheckCOWNum(str);
+    if ( nCOW == -1 || !CheckStr(str) )
+    {
+        printf("0 0\n");
+        return;
+    }
+    printf("1 %d\n", nCOW);
+}
+</code></pre>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">admin</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-07-15T00:00:54+08:00" pubdate data-updated="true">Jul 15<span>th</span>, 2011</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/usaco/'>USACO</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2011/07/05/usaco-section-4-1-fence-loops/" title="Previous Post: USACO Section 4.1 Fence Loops">&laquo; USACO Section 4.1 Fence Loops</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2011/07/21/avl_tree_implimentation/" title="Next Post: AVL树初步实现">AVL树初步实现 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/01/31/test/">Test</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/30/information_retrievial_in_practice_note_architecture/">《Information Retrieval in Practice》笔记——整体架构</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/22/presentation-based-development/">“基于演示的开发”</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/quxiao">@quxiao</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'quxiao',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Xavier -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

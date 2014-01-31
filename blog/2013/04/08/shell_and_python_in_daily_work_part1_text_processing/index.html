@@ -1,0 +1,397 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>日常工作中用到的Shell/Python命令——文本篇 - Xavier Blog</title>
+  <meta name="author" content="Xavier">
+
+  
+  <meta name="description" content="作为一名RD，作为一名后端RD，每天大部分的工作都是在终端上面完成的，除了在vim上面编写代码，也需要分析日志、数据，定时跑一些任务，因此各种shell、各种脚本语言也是不少用。罗列些自己平时工作中用到查看、处理文本的命令： 查看日志 平常查看模块打印的日志，肯定是必需的， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://quxiao.github.io/blog/2013/04/08/shell_and_python_in_daily_work_part1_text_processing">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Xavier Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Xavier Blog</a></h1>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:quxiao.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">日常工作中用到的Shell/Python命令——文本篇</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-04-08T22:44:54+08:00" pubdate data-updated="true">Apr 8<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>作为一名RD，作为一名后端RD，每天大部分的工作都是在终端上面完成的，除了在vim上面编写代码，也需要分析日志、数据，定时跑一些任务，因此各种shell、各种脚本语言也是不少用。罗列些自己平时工作中用到查看、处理文本的命令：</p>
+
+<h2>查看日志</h2>
+
+<p>平常查看模块打印的日志，肯定是必需的，比如需要知道一个模块重启后运行是否正常，需要查看请求返回的一些字段。日志比较小的话（100Mb以内），可以直接用<code>vim</code>打开，否则会把服务器内存全部吃掉，甚至把服务器搞挂。。。</p>
+
+<p>文件太大的话，可以用<code>less</code>或者<code>more</code>命令打开，这样不会把整个文件都load到内存，然后再使用“/”或者&#8221;?&ldquo;向后或者向前查找需要的字符串</p>
+
+<p>有时只需要看看文件的头尾几行，看看日志的格式如何，用<code>head</code>以及<code>tail</code>就可以，特别，如果需要实时查看日志，则可以使用<code>tail -f</code>。</p>
+
+<h2>过滤日志</h2>
+
+<p>有时只需要获取日志的某些行，比如查找哪些行包含&#8221;FATAL&#8221;，就可以用</p>
+
+<p><code>grep "FATAL" xxx.log</code></p>
+
+<p>如果先是想看看有没有这类日志存在，就用管道结合<code>wc -l</code></p>
+
+<p><code>grep "FATAL" xxx.log | wc -l</code></p>
+
+<p>也可以结合之前的<code>less</code>、<code>head</code>、<code>tail</code>查看部分日志</p>
+
+<p><code>grep "FATAL" xxx.log | less</code></p>
+
+<p>如果是想获取日志中的某些字段，可以使用<code>cut</code>命令进行分割</p>
+
+<p>假设有如下日志：</p>
+
+<blockquote><p>1 2 3 4 5</p></blockquote>
+
+<p>11 12 13 14 15</p>
+
+<p>获取第三列，用<code>cat xxx.log | cut -d'\t' -f3</code>，就可以得到</p>
+
+<blockquote><p>3</p></blockquote>
+
+<p>13</p>
+
+<p>有时候，日志比较复杂，比如：</p>
+
+<blockquote><p>a=1,b=2,c=3</p></blockquote>
+
+<p>比如还是获取第三列，则可以：</p>
+
+<p><code>cat xxx.log | cut -d',' -f3 | cut -d'=' -f2</code></p>
+
+<p>过滤日志，也可以使用<code>awk</code>，但感觉如何不是对于日志的数据进行计算，只用<code>awk</code>进行过滤，未免有些大材小用了，呵呵。</p>
+
+<h2>计算日志字段</h2>
+
+<p>好，这个时候<code>awk</code>就可以排上用场了，它不但能对字段进行过滤、累加、对日志按类似C语言<code>printf()</code>的格式进行输出，还可以进行dict运算。比如有一份日志保存着每次请求的query字段：</p>
+
+<blockquote><p>htc</p></blockquote>
+
+<p>iphone4s</p>
+
+<p>htc</p>
+
+<p>sumsung</p>
+
+<p>xiaomi</p>
+
+<p>我需要知道每个query的频次，用几行python应该也能很快搞定，不过用<code>awk</code>，仅需用一行：</p>
+
+<pre><code>cat xxx.log | awk '{dict[$1]++;} END{for(i in dict){printf "query:[%s] pv:[%d]\n", i, dict[i];}}'
+</code></pre>
+
+<blockquote><p>query:[xiaomi] pv:[1]</p></blockquote>
+
+<p>query:[sumsung] pv:[1]</p>
+
+<p>query:[htc] pv:[2]</p>
+
+<p>query:[iphone4s] pv:[1]</p>
+
+<h2>遍历文件</h2>
+
+<p>有时候需要依次对一些文件进行相同的处理，如果只是想遍历文件一个文件夹下面的某些文件，可以直接</p>
+
+<pre><code>for file in ./*.log; do echo "$file"; done
+</code></pre>
+
+<blockquote><p>./zhixin_stat.log
+./zhixin_stat.py.log</p></blockquote>
+
+<p>有时候需要构造一些序列，一般情况，用类似C语言的for循环，比如：</p>
+
+<pre><code>for ((i=0; i&lt;=10; i++)); do echo 201304$i; done
+</code></pre>
+
+<blockquote><p>2013040
+2013041
+2013042
+2013043
+2013044
+2013045
+2013046
+2013047
+2013048
+2013049
+20130410</p></blockquote>
+
+<p>但是可以发现，生成的序列宽度是不一样的，就需要用到seq命令了，它可能生成固定宽度的序列：</p>
+
+<pre><code>for i in `seq -w 1 10`; do echo 201304$i; done
+</code></pre>
+
+<blockquote><p>20130401
+20130402
+20130403
+20130404
+20130405
+20130406
+20130407
+20130408
+20130409
+20130410</p></blockquote>
+
+<h2>用python进行排序</h2>
+
+<p>统计数据，难免需要对某几个维度进行分析，在python中进行排序，无非就是对于一个<code>list</code>进行排序，<code>list</code>中的元素一般为某个<code>class</code>或者一个<code>dict</code>。</p>
+
+<p>对于排序class，需要定义&#8217;&lt;&lsquo;, &rsquo;>&lsquo;, &rsquo;&lt;=&lsquo;, &rsquo;>=&lsquo;, &rsquo;==&lsquo;, &rsquo;!=&lsquo;六种比较行为，就好像C++中的operator重载一样。具体Python doc中这篇<a href="http://docs.python.org/2/howto/sorting.html">HowTo</a>讲解的很清楚，这里不再赘述了。</p>
+
+<p>对于dict进行排序，如果需要按照dict的某个key进行排序，则可以这么写：</p>
+
+<pre><code>from operator import itemgetter
+#按照name字段进行排序  
+newlist = sorted(list_to_be_sorted, key=itemgetter('name'))
+</code></pre>
+
+<h2>用python发送邮件</h2>
+
+<p>好了，文本统计完了，生成了一份统计报表，这时候可能就需要我们通过邮件的形式发送给同事看。用<code>crontab</code>每天凌晨开始抓数据、跑统计、然后把统计数据邮件给大家，显得专业！</p>
+
+<p>发送邮件的功能，可以用python + sendmail实现：</p>
+
+<pre><code>from os import path
+import datetime
+import time
+import sys
+import subprocess
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
+
+sender = 'quxiao@somewhere.com'
+receiver = 'someone@somewhere.com'
+
+def main(date):
+    EmailBody = 'blablabla'
+    msg = MIMEMultipart()
+    msg['Subject'] = 'some subject'
+    msg['From'] = sender
+    msg['To'] = receiver
+    msg.attach(MIMEText(EmailBody,'html','GB18030'))
+    #send
+    proc = subprocess.Popen(['/usr/lib/sendmail','-t'],stdin = subprocess.PIPE)
+    proc.stdin.write(str(msg))
+    proc.stdin.close()
+</code></pre>
+
+<p>&mdash;EOF&mdash;</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">admin</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-04-08T22:44:54+08:00" pubdate data-updated="true">Apr 8<span>th</span>, 2013</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/development/'>Development</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/02/13/memcached_source_code_study_item/" title="Previous Post: memcached源码学习——item">&laquo; memcached源码学习——item</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2013/05/13/the_diseases_in_big_company/" title="Next Post: 我也来说说大公司的那些“病”">我也来说说大公司的那些“病” &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/01/31/test/">Test</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/30/information_retrievial_in_practice_note_architecture/">《Information Retrieval in Practice》笔记——整体架构</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/22/presentation-based-development/">“基于演示的开发”</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/quxiao">@quxiao</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'quxiao',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Xavier -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

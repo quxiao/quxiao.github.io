@@ -1,0 +1,397 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>双端堆 - Xavier Blog</title>
+  <meta name="author" content="Xavier">
+
+  
+  <meta name="description" content="之前有同学问我，怎么在一个集合中高效的找到最大以及最小的元素？（注意，不是总是找最大元素，或者总是找最小元素，而是类似随机的查找最大以及最小元素。）一开始有几种想法： 朴素的想法 把集合遍历一遍，就可以知道最大或者最小元素了，查找复杂度是O(N)，查找并删除的复杂度也是O(N)。 堆结构 用两个堆 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://quxiao.github.io/blog/2011/07/25/deap">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Xavier Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Xavier Blog</a></h1>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:quxiao.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">双端堆</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-07-25T14:17:06+08:00" pubdate data-updated="true">Jul 25<span>th</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>之前有同学问我，怎么在一个集合中高效的找到最大以及最小的元素？（注意，不是总是找最大元素，或者总是找最小元素，而是类似随机的查找最大以及最小元素。）一开始有几种想法：</p>
+
+<p>朴素的想法</p>
+
+<p>把集合遍历一遍，就可以知道最大或者最小元素了，查找复杂度是O(N)，查找并删除的复杂度也是O(N)。</p>
+
+<p>堆结构</p>
+
+<p>用两个堆，一个最大堆，一个最小堆，两个堆各存一份数据。查找最大元素，就在最大堆里面找；查找最小元素，就在最小堆里面找，他们的查找时间复杂度是O(1)，查找并删除的复杂度是O(logN)。但是，怎么“同步”这两个堆呢？即，在最大堆里面删除最小的元素，在最小堆里面删除最大的元素。我们知道的只是：最小（大）元素在最大（小）堆的叶子上。怎么判断节点是叶子呢？下标×2 > size就是叶子，但是叶子上面的元素又不是排序的，查找的复杂度只能是O(N)。所以，这种想法的复杂度还是O(N)。</p>
+
+<p>双端堆（灯，等灯等灯！）</p>
+
+<p>突然想到小倩同学之前好像说过一个叫双端堆的数据结构，可以同时高效的查找最大最小元素。问了下小倩，然后又发现原来最近看的《<a href="http://book.douban.com/subject/3576025/">数据结构基础</a>》上面，就有相关的内容，只不过里面不叫双端堆，而是叫做对称最小-最大堆。（我个人感觉这两种名称讲的就是同一个数据结构）它就可以在O(1)的复杂度的情况下，找到最小（大）元素；O(logN)的情况下找到并删除最小（大）元素。</p>
+
+<p><strong>双端堆的特点</strong></p>
+
+<p>双端堆是一棵满二叉树，最顶端的根是一个虚根，不存放数据。定义element(N)为节点N的所有子孙节点（不包括N本身）的集合，N的左孩子left(N)（如果有的话）是element(N)中最小的元素，右孩子right(N)（如果有的话）是element(N)中最大的元素。</p>
+
+<p>当以下条件成立时，它才是双端堆：</p>
+
+<ul>
+<li><p>P1：每个节点的元素小于等于它的右兄弟（如果有）</p></li>
+<li><p>P2：对于每个有祖父的节点N，其祖父节点的左孩子小于等于N</p></li>
+<li><p>P3：对于每个有祖父的节点N，其祖父节点的右孩子大于等于N</p></li>
+</ul>
+
+
+<p>比如下图就是一个双端堆</p>
+
+<p><img src="http://quxiao.github.io/images/2011-07-25-deap/image_thumb20.png" alt="image" /></p>
+
+<p>下面我们看看实现</p>
+
+<p>既然是一个满二叉树，那么就可以像堆一样有一个数组来表示，下标为n的节点的左右孩子的下标分别为2×n和2×n+1。</p>
+
+<p><strong>插入操作</strong></p>
+
+<p>现将该元素放在树的最后，看有没有满足性质P1，若违反，交换两节点的内容。再看是否满足上面讲的性质P2或者P3，如果满足，就将元素放在当前位置；若没有：</p>
+
+<ul>
+<li><p>违反P2，将当前节点与其祖父的左孩子交换，祖父的左孩子变成当前节点；</p></li>
+<li><p>违反P3，将当前节点与其祖父的右孩子交换，祖父的右孩子变成当前节点。</p></li>
+</ul>
+
+
+<p>重复进行判断，直至找到合适的位置。</p>
+
+<p>假设插入2，过程如下图：</p>
+
+<p><img src="http://quxiao.github.io/images/2011-07-25-deap/image_thumb21.png" alt="image" />
+=>
+<img src="http://quxiao.github.io/images/2011-07-25-deap/image_thumb22.png" alt="image" />
+=>
+<img src="http://quxiao.github.io/images/2011-07-25-deap/image_thumb23.png" alt="image" /></p>
+
+<p>代码如下:</p>
+
+<div>
+  <pre><code class='java'>public void insert (T data) throws Exception
+    {
+        int curIdx = ++ size;
+        if ( size &gt;= HEAP_MAX_SIZE )
+            throw new Exception();
+        int grandpa;
+        int parentMin, parentMax;       //爷爷的左右孩子
+        while (true)
+        {
+            //是否有更大的左兄弟
+            if ( (curIdx &amp; 1) == 1 &amp;&amp; data.compareTo(heap[curIdx-1]) &lt; 0 )
+            {
+                heap[curIdx] = heap[curIdx-1];
+                -- curIdx;
+            }
+
+            grandpa = curIdx &gt;&gt; 2;
+            if ( grandpa == 0 )
+                break;
+            parentMin = grandpa &lt;&lt; 1;
+            parentMax = parentMin + 1;
+            if ( heap[parentMin].compareTo(data) &gt; 0 )
+            {
+                heap[curIdx] = heap[parentMin];
+                curIdx = parentMin;
+            }
+            else if ( heap[parentMax].compareTo(data) &lt; 0 )
+            {
+                heap[curIdx] = heap[parentMax];
+                curIdx = parentMax;
+            }
+            else
+                break;
+        }
+        heap[curIdx] = data;
+    }</code></pre>
+</div>
+
+
+<p><strong>删除操作</strong></p>
+
+<p>这里面的删除操作应该是指找到并删除最小（大）元素，找到很容易，最小元素是根的左孩子，最大元素是根的右孩子。但是，删除之后怎么调整以满足双端堆的特性呢？我们以删除最小元素为例，算法如下：</p>
+
+<p>我们将树的最后一个元素暂时放在删除元素的位置，判断两个条件：</p>
+
+<p>是否满足P1，不满足则交换两元素</p>
+
+<p>与其左孩子、以及右兄弟节点的左孩子（如果有的话）比较，是否是最小的，不是则与最小的节点交换。（其左孩子和右兄弟的左孩子是两个次小的节点）</p>
+
+<p>重复以上判断，直至满足这两个条件。</p>
+
+<p>如果删除4的话，过程如下图：</p>
+
+<p><img src="http://quxiao.github.io/images/2011-07-25-deap/image_thumb24.png" alt="image" />
+=>
+<img src="http://quxiao.github.io/images/2011-07-25-deap/image_thumb25.png" alt="image" />
+=>
+<img src="http://quxiao.github.io/images/2011-07-25-deap/image_thumb26.png" alt="image" />
+=>
+<img src="http://quxiao.github.io/images/2011-07-25-deap/image_thumb27.png" alt="image" />
+=>
+<img src="http://quxiao.github.io/images/2011-07-25-deap/image_thumb28.png" alt="image" /></p>
+
+<p>代码如下：</p>
+
+<div>
+  <pre><code class='java'>public T deleteMin () throws Exception
+    {
+        if ( size &lt; 2 )
+            throw new Exception();
+        if ( size == 2 )
+            return heap[size --];
+
+        T tmp;
+        int minChildIdx;
+        T data = heap[size --];
+        int curIdx = 2;
+        T ret = heap[curIdx];
+        while ( true )
+        {
+            if ( (curIdx &amp; 1) == 0 &amp;&amp; curIdx + 1 &lt;= size &amp;&amp; data.compareTo(heap[curIdx+1]) &gt; 0 )
+            {
+                tmp = heap[curIdx+1];
+                heap[curIdx+1] = data;
+                data = tmp;
+            }
+            minChildIdx = curIdx &lt;&lt; 1;
+            if ( minChildIdx &gt; size )
+                break;
+            if ( ((curIdx + 1) &lt;&lt; 1) &lt;= size &amp;&amp; heap[minChildIdx].compareTo(heap[(curIdx+1)&lt;&lt;1]) &gt; 0 )
+                minChildIdx = (curIdx + 1) &lt;&lt; 1;
+            if ( data.compareTo(heap[minChildIdx]) &gt; 0 )
+            {
+                heap[curIdx] = heap[minChildIdx];
+                curIdx = minChildIdx;
+            }
+            else
+                break;
+        }
+        heap[curIdx] = data;
+        return ret;
+    }</code></pre>
+</div>
+
+
+<p>所有代码可以在<a href="http://code.google.com/p/quxiao-source-code/source/browse/#svn%2Ftrunk%2Fdata_structure%2FSMMH%2Fsrc">这里</a>看到。</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">admin</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-07-25T14:17:06+08:00" pubdate data-updated="true">Jul 25<span>th</span>, 2011</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/data-structure/'>Data Structure</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2011/07/21/avl_tree_implimentation/" title="Previous Post: AVL树初步实现">&laquo; AVL树初步实现</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2011/08/16/hadoop_easy_test/" title="Next Post: Hadoop极精简运行实验">Hadoop极精简运行实验 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/01/31/test/">Test</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/30/information_retrievial_in_practice_note_architecture/">《Information Retrieval in Practice》笔记——整体架构</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/22/presentation-based-development/">“基于演示的开发”</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/quxiao">@quxiao</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'quxiao',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Xavier -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

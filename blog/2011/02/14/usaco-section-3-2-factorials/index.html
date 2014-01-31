@@ -1,0 +1,268 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>USACO Section 3.2 Factorials - Xavier Blog</title>
+  <meta name="author" content="Xavier">
+
+  
+  <meta name="description" content="问你N阶乘的最低非零位上是什么数字。(0 &lt;= N &lt;= 4220) 从1一直乘到N，如果能整除10，就除以10，可以吗？不行，因为即使去掉低位的0，高位的非0位仍然很大，无法保存下来。 可以将N!这样表示： N! = 2K * 5L * V(N) = 2K-L * V(N) * &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://quxiao.github.io/blog/2011/02/14/usaco-section-3-2-factorials">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Xavier Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Xavier Blog</a></h1>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:quxiao.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">USACO Section 3.2 Factorials</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-02-14T15:09:13+08:00" pubdate data-updated="true">Feb 14<span>th</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>问你N阶乘的最低非零位上是什么数字。(0 &lt;= N &lt;= 4220)</p>
+
+<p>从1一直乘到N，如果能整除10，就除以10，可以吗？不行，因为即使去掉低位的0，高位的非0位仍然很大，无法保存下来。</p>
+
+<p>可以将N!这样表示：    <br/>
+N! = 2<sup>K</sup> * 5<sup>L</sup> * V(N)     <br/>
+= 2<sup>K-L</sup> * V(N) * 10<sup>L</sup> ( K >= L 如何证明呢？)</p>
+
+<p>10<sup>L</sup>不影响N!最低非零位，这个数由(K-L)以及V(N)的个位数所决定。K和L容易得到，V(N)的个位数也好得到，只要枚举i（从1到N），去除因子2和5（因子个数加到K和L），将其个位数乘以中间结果就可以了。</p>
+
+<p>关键代码如下：</p>
+
+<pre><code>&lt;span style="color: #0000ff"&gt;const&lt;/span&gt; &lt;span style="color: #0000ff"&gt;int&lt;/span&gt; f2 [] = {6, 2, 4, 8};
+
+&lt;span style="color: #0000ff"&gt;int&lt;/span&gt; i, tmp, n2, n5;
+&lt;span style="color: #0000ff"&gt;int&lt;/span&gt; ans = 1;
+n2 = n5 = 0;
+&lt;span style="color: #0000ff"&gt;for&lt;/span&gt; ( i = 1; i &lt;= n; i ++)
+{
+    tmp = i;
+    &lt;span style="color: #0000ff"&gt;while&lt;/span&gt; ( tmp % 2 == 0 )
+    {
+        n2 ++;
+        tmp /= 2;
+    }
+    &lt;span style="color: #0000ff"&gt;while&lt;/span&gt; ( tmp % 5 == 0 )
+    {
+        n5 ++;
+        tmp /= 5;
+    }
+    ans = (( tmp % 10) * ans) % 10;
+}
+ans = ( ans * f2[( n2- n5)%4] ) % 10;
+printf( "&lt;span style="color: #8b0000"&gt;%d\n&lt;/span&gt;", ans);
+</code></pre>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">admin</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-02-14T15:09:13+08:00" pubdate data-updated="true">Feb 14<span>th</span>, 2011</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/usaco/'>USACO</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2011/02/12/usaco-section-3-1-stamps/" title="Previous Post: USACO Section 3.1 Stamps">&laquo; USACO Section 3.1 Stamps</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2011/02/16/usaco-section-3-2-stringsobits/" title="Next Post: USACO Section 3.2 Stringsobits">USACO Section 3.2 Stringsobits &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/01/31/test/">Test</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/30/information_retrievial_in_practice_note_architecture/">《Information Retrieval in Practice》笔记——整体架构</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/22/presentation-based-development/">“基于演示的开发”</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/quxiao">@quxiao</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'quxiao',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Xavier -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

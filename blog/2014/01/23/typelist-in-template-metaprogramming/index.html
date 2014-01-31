@@ -1,0 +1,575 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>模板元编程中的Typelist - Xavier Blog</title>
+  <meta name="author" content="Xavier">
+
+  
+  <meta name="description" content="">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://quxiao.github.io/blog/2014/01/23/typelist-in-template-metaprogramming">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Xavier Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Xavier Blog</a></h1>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:quxiao.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">模板元编程中的Typelist</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-23T00:00:00+08:00" pubdate data-updated="true"></time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>前段时间在看其他同事的代码，无意间看了类似下面的代码：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">TypeList</span><span class="o">&lt;</span> <span class="n">FilterA</span><span class="p">,</span>
+</span><span class='line'><span class="n">TypeList</span><span class="o">&lt;</span> <span class="n">FilterB</span><span class="p">,</span>
+</span><span class='line'><span class="n">TypeList</span><span class="o">&lt;</span> <span class="n">FilterC</span><span class="p">,</span>
+</span><span class='line'><span class="n">TypeList</span><span class="o">&lt;</span> <span class="n">FilterD</span><span class="p">,</span>
+</span><span class='line'><span class="n">TypeList</span><span class="o">&lt;</span> <span class="n">FilterE</span><span class="p">,</span>
+</span><span class='line'>    <span class="kt">void</span> <span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">&gt;</span> <span class="n">Filters</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>感觉代码风格略微诡异了些，怎么像是LISP，呵呵。后来查了些资料，得知这就是我一直心仪已久的模板元编程中的一种技巧——<strong> Typelist</strong> 。</p>
+
+<p>当你需要对于大量的类型进行相似的操作时，比如对于返回的商品进行五种类型的过滤，许多（手工写的）代码都是重复、冗余的，代码可能是这样的：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">Goods</span><span class="o">*</span> <span class="n">goods</span> <span class="o">=</span> <span class="n">get_goods</span><span class="p">(</span><span class="n">goods_id</span><span class="p">);</span>
+</span><span class='line'><span class="k">if</span> <span class="p">(</span><span class="n">goods_blacklist</span><span class="p">.</span><span class="n">filter</span><span class="p">(</span><span class="n">goods</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>    <span class="c1">//...</span>
+</span><span class='line'><span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">cate_blacklist</span><span class="p">.</span><span class="n">filter</span><span class="p">(</span><span class="n">goods</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>    <span class="c1">//...</span>
+</span><span class='line'><span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">stock_blacklist</span><span class="p">.</span><span class="n">filter</span><span class="p">(</span><span class="n">goods</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>    <span class="c1">//...</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="c1">//...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>显然代码是很冗余的，再抽象一下，也许可以写成这样：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">vector</span><span class="o">&lt;</span><span class="n">FilterBase</span><span class="o">*&gt;</span> <span class="n">filters</span><span class="p">;</span>
+</span><span class='line'><span class="n">filters</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="k">new</span> <span class="n">GoodsBlacklist</span><span class="p">());</span>
+</span><span class='line'><span class="n">filters</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="k">new</span> <span class="n">CateBlacklist</span><span class="p">());</span>
+</span><span class='line'><span class="n">filters</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="k">new</span> <span class="n">StockBlacklist</span><span class="p">());</span>
+</span><span class='line'><span class="c1">//...</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Goods</span><span class="o">*</span> <span class="n">goods</span> <span class="o">=</span> <span class="n">get_goods</span><span class="p">(</span><span class="n">goods_id</span><span class="p">);</span>
+</span><span class='line'><span class="k">for</span> <span class="p">(</span><span class="n">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">filters</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="n">i</span> <span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">filters</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">do_filter</span><span class="p">(</span><span class="n">goods</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>代码整洁了一些，不过还是需要程序在运行时<code>new</code>出来各种类、加入到集合中、然后还要考虑调用虚函数的成本，仍然不是高效的。这个时候，Typelist就派上用场了，他可以让编译器帮你自动生成许多类（而不是类的实例）的集合，并且可以像链表一样对这些类进行遍历，从而达到自动进行相似、重复工作的效果。</p>
+
+<h1>定义Typelist</h1>
+
+<p>首先来看看如何定义一个Typelist吧</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">H</span><span class="p">,</span> <span class="k">typename</span> <span class="n">T</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">TypeList</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">H</span> <span class="n">Head</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">T</span> <span class="n">Tail</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>首先，把这些类的集合看做是一个链表，这个链表的类型叫做<code>Type</code>，当然也可以是其它名称。假设有N个类型，链表的第0个类型是H，后面的<code>1 ~ N-1</code>组成一个联合类型T。接着，我们需要考虑一些特殊情况，这时候就需要用到<strong>模板特化</strong>了。首先，如果<code>1 ~ N-1</code>也是<code>Type</code>类型的时候，该如何定义呢？</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">H</span><span class="p">,</span> <span class="k">typename</span> <span class="n">S</span><span class="p">,</span> <span class="k">typename</span> <span class="n">T</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">H</span><span class="p">,</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">S</span><span class="p">,</span> <span class="n">T</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">:</span> <span class="k">public</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">S</span><span class="p">,</span> <span class="n">T</span><span class="o">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">H</span> <span class="n">Head</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">S</span><span class="p">,</span> <span class="n">T</span><span class="o">&gt;</span> <span class="n">Tail</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样，就可以表示当Type的后一个模板参数也是一个Type类型时，Type类型应该是个什么样子，也就可以让Type类型无限延展下去了。最后，还需要考虑Type链表的最后一个元素应该如何定义。链表里面表示最后一个元素可以用<code>NULL</code>，那么我们在这边可以用一个没有任何意义的<code>NullType</code>类型、或者简单使用<code>void</code>表示Type链表的终结。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">strcut</span> <span class="n">NullType</span> <span class="p">{};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">H</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">H</span><span class="p">,</span> <span class="n">NullType</span><span class="o">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">H</span> <span class="n">Head</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">NullType</span> <span class="n">Tail</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面三种定义就覆盖了Typelist中所以可能的情况，当我们写出类似<code>TypeList&lt; FilterA, TypeList&lt; FilterB, TypeList&lt; FilterC, NullType &gt; &gt; &gt;</code>的时候，编译器就能自动帮我们进行匹配，并且自动生成一种复杂的类型！</p>
+
+<h1>遍历TypeList</h1>
+
+<p>既然定义好了，下面就可以对这个类型列表进行遍历了。以过滤商品这个场景为例，我们需要一个Filters，里面包含几种过滤方式，这几种过滤方式组成一个TypeList。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">struct</span> <span class="n">Goods</span> <span class="p">{};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">struct</span> <span class="n">BlacklistFilter</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="kt">bool</span> <span class="k">static</span> <span class="n">do_filter</span><span class="p">(</span><span class="n">Goods</span><span class="o">&amp;</span> <span class="n">goods</span><span class="p">)</span> <span class="p">{</span> <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;BlacklistFilter&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span> <span class="k">return</span> <span class="kc">true</span><span class="p">;}</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">struct</span> <span class="n">CateFilter</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="kt">bool</span> <span class="k">static</span> <span class="n">do_filter</span><span class="p">(</span><span class="n">Goods</span><span class="o">&amp;</span> <span class="n">goods</span><span class="p">)</span> <span class="p">{</span> <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;CateFilter&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span> <span class="k">return</span> <span class="kc">true</span><span class="p">;}</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">struct</span> <span class="n">StockFilter</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="kt">bool</span> <span class="k">static</span> <span class="n">do_filter</span><span class="p">(</span><span class="n">Goods</span><span class="o">&amp;</span> <span class="n">goods</span><span class="p">)</span> <span class="p">{</span> <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;StockFilter&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span> <span class="k">return</span> <span class="kc">true</span><span class="p">;}</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">typedef</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">BlacklistFilter</span><span class="p">,</span>
+</span><span class='line'>        <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">CateFilter</span><span class="p">,</span>
+</span><span class='line'>        <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">StockFilter</span><span class="p">,</span>
+</span><span class='line'>        <span class="n">NullType</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">&gt;</span>
+</span><span class='line'>        <span class="n">FilterList</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>另外还需要定义一个模版类，用于遍历这些Filter并根据商品实例的属性进行判断。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">Tlist</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">GoodsFilters</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="kt">bool</span> <span class="k">static</span> <span class="n">filter</span><span class="p">(</span><span class="n">Goods</span><span class="o">&amp;</span> <span class="n">goods</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">Tlist</span><span class="o">::</span><span class="n">Head</span><span class="o">::</span><span class="n">do_filter</span><span class="p">(</span><span class="n">goods</span><span class="p">)</span>        <span class="c1">//第一个Filter的过滤结果</span>
+</span><span class='line'>            <span class="o">&amp;&amp;</span> <span class="n">GoodsFilters</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">Tlist</span><span class="o">::</span><span class="n">Tail</span><span class="o">&gt;::</span><span class="n">filter</span><span class="p">(</span><span class="n">goods</span><span class="p">);</span>   <span class="c1">//剩下的Filters的过滤结果</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">//终结情况</span>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">GoodsFilters</span><span class="o">&lt;</span><span class="n">NullType</span><span class="o">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="kt">bool</span> <span class="k">static</span> <span class="n">filter</span><span class="p">(</span><span class="n">Goods</span><span class="o">&amp;</span> <span class="n">goods</span><span class="p">)</span> <span class="p">{</span><span class="k">return</span> <span class="kc">true</span><span class="p">;}</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Goods</span> <span class="n">example_goods</span><span class="p">;</span>
+</span><span class='line'><span class="n">GoodsFilters</span><span class="o">&lt;</span><span class="n">FilterList</span><span class="o">&gt;::</span><span class="n">filter</span><span class="p">(</span><span class="n">example_goods</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>最终输出结果：</p>
+
+<pre><code>BlacklistFilter
+CateFilter
+StockFilter
+</code></pre>
+
+<p>这样，对于Typelist的遍历就完成了，使用方无需编写代码显式调用每一个类型的过滤函数，一切都由编译器帮你完成了！ : )</p>
+
+<h1>核心思想 —— 递归</h1>
+
+<p>使用了Typelist（或者说是MetaProgramming）技术之后，感觉其最核心的就是递归的思想（通过模板特化来体现）。我们平时写的递归算法，各种分支、结束条件都需要自己判断，而Typelist只需要把各种典型的条件一一罗列出来即可，编译器会很聪明的对你的代码进行<strong>编译时if判断</strong>。TypeList中，还有许多用到了递归的地方，比方说计算Typelist的长度、通过下标获取类型、根据类型或者实例对应的值、Append操作、Reverse操作等等。其中Append操作以及Reverse操作比较经典，样例代码如下，大家可以体会下递归的精妙：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="c1">//Append操作，将一个类型添加至一个TypeList末尾</span>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">Tlist</span><span class="p">,</span> <span class="k">typename</span> <span class="n">T</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">Append</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">Append</span><span class="o">&lt;</span><span class="n">NullType</span><span class="p">,</span> <span class="n">NullType</span><span class="o">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">NullType</span> <span class="n">Result</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">S</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">Append</span><span class="o">&lt;</span><span class="n">NullType</span><span class="p">,</span> <span class="n">S</span><span class="o">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">S</span><span class="p">,</span> <span class="n">NullType</span><span class="o">&gt;</span> <span class="n">Result</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">H</span><span class="p">,</span> <span class="k">typename</span> <span class="n">T</span><span class="p">,</span> <span class="k">typename</span> <span class="n">S</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">Append</span><span class="o">&lt;</span><span class="n">TypeList</span><span class="o">&lt;</span><span class="n">H</span><span class="p">,</span> <span class="n">T</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">S</span><span class="o">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">H</span><span class="p">,</span> <span class="k">typename</span> <span class="n">Append</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">S</span><span class="o">&gt;::</span><span class="n">Result</span> <span class="o">&gt;</span> <span class="n">Result</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">H</span><span class="p">,</span> <span class="k">typename</span> <span class="n">T</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">Append</span><span class="o">&lt;</span><span class="n">NullType</span><span class="p">,</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">H</span><span class="p">,</span> <span class="n">T</span><span class="o">&gt;</span> <span class="o">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">H</span><span class="p">,</span> <span class="n">T</span><span class="o">&gt;</span> <span class="n">Result</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="c1">//Reverse操作，将TypeList反转过来，例如：TypeList&lt;A, TypeList&lt;B, TypeList&lt;C, NullType&gt; &gt; &gt;    =&gt;  TypeList&lt;C, TypeList&lt;B, TypeList&lt;A, NullType&gt; &gt; &gt;</span>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">Tlist</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">Reverse</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">Tlist</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">Reverse</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="k">typename</span> <span class="n">Append</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">Reverse</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">Tlist</span><span class="o">::</span><span class="n">Tail</span><span class="o">&gt;::</span><span class="n">Result</span><span class="p">,</span> <span class="k">typename</span> <span class="n">Tlist</span><span class="o">::</span><span class="n">Head</span><span class="o">&gt;::</span><span class="n">Result</span>
+</span><span class='line'>            <span class="n">Result</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">Reverse</span><span class="o">&lt;</span><span class="n">NullType</span><span class="o">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">NullType</span> <span class="n">Result</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>参考资料</h1>
+
+<ul>
+<li><a href="http://book.douban.com/subject/1119904/">《C++设计新思维》</a> （很可惜，这么好的书，居然市面上买不到了，看了同事的英文原版，然后在淘宝上买了D版，罪过罪过）</li>
+<li><a href="http://loki-lib.sourceforge.net/html/a00681.html">Loki-lib TypeList</a>  《C++设计新思维》这本书中讲解的Loki库中对应TypeList部分</li>
+<li><a href="http://aszt.inf.elte.hu/~gsd/halado_cpp/ch06.html">http://aszt.inf.elte.hu/~gsd/halado_cpp/ch06.html</a>  网上搜到的匈牙利罗兰大学的网上教程，也是基本上讲解Loki库的</li>
+</ul>
+
+
+<p>&mdash; EOF &mdash;</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Xavier</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-23T00:00:00+08:00" pubdate data-updated="true"></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories//'></a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/01/01/from_2013_to_2014/" title="Previous Post: 从2013到2014">&laquo; 从2013到2014</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/01/31/test/" title="Next Post: test">test &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/01/31/test/">Test</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/30/information_retrievial_in_practice_note_architecture/">《Information Retrieval in Practice》笔记——整体架构</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/22/presentation-based-development/">“基于演示的开发”</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/quxiao">@quxiao</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'quxiao',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Xavier -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Source Reading | Xavier Blog]]></title>
+  <link href="http://quxiao.github.io/blog/categories/source-reading/atom.xml" rel="self"/>
+  <link href="http://quxiao.github.io/"/>
+  <updated>2014-01-31T11:56:48+08:00</updated>
+  <id>http://quxiao.github.io/</id>
+  <author>
+    <name><![CDATA[Xavier]]></name>
+    <email><![CDATA[quxiao86@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Memcached源码学习——线程模型]]></title>
+    <link href="http://quxiao.github.io/blog/2013/05/31/memcached_source_code_study_thread_model/"/>
+    <updated>2013-05-31T09:30:39+08:00</updated>
+    <id>http://quxiao.github.io/blog/2013/05/31/memcached_source_code_study_thread_model</id>
+    <content type="html"><![CDATA[<p>Memcached中有以下几类线程：</p>
+
+<ul>
+<li>主线程</li>
+<li>工作线程</li>
+<li>维护线程</li>
+</ul>
+
+
+<p>主线程，又可以叫分发线程，除了完成程序的各种参数、以及其他线程的初始化以外，还会listen端口，新建连接，并且将该连接分发到其他的工作线程。</p>
+
+<p>工作线程，大部分实际的工作都是他们干的，包括读取请求的协议内容、解析、进行具体存、取、更新、删除kv的操作，最后返回结果。</p>
+
+<p>另外，还有一个维护线程，它的工作就是在需要的时候（存放的item大于总量的2/3）对hash表进行扩展。</p>
+
+<p>Memcached处理请求时，采用的是单进程多线程的Master-Worker模型，通过libevent这个事件响应库来实现的。</p>
+
+<p>首先来看一下主线程和工作线程之间是怎么交互的吧：</p>
+
+<p>工作线程在初始化的时候，会建立一个pipe（管道），两端分别为：<code>notify_receive_fd</code>，<code>以及notify_send_fd</code>：</p>
+
+<p><div>
+  <pre><code class='cpp'>&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;for (i = 0; i &amp;lt; nthreads; i++) {
+    int fds[2];
+    if (pipe(fds)) {
+        perror(&quot;Can&#39;t create notify pipe&quot;);
+        exit(1);
+    }
+
+    threads[i].notify_receive_fd = fds[0];
+    threads[i].notify_send_fd = fds[1];
+
+    setup_thread(&amp;amp;threads[i]);
+    /* Reserve three fds for the libevent base, and two for the pipe */
+    stats.reserved_fds += 5;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;</code></pre>
+</div>
+</p>
+
+<p>也就是说当其他线程向<code>notify_send_fd</code>文件描述符写内容的时候，<code>notify_receive_fd</code>就可以接受到。</p>
+
+<p>接着，就用到了libevent的API：</p>
+
+<p><div>
+  <pre><code class='cpp'>&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;me-&amp;gt;base = event_init();
+
+/* Listen for notifications from other threads */
+event_set(&amp;amp;me-&amp;gt;notify_event, me-&amp;gt;notify_receive_fd,
+          EV_READ | EV_PERSIST, thread_libevent_process, me);
+event_base_set(me-&amp;gt;base, &amp;amp;me-&amp;gt;notify_event);
+
+if (event_add(&amp;amp;me-&amp;gt;notify_event, 0) == -1) {
+    fprintf(stderr, &quot;Can&#39;t monitor libevent notify pipe\n&quot;);
+    exit(1);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;</code></pre>
+</div>
+</p>
+
+<p>每个工作线程都新建一个libevent实例(<code>me-&gt;base</code>)，并且将<code>notify_event</code>绑定在这个实例上。</p>
+
+<p><code>notify_event</code>什么时候触发？
+当<code>notify_receive_fd</code>有内容的时候被触发。</p>
+
+<p>触发了执行什么函数？
+执行<code>thread_libevent_process (me)</code>函数。</p>
+
+<p>那在哪个地方会写<code>notify_send_fd</code>呢？
+在主线程将新建的连接分发给工作时，就会向某个线程的<code>notify_send_fd</code>写一个空的字符串用来唤醒这个线程。下面的代码一目了然：</p>
+
+<p><div>
+  <pre><code class='cpp'>&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;void dispatch_conn_new(int sfd, enum conn_states init_state, int event_flags,
+                       int read_buffer_size, enum network_transport transport) {
+    CQ_ITEM *item = cqi_new();
+    /*这就是所谓的round robin*/
+    int tid = (last_thread + 1) % settings.num_threads;
+
+    LIBEVENT_THREAD *thread = threads + tid;
+
+    last_thread = tid;
+
+    item-&amp;gt;sfd = sfd;
+    /* ... */
+
+    cq_push(thread-&amp;gt;new_conn_queue, item);
+
+    if (write(thread-&amp;gt;notify_send_fd, &quot;&quot;, 1) != 1) {
+        perror(&quot;Writing to thread notify pipe&quot;);
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;</code></pre>
+</div>
+</p>
+
+<p>首先来看看主线程，当他把其他工作线程、维护线程启起来之后，就开始侦听socket端口了（可以在memcached的源码中看出tcp和udp在处理逻辑上有很多不同的地方，但我不知道为什么不一样，就只看了处理tcp部分的代码，看来改补一补网络通信的知识了……），主要逻辑在<code>server_sockets</code>函数中：</p>
+
+<p><div>
+  <pre><code class='cpp'>&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;if (IS_UDP(transport)) {
+    int c;
+
+    for (c = 0; c &amp;lt; settings.num_threads_per_udp; c++) {
+        /* this is guaranteed to hit all threads because we round-robin */
+        dispatch_conn_new(sfd, conn_read, EV_READ | EV_PERSIST,
+                          UDP_READ_BUFFER_SIZE, transport);
+    }
+} else {
+    if (!(listen_conn_add = conn_new(sfd, conn_listening,
+                                     EV_READ | EV_PERSIST, 1,
+                                     transport, main_base))) {
+        fprintf(stderr, &quot;failed to create listening connection\n&quot;);
+        exit(EXIT_FAILURE);
+    }
+    listen_conn_add-&amp;gt;next = listen_conn;
+    listen_conn = listen_conn_add;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;</code></pre>
+</div>
+</p>
+
+<p><code>conn_new</code>函数建立了连接之后，将socket文件描述符于<code>event_handler</code>函数绑定，当有socket请求过来的时候，就执行<code>event_handler</code>。在<code>event_handler</code>中，就是直接调用<code>drive_machine</code>这个大大的状态转移函数，一次连接的所有状态就都在这个函数里面处理了。</p>
+
+<p>主线程首先达到<code>drive_machine</code>中的<code>conn_listenning</code>状态，然后通过<code>dispatch_conn_new</code>将这次的连接分配给某个工作线程，工作线程再经历其他的状态，完成一次请求。</p>
+
+<p><code>drive_machine</code>的具体逻辑比较复杂，这里就不讲了。</p>
+
+<p>好，最后简单回顾下这个工作流程：</p>
+
+<ol>
+<li> 主线程接受到memcached客户端的请求（是在哪儿一直接收请求的？）</li>
+<li> 主线程通过round robin找到一个工作线程</li>
+<li> 主线程将创建的连接push到工作线程的连接队列中，然后唤醒这个工作线程</li>
+<li> 工作线程被唤醒后，从自己的线程队列中取出一个连接</li>
+<li> 解析请求、对hash表进行相应的操作，写入返回</li>
+</ol>
+
+
+<p>整体看下来，感觉memcached的源码并没有什么高深的算法，用的都是很朴素的链表、底层的网络通信、线程间互斥、字符串解析等等，感觉除了网络通信比较繁琐以外，其他的地方都是一个刚毕业的计算机专业的学生可以也应该掌握的。通过对一些简单、实用的东西进行有效的组合，就可以获取一个功能更强大的合成体。</p>
+
+<p>&mdash;EOF&mdash;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Memcached源码学习——item]]></title>
+    <link href="http://quxiao.github.io/blog/2013/02/13/memcached_source_code_study_item/"/>
+    <updated>2013-02-13T22:03:13+08:00</updated>
+    <id>http://quxiao.github.io/blog/2013/02/13/memcached_source_code_study_item</id>
+    <content type="html"><![CDATA[<p>item是memcached操作的最小单位，一个item包括以下数据：</p>
+
+<ul>
+<li>struct item 本身大小</li>
+<li>key (<code>uint8_t</code>)</li>
+<li>suffix (<code>uint8_t</code>)，内容是" %d %d\r\n", flag, nbytes-2</li>
+<li>value</li>
+<li>CAS（optional, <code>uint64_t</code>）
+(参考<code>do_item_alloc</code> &amp;&amp; <code>item_make_header</code>)</li>
+</ul>
+
+
+<p>与item相关的操作有以下几种</p>
+
+<h1>分配item</h1>
+
+<p>流程如下：</p>
+
+<ol>
+<li>确定item大小——ntotal</li>
+<li>找到合适的slab</li>
+<li>看该slab的（LRU）tails中是否有item
+
+<ul>
+<li>如果tails没有，在该slab上申请ntotal大小的内存</li>
+<li>如果a) tails上面有item，并且b)其引用计数（refcount）为0，c)item是过期的（time和exptime），那么
+
+<ul>
+<li>重新计算这个slab上面分配的总item大小，</li>
+<li>更新关联数组（do_item_unlink_noblock），就是链表的删除节点操作。</li>
+<li>（注意：_hashitem_before()函数中，使用了&amp;引用操作）</li>
+</ul>
+</li>
+<li>如果slab上面试图分配但是分配不到，并且最tails上的item没有过期（expire）
+
+<ul>
+<li>如果不允许将item给evict，return NULL</li>
+<li>否则，a) 只好把这个tails上的item给evict掉; b) 重新计算这个slab上面分配的总item大小; c) 删除关联数组中的该item节点</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>初始化item各个字段</li>
+</ol>
+
+
+<h1> free item</h1>
+
+<ol>
+<li>当一个item的引用计数为0时，就将这个item“释放”（其实没有真正的释放）</li>
+<li>计算item的大小ntotal</li>
+<li>判断是在哪个<code>slab_class</code>上</li>
+<li>在该<code>slab_class</code>上，释放ntotal大小的空间（之前的slab上释放空间的操作）</li>
+</ol>
+
+
+<h1>hashtable &amp;&amp; heads &amp;&amp; tails</h1>
+
+<p>当对item进行创建、删除等操作的时候，除了在slab上进行申请、释放空间之外，还需要更新以下数据：</p>
+
+<ul>
+<li>item的time和flag</li>
+<li>全局stats</li>
+<li><code>primary_hashtable</code></li>
+<li>与item对应的slab的heads和tails数组</li>
+</ul>
+
+
+<p>其中，</p>
+
+<p>time就是当前创建时间，flag表示item目前的状态（TODO）</p>
+
+<p><code>primary_hashtable</code>是一个<code>item**</code>结构
+<code>primary_hashtable</code>的大小是2 ^ hashpower，hashpower默认大小为16
+item与<code>primary_hashtable</code>的对应关系为：</p>
+
+<pre><code>hash_key(item) &amp; (2^hashporwer - 1)
+</code></pre>
+
+<p>heads和tails数组用于记录每一个<code>slab_class</code>的<code>item*</code>的链表，用于进行LRU淘汰，所以说，memcached的LRU算法是每个<code>slab_class</code>独立的。</p>
+
+<p>&mdash;EOF&mdash;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[memcached源码学习——Slab结构及操作]]></title>
+    <link href="http://quxiao.github.io/blog/2013/02/03/memcached_source_code_study_slab_struct_and_operation/"/>
+    <updated>2013-02-03T23:15:55+08:00</updated>
+    <id>http://quxiao.github.io/blog/2013/02/03/memcached_source_code_study_slab_struct_and_operation</id>
+    <content type="html"><![CDATA[<p>memcached的内存结构中，内存被分为一个一个的页（slab），每一个slab会被分到不同的slab_class。不同的slab_class，申请的item大小就不一样。</p>
+
+<p>slab_class所对应的数据结构如下：</p>
+
+<pre><code>typedef struct {
+
+    //当前slab_class的最大item大小
+    unsigned int size;      /* sizes of items */
+    //当前slab_class每一个slab的item数
+    unsigned int perslab;   /* how many items per slab */
+    //被释放过的item的list
+    void **slots;           /* list of item ptrs */
+    //free list大小
+    unsigned int sl_total;  /* size of previous array */
+    //free list下标 
+    unsigned int sl_curr;   /* first free slot */
+    //最近申请的page(slab)的指针
+    void *end_page_ptr;         /* pointer to next free item at end of page, or 0 */
+    //最近申请的page(slab)所剩的item个数
+    unsigned int end_page_free; /* number of items remaining at end of last alloced page */
+    //当前slab_class申请了多少slab(page)
+    unsigned int slabs;     /* how many slabs were allocated for this class */
+    //申请的slab的指针数组
+    void **slab_list;       /* array of slab pointers */
+    unsigned int list_size; /* size of prev array */
+    //没用到？
+    unsigned int killing;  /* index+1 of dying slab, or zero if none */
+    size_t requested; /* The number of requested bytes */
+
+} slabclass_t;
+</code></pre>
+
+<h1>slab初始化</h1>
+
+<p>memcached的slab初始化比较简单，主要是设定一些字段的大小，逻辑如下：</p>
+
+<p>下标i从0开始遍历每一个slab class：</p>
+
+<ul>
+<li><p>对齐当前slab class的size，使其是<code>CHUNK_ALIGN_BYTES</code>字节对齐的。</p></li>
+<li><p>设置slabclass[i] 为size</p></li>
+<li><p>设置当前slab class中，每一页能存放的iterm数据slabclass[i].perslab</p></li>
+<li><p>更新size为下一个slab class的size</p></li>
+<li><p>设置最大的一个slab class，其中<code>size = setting.item_size_max, perslab = 1</code></p></li>
+</ul>
+
+
+<h1> slab分配内存</h1>
+
+<p>如果是采用系统的malloc，就是直接申请；
+如果是预先申请了所有的内存的话，依次通过以下手段获取内存：</p>
+
+<ul>
+<li><p>之前被“free”掉的item的地址会被标记在freelist中，如果freelist中有，则直接从freelist中拿；</p></li>
+<li><p>如果最近申请过的页中还有剩余空间，则从页的末尾申请item</p></li>
+<li><p>申请一个新的page</p></li>
+</ul>
+
+
+<h1>释放slab上的item空间</h1>
+
+<p>如果是系统分配，free指针，mem_malloc &ndash;= size；
+否则，将地址设置到free_list末尾，如果free_list满了，double一下长度</p>
+]]></content>
+  </entry>
+  
+</feed>

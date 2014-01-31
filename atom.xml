@@ -1,0 +1,2129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Xavier Blog]]></title>
+  <link href="http://quxiao.github.io/atom.xml" rel="self"/>
+  <link href="http://quxiao.github.io/"/>
+  <updated>2014-01-31T11:56:48+08:00</updated>
+  <id>http://quxiao.github.io/</id>
+  <author>
+    <name><![CDATA[Xavier]]></name>
+    <email><![CDATA[quxiao86@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Test]]></title>
+    <link href="http://quxiao.github.io/blog/2014/01/31/test/"/>
+    <updated>2014-01-31T11:25:30+08:00</updated>
+    <id>http://quxiao.github.io/blog/2014/01/31/test</id>
+    <content type="html"><![CDATA[<p><img src="http://quxiao.github.io/images/2014-01-01/year_of_hourse.jpg">
+<img src="http://quxiao.github.io/images/2014-01-01/year_of_hourse.jpg" alt="pic" /></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[模板元编程中的Typelist]]></title>
+    <link href="http://quxiao.github.io/blog/2014/01/23/typelist-in-template-metaprogramming/"/>
+    <updated>2014-01-23T00:00:00+08:00</updated>
+    <id>http://quxiao.github.io/blog/2014/01/23/typelist-in-template-metaprogramming</id>
+    <content type="html"><![CDATA[<p>前段时间在看其他同事的代码，无意间看了类似下面的代码：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">TypeList</span><span class="o">&lt;</span> <span class="n">FilterA</span><span class="p">,</span>
+</span><span class='line'><span class="n">TypeList</span><span class="o">&lt;</span> <span class="n">FilterB</span><span class="p">,</span>
+</span><span class='line'><span class="n">TypeList</span><span class="o">&lt;</span> <span class="n">FilterC</span><span class="p">,</span>
+</span><span class='line'><span class="n">TypeList</span><span class="o">&lt;</span> <span class="n">FilterD</span><span class="p">,</span>
+</span><span class='line'><span class="n">TypeList</span><span class="o">&lt;</span> <span class="n">FilterE</span><span class="p">,</span>
+</span><span class='line'>    <span class="kt">void</span> <span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">&gt;</span> <span class="n">Filters</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>感觉代码风格略微诡异了些，怎么像是LISP，呵呵。后来查了些资料，得知这就是我一直心仪已久的模板元编程中的一种技巧——<strong> Typelist</strong> 。</p>
+
+<p>当你需要对于大量的类型进行相似的操作时，比如对于返回的商品进行五种类型的过滤，许多（手工写的）代码都是重复、冗余的，代码可能是这样的：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">Goods</span><span class="o">*</span> <span class="n">goods</span> <span class="o">=</span> <span class="n">get_goods</span><span class="p">(</span><span class="n">goods_id</span><span class="p">);</span>
+</span><span class='line'><span class="k">if</span> <span class="p">(</span><span class="n">goods_blacklist</span><span class="p">.</span><span class="n">filter</span><span class="p">(</span><span class="n">goods</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>    <span class="c1">//...</span>
+</span><span class='line'><span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">cate_blacklist</span><span class="p">.</span><span class="n">filter</span><span class="p">(</span><span class="n">goods</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>    <span class="c1">//...</span>
+</span><span class='line'><span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">stock_blacklist</span><span class="p">.</span><span class="n">filter</span><span class="p">(</span><span class="n">goods</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>    <span class="c1">//...</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="c1">//...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>显然代码是很冗余的，再抽象一下，也许可以写成这样：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">vector</span><span class="o">&lt;</span><span class="n">FilterBase</span><span class="o">*&gt;</span> <span class="n">filters</span><span class="p">;</span>
+</span><span class='line'><span class="n">filters</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="k">new</span> <span class="n">GoodsBlacklist</span><span class="p">());</span>
+</span><span class='line'><span class="n">filters</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="k">new</span> <span class="n">CateBlacklist</span><span class="p">());</span>
+</span><span class='line'><span class="n">filters</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="k">new</span> <span class="n">StockBlacklist</span><span class="p">());</span>
+</span><span class='line'><span class="c1">//...</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Goods</span><span class="o">*</span> <span class="n">goods</span> <span class="o">=</span> <span class="n">get_goods</span><span class="p">(</span><span class="n">goods_id</span><span class="p">);</span>
+</span><span class='line'><span class="k">for</span> <span class="p">(</span><span class="n">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">filters</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="n">i</span> <span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">filters</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">do_filter</span><span class="p">(</span><span class="n">goods</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>代码整洁了一些，不过还是需要程序在运行时<code>new</code>出来各种类、加入到集合中、然后还要考虑调用虚函数的成本，仍然不是高效的。这个时候，Typelist就派上用场了，他可以让编译器帮你自动生成许多类（而不是类的实例）的集合，并且可以像链表一样对这些类进行遍历，从而达到自动进行相似、重复工作的效果。</p>
+
+<h1>定义Typelist</h1>
+
+<p>首先来看看如何定义一个Typelist吧</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">H</span><span class="p">,</span> <span class="k">typename</span> <span class="n">T</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">TypeList</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">H</span> <span class="n">Head</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">T</span> <span class="n">Tail</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>首先，把这些类的集合看做是一个链表，这个链表的类型叫做<code>Type</code>，当然也可以是其它名称。假设有N个类型，链表的第0个类型是H，后面的<code>1 ~ N-1</code>组成一个联合类型T。接着，我们需要考虑一些特殊情况，这时候就需要用到<strong>模板特化</strong>了。首先，如果<code>1 ~ N-1</code>也是<code>Type</code>类型的时候，该如何定义呢？</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">H</span><span class="p">,</span> <span class="k">typename</span> <span class="n">S</span><span class="p">,</span> <span class="k">typename</span> <span class="n">T</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">H</span><span class="p">,</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">S</span><span class="p">,</span> <span class="n">T</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">:</span> <span class="k">public</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">S</span><span class="p">,</span> <span class="n">T</span><span class="o">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">H</span> <span class="n">Head</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">S</span><span class="p">,</span> <span class="n">T</span><span class="o">&gt;</span> <span class="n">Tail</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样，就可以表示当Type的后一个模板参数也是一个Type类型时，Type类型应该是个什么样子，也就可以让Type类型无限延展下去了。最后，还需要考虑Type链表的最后一个元素应该如何定义。链表里面表示最后一个元素可以用<code>NULL</code>，那么我们在这边可以用一个没有任何意义的<code>NullType</code>类型、或者简单使用<code>void</code>表示Type链表的终结。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">strcut</span> <span class="n">NullType</span> <span class="p">{};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">H</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">H</span><span class="p">,</span> <span class="n">NullType</span><span class="o">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">H</span> <span class="n">Head</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">NullType</span> <span class="n">Tail</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面三种定义就覆盖了Typelist中所以可能的情况，当我们写出类似<code>TypeList&lt; FilterA, TypeList&lt; FilterB, TypeList&lt; FilterC, NullType &gt; &gt; &gt;</code>的时候，编译器就能自动帮我们进行匹配，并且自动生成一种复杂的类型！</p>
+
+<h1>遍历TypeList</h1>
+
+<p>既然定义好了，下面就可以对这个类型列表进行遍历了。以过滤商品这个场景为例，我们需要一个Filters，里面包含几种过滤方式，这几种过滤方式组成一个TypeList。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">struct</span> <span class="n">Goods</span> <span class="p">{};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">struct</span> <span class="n">BlacklistFilter</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="kt">bool</span> <span class="k">static</span> <span class="n">do_filter</span><span class="p">(</span><span class="n">Goods</span><span class="o">&amp;</span> <span class="n">goods</span><span class="p">)</span> <span class="p">{</span> <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;BlacklistFilter&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span> <span class="k">return</span> <span class="kc">true</span><span class="p">;}</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">struct</span> <span class="n">CateFilter</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="kt">bool</span> <span class="k">static</span> <span class="n">do_filter</span><span class="p">(</span><span class="n">Goods</span><span class="o">&amp;</span> <span class="n">goods</span><span class="p">)</span> <span class="p">{</span> <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;CateFilter&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span> <span class="k">return</span> <span class="kc">true</span><span class="p">;}</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">struct</span> <span class="n">StockFilter</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="kt">bool</span> <span class="k">static</span> <span class="n">do_filter</span><span class="p">(</span><span class="n">Goods</span><span class="o">&amp;</span> <span class="n">goods</span><span class="p">)</span> <span class="p">{</span> <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;StockFilter&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span> <span class="k">return</span> <span class="kc">true</span><span class="p">;}</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">typedef</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">BlacklistFilter</span><span class="p">,</span>
+</span><span class='line'>        <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">CateFilter</span><span class="p">,</span>
+</span><span class='line'>        <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">StockFilter</span><span class="p">,</span>
+</span><span class='line'>        <span class="n">NullType</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">&gt;</span>
+</span><span class='line'>        <span class="n">FilterList</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>另外还需要定义一个模版类，用于遍历这些Filter并根据商品实例的属性进行判断。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">Tlist</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">GoodsFilters</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="kt">bool</span> <span class="k">static</span> <span class="n">filter</span><span class="p">(</span><span class="n">Goods</span><span class="o">&amp;</span> <span class="n">goods</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">Tlist</span><span class="o">::</span><span class="n">Head</span><span class="o">::</span><span class="n">do_filter</span><span class="p">(</span><span class="n">goods</span><span class="p">)</span>        <span class="c1">//第一个Filter的过滤结果</span>
+</span><span class='line'>            <span class="o">&amp;&amp;</span> <span class="n">GoodsFilters</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">Tlist</span><span class="o">::</span><span class="n">Tail</span><span class="o">&gt;::</span><span class="n">filter</span><span class="p">(</span><span class="n">goods</span><span class="p">);</span>   <span class="c1">//剩下的Filters的过滤结果</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">//终结情况</span>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">GoodsFilters</span><span class="o">&lt;</span><span class="n">NullType</span><span class="o">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="kt">bool</span> <span class="k">static</span> <span class="n">filter</span><span class="p">(</span><span class="n">Goods</span><span class="o">&amp;</span> <span class="n">goods</span><span class="p">)</span> <span class="p">{</span><span class="k">return</span> <span class="kc">true</span><span class="p">;}</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Goods</span> <span class="n">example_goods</span><span class="p">;</span>
+</span><span class='line'><span class="n">GoodsFilters</span><span class="o">&lt;</span><span class="n">FilterList</span><span class="o">&gt;::</span><span class="n">filter</span><span class="p">(</span><span class="n">example_goods</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>最终输出结果：</p>
+
+<pre><code>BlacklistFilter
+CateFilter
+StockFilter
+</code></pre>
+
+<p>这样，对于Typelist的遍历就完成了，使用方无需编写代码显式调用每一个类型的过滤函数，一切都由编译器帮你完成了！ : )</p>
+
+<h1>核心思想 —— 递归</h1>
+
+<p>使用了Typelist（或者说是MetaProgramming）技术之后，感觉其最核心的就是递归的思想（通过模板特化来体现）。我们平时写的递归算法，各种分支、结束条件都需要自己判断，而Typelist只需要把各种典型的条件一一罗列出来即可，编译器会很聪明的对你的代码进行<strong>编译时if判断</strong>。TypeList中，还有许多用到了递归的地方，比方说计算Typelist的长度、通过下标获取类型、根据类型或者实例对应的值、Append操作、Reverse操作等等。其中Append操作以及Reverse操作比较经典，样例代码如下，大家可以体会下递归的精妙：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="c1">//Append操作，将一个类型添加至一个TypeList末尾</span>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">Tlist</span><span class="p">,</span> <span class="k">typename</span> <span class="n">T</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">Append</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">Append</span><span class="o">&lt;</span><span class="n">NullType</span><span class="p">,</span> <span class="n">NullType</span><span class="o">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">NullType</span> <span class="n">Result</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">S</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">Append</span><span class="o">&lt;</span><span class="n">NullType</span><span class="p">,</span> <span class="n">S</span><span class="o">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">S</span><span class="p">,</span> <span class="n">NullType</span><span class="o">&gt;</span> <span class="n">Result</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">H</span><span class="p">,</span> <span class="k">typename</span> <span class="n">T</span><span class="p">,</span> <span class="k">typename</span> <span class="n">S</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">Append</span><span class="o">&lt;</span><span class="n">TypeList</span><span class="o">&lt;</span><span class="n">H</span><span class="p">,</span> <span class="n">T</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">S</span><span class="o">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">H</span><span class="p">,</span> <span class="k">typename</span> <span class="n">Append</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">S</span><span class="o">&gt;::</span><span class="n">Result</span> <span class="o">&gt;</span> <span class="n">Result</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">H</span><span class="p">,</span> <span class="k">typename</span> <span class="n">T</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">Append</span><span class="o">&lt;</span><span class="n">NullType</span><span class="p">,</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">H</span><span class="p">,</span> <span class="n">T</span><span class="o">&gt;</span> <span class="o">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">H</span><span class="p">,</span> <span class="n">T</span><span class="o">&gt;</span> <span class="n">Result</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="c1">//Reverse操作，将TypeList反转过来，例如：TypeList&lt;A, TypeList&lt;B, TypeList&lt;C, NullType&gt; &gt; &gt;    =&gt;  TypeList&lt;C, TypeList&lt;B, TypeList&lt;A, NullType&gt; &gt; &gt;</span>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">Tlist</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">Reverse</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">Tlist</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">Reverse</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="k">typename</span> <span class="n">Append</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">Reverse</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">Tlist</span><span class="o">::</span><span class="n">Tail</span><span class="o">&gt;::</span><span class="n">Result</span><span class="p">,</span> <span class="k">typename</span> <span class="n">Tlist</span><span class="o">::</span><span class="n">Head</span><span class="o">&gt;::</span><span class="n">Result</span>
+</span><span class='line'>            <span class="n">Result</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">Reverse</span><span class="o">&lt;</span><span class="n">NullType</span><span class="o">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">NullType</span> <span class="n">Result</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>参考资料</h1>
+
+<ul>
+<li><a href="http://book.douban.com/subject/1119904/">《C++设计新思维》</a> （很可惜，这么好的书，居然市面上买不到了，看了同事的英文原版，然后在淘宝上买了D版，罪过罪过）</li>
+<li><a href="http://loki-lib.sourceforge.net/html/a00681.html">Loki-lib TypeList</a>  《C++设计新思维》这本书中讲解的Loki库中对应TypeList部分</li>
+<li><a href="http://aszt.inf.elte.hu/~gsd/halado_cpp/ch06.html">http://aszt.inf.elte.hu/~gsd/halado_cpp/ch06.html</a>  网上搜到的匈牙利罗兰大学的网上教程，也是基本上讲解Loki库的</li>
+</ul>
+
+
+<p>&mdash; EOF &mdash;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[从2013到2014]]></title>
+    <link href="http://quxiao.github.io/blog/2014/01/01/from_2013_to_2014/"/>
+    <updated>2014-01-01T00:00:00+08:00</updated>
+    <id>http://quxiao.github.io/blog/2014/01/01/from_2013_to_2014</id>
+    <content type="html"><![CDATA[<p><img src="http://quxiao.github.io/images/2014-01-01/year_of_hourse.jpg" alt="pic" /></p>
+
+<p>2013年就这么过去了，感觉时间如白驹过隙，转瞬即逝。我现在仍然清晰地记得2013年过年回家时的情景，仿佛就是前段时间发生的，可是一转眼，马上又要过春节了。</p>
+
+<p>回首2013，最大的感觉还是时间过得飞快，一周又一周，感觉没做啥事情就这样过去了。每天忙忙碌碌的工作，晚上属于自己的时间越来越少了，即使有一些，也感觉没有精力去充分利用了。我使劲想了想，大概可以说的，也就这么几件事吧。</p>
+
+<h1>部门变动了</h1>
+
+<p>年初和同事一起做广告方面的项目，感觉做的还是挺有意思的。但是没过多久，就被Boss调去做另外一个电商方面的项目，被调过去的原因是我之前“兼职”负责过那个项目的一些统计工作。（不由感慨，一旦你在其他人心中被打上了某些tag，想要改变就会十分困难。比如你做过统计相关的事情，以后当有统计相关的其它工作时，Boss第一个想到的估计就是你，因为你这方面最容易上手，人力成本最低。）之后，就在新的团队一直干着，但是由于项目前景一直很惨淡却又倍受领导重视，直接导致项目组的每一位成员的工作强度都很大，有时候上线会上到凌晨2、3点，实实在在的狼性了一把。期间一些同学一方面承受不了这样的强度，一方面估计也觉得项目没啥前途，纷纷离开了项目组或者公司，其中包括了我的Boss和项目的大Boss。不过，大部分的同学还是任劳任怨，一直坚持到现在。</p>
+
+<h1>锻炼算是一直坚持着</h1>
+
+<p>虽然工作的强度略大，不过我还是一有空就去健身房锻炼，工作日如果能正常下班（19点之前），并且还有体力的话，我就会去健身房；周末只要不回南京老家，我基本上两天都会去。去跑跑步、做做器械，虽然我还没有练出健壮的肌肉，但至少身材还是一直保持着，没有向有些搞IT的同学，自从上班之后身体就逐渐发福。</p>
+
+<p>另外，在气候适合的情况下，我也会找同事一起打打篮球，周末或者过节在家的话，我有机会也会去爬紫金山，算是锻炼比较勤快了。</p>
+
+<h1>经常回家看看</h1>
+
+<p>自从来上海工作之后，我基本都保持每两周就回家一次的习惯，回家多陪陪父母，和父亲聊聊体育、聊聊新闻，听母亲唠叨一些家长里短，另外偶尔也会回学校看看学弟学妹以及老师。在上海，每隔两三天，我也会打个电话给父母，报个平安。</p>
+
+<p>经常回家的另外一个原因，是可以吃到好吃的东西，在公司周围吃饭比较贵，而且吃饭的地方也就这么几家，早就吃腻了。</p>
+
+<h1>多认识了些朋友</h1>
+
+<p>工作方面，由于加入了新的项目组，所以又多认识了些同事，其中包括只在hi上交流过的大搜的同事、“人数众多”的产品经理们、和我们一起开发一起上线的FE同学等等，可以说自己这一年的绝大部分的时间都花在了和他们交流上。</p>
+
+<p>生活方面，又多认识了一些女生（我目前是一名单身男性，你懂的），虽然没能和她们进一步的发展，虽然有的只匆匆见过一面，但是和大部分还算是交了朋友，偶尔也会在微博或者微信上面有所交流，对于身在异乡的我来说，这还是挺不错的，不是吗？</p>
+
+<p>&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;-华丽的分割线&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;</p>
+
+<p>2013年，有很多地方做的还不是很好。比如，技术方面感觉没太大长进，一直想学的英语也没有坚持下去。2014年，也不想去过度设计这一年，只希望自己能好好利用时间静下心来做一些事情，比如技术、比如健身、比如旅游。</p>
+
+<ul>
+<li>希望能将后端相关的技术再深入研究、平时多写一些开源项目、多写些技术博客，自认为自己是个做技术的，技术才是我的立足之本！我就是想好好做一名技术“工匠”，尽可能的少一些扯皮的事情。</li>
+<li>希望能继续坚持锻炼，保持良好的作息习惯，13年做的不错，14年继续保持！</li>
+<li>希望2014年能多到些地方看看，13年准备的台湾行没能如愿，希望14年能够实现。</li>
+<li>如果时间和精力允许的情况下，我还想把英语好好学起来，以便我能和国外的同行交流，多学习学习国外的先进技术。</li>
+</ul>
+
+
+<p>就列这四点吧，如果这些都能完成，已经相当不错了。</p>
+
+<p>&mdash;EOF&mdash;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[《Information Retrieval in Practice》笔记——整体架构]]></title>
+    <link href="http://quxiao.github.io/blog/2013/11/30/information_retrievial_in_practice_note_architecture/"/>
+    <updated>2013-11-30T00:00:00+08:00</updated>
+    <id>http://quxiao.github.io/blog/2013/11/30/information_retrievial_in_practice_note_architecture</id>
+    <content type="html"><![CDATA[<p>对于一个典型的搜索引擎，至少包含两大部分：1）建立索引；2）query查询。</p>
+
+<h1>建立索引</h1>
+
+<p>主要流程如下图所示：</p>
+
+<p><img src="http://quxiao.github.io/images/2013-11-30/index-building.png"></p>
+
+<p>主要工作为：获取需要检索的数据，将其转化为系统可以识别的方式，做一些预处理，最后持久化存储起来。</p>
+
+<h2>本文获取 (Text Accquisition)</h2>
+
+<p><strong> 爬虫 </strong></p>
+
+<p>本文获取就是将所需要的数据“抓”下来。其中，依据搜索引擎的使用场景不同(网站内部检索/全网检索/文件系统检索/&hellip;)，需要检索的数据可以是全网、某个网站的网页、数据库的表、或者磁盘上面的文件等等，这样就需要不同类型的“爬虫”。另外，也可以像<code>RSS</code>这样的流式访问数据的标准。</p>
+
+<p>获取到所需要的数据，这只完成了一部分。另外，当数据源有更新时（网页修改/数据库新增了数据/&hellip;），爬虫需要能及时的感知并且重新抓取数据提供给检索系统。而且，不同类型的数据，对于实时性的要求是不一样的。比如，一个发布新闻网站和和一个保存历史资料的网站，它们网页的实时性要求肯定是不一样的。</p>
+
+<p><strong> 转换 </strong></p>
+
+<p>文本获取到了，需要将其统一成搜索引擎可以识别的格式，文本转换包含两层含义：</p>
+
+<ul>
+<li><strong>将不同格式标准的数据转换为统一的格式</strong></li>
+</ul>
+
+
+<p>例如，同样的记录书籍内容的文档，一个是<code>XML</code>格式的，一个是<code>JSON</code>格式的。爬虫如果想获取书籍的名称、作者、<code>ISBN</code>等信息，就需要采用不同的解析方式。</p>
+
+<ul>
+<li><strong>将不同编码的文本转化为统一编码</strong></li>
+</ul>
+
+
+<p>有的网页是<code>UTF-8</code>编码的，有的是<code>GB18030</code>编码的，都需要统一成一个编码。</p>
+
+<p><strong> 存储 </strong></p>
+
+<p>数据（数据本身以及MetaData）获取到了，也转成统一格式了，下面就得想办法把数据持久化。持久化的方式有很多种，比如可以是本地文件系统、分布式文件系统（HDFS）、各种数据库（MYSQL / MongoDB）等等。</p>
+
+<h2>文本变形 (Text Transformation)</h2>
+
+<p><strong> 切词 &amp;&amp; 归一化 </strong></p>
+
+<p>检索索引之前，需要先将文本转化为一系列的term，term可以理解为有意义的最小单位词语，比如：</p>
+
+<blockquote><p>GitHub is the best place to share code with friends, co-workers, classmates, and complete strangers.</p></blockquote>
+
+<p>就会生成<code>github</code>, <code>best</code>, <code>place</code>, <code>share</code>, <code>code</code>, <code>friend</code>, <code>co-worker</code>, <code>classmate</code>, <code>complete</code>, <code>stranger</code>这些term。其中会将<code>is</code>, <code>the</code>等没有实际意义的单词去掉，然后做归一化，比如大小写转换，单复数转换等。</p>
+
+<p>中文一句话中没有空格表示停顿，转化term会更复杂，比如上学时老师举的一个例子：</p>
+
+<blockquote><p>南京市长江大桥</p></blockquote>
+
+<p>应该需要切成<code>南京市</code>, <code>长江</code>以及<code>大桥</code>，而不是<code>南京</code>, <code>市长</code>, <code>江大桥</code></p>
+
+<p><strong> 质量度 </strong></p>
+
+<p>除了获取已经归一化的、数据所需要表达的信息之外，还需要对这份数据本身的质量做一个判断，相当于一个小网站发布的新闻和一个大网站发布的新闻，按照常理明显后者的质量、可信度等因素要优化前者。（在某些国家，事实真的是这样吗？ :P ）。<code>PageRank</code>算法就是一个例子，采用迭代的方式，通过网页链接（也就是网页的出度和入度）来计算该网页的质量度。</p>
+
+<h2>构建索引</h2>
+
+<p>一般来说，倒排索引的结构是这样的：</p>
+
+<pre><code>term1 -&gt; (docid_1, data_11), (docid_2, data_12), ...
+term2 -&gt; (docid_2, data_21), (docid_3, data_22), ...
+</code></pre>
+
+<p>其中，term就是某一个切词的结果的签名，当然，这里的term也可以是其它信息，比如商品的分类、文章的类型等等。其实应用中需要什么样的触发方式，就可以建立对应类型的倒排。docid就是用来唯一标识一份数据的，数据可以是一个网页、一个商品等等，一般都会称其<code>Document</code>。至于data，主要是为计算doc相对于term的权重服务的，里面存储了计算权重所需要的数据。举个简单的例子，如果我们假设一篇文章中出现某个term的次数越多，这篇文章对于这个term就越相关，这时候在data数据里面存储这个term在该文章中出现的次数即可。另外，有些权重计算在建立索引的阶段就可以完成，因此这部分权重结果也会存放在data中。</p>
+
+<p>所以，建立倒排索引的第一步，就是扫描整个数据全集，收集有关term和document的统计信息（term在doc中出现的频率，term在整个doc全集中出现的频率，term的偏移量，doc的更新时间，etc.）。接着，将数据集合，由<code>doc -&gt; (term1, term2, term3, ...)</code>转化为<code>term -&gt; (doc1, doc2, doc3, ...)</code>的倒排形式，其中包含了对term以及doc的权重计算。最后，将倒排索引dump出来，有时出于数据量和性能的考虑，还需要将索引分库存储，分库方式有两种：按document分库，以及按term进行分库。</p>
+
+<h1>Query查询</h1>
+
+<p>query查询的主要步骤如下图所示：</p>
+
+<p><img src="http://quxiao.github.io/images/2013-11-30/query-processing.png" alt="pic" /></p>
+
+<h2>User Interface</h2>
+
+<p>对于用户来说，直接面对的是搜索引擎的Web界面，或者说是User Interface界面。UI有以下几个功能：</p>
+
+<ol>
+<li>接收用户输入，将其转化为一棵query查询树，作为排序模块的输入。query查询树节点上面的操作一般是<code>AND</code>/<code>OR</code>/<code>NOT</code>这样的布尔运算；</li>
+<li>进行query变换。比如拼写检查、query推荐、query扩展；</li>
+<li>展现最终的排序结果。包括：填充document信息（物料）、生成内容摘要、对关键信息进行飘红或者加粗等等。</li>
+</ol>
+
+
+<h2>排序</h2>
+
+<p>排序模块决定了结果文档集合的先后顺序，文档的权重计算方法有很多种，最原始的形式可以表示成：</p>
+
+<pre><code>Sum(qi * di)
+</code></pre>
+
+<p>其中，<code>qi</code>表示输入query的第i个term的权重，<code>di</code>表示该document相对于第i个term的权重。</p>
+
+<p><code>qi</code>以及<code>di</code>权重的计算，一般是基于<code>tf.idf</code>的思想。<code>tf</code>(<code>term frequency</code>)，表示term在document或者query中出现的频率；而<code>idf</code>(inverse document frequncy)，则是term出现在整个document或者query全局中的频率的倒数。这种思想其实很好理解，如果一个词在一篇文章中出现了许多次，我们可以暂且认为这个词和这篇文章是相关的，但是，如果这个词在所有文章中出现的频率都很高，那么这个词就对于那篇文章来说就没有那么“特殊”了，并不能表明这个词和那篇文章就是很相关的。</p>
+
+<h2>评估</h2>
+
+<p>两层含义：</p>
+
+<ul>
+<li>排序相关性的评估</li>
+<li>性能的评估</li>
+</ul>
+
+
+<p>通过算法，最终得到一份排序结果，但是由于算法的局限性、训练数据集合是否完备以及个性化等因素，用户并不一定就对排在前面的结果感兴趣。因此，需要一个评估模块，收集用户的点击行为，用于扩充算法训练数据集合，或者作为算法参数调整的依据，最终反映在排序模块中。</p>
+
+<p>另一方面，搜索引擎的性能，也需要进行监控。通过日志就可以清楚的看到用户的一次检索，各个模块的耗时是多少，哪个模块是性能瓶颈，开发者可以有针对性的进行优化。在测试环节，QA也可以使用日志来反向构造请求，模拟线上请求。</p>
+
+<p>（PS: 文章包含了自己的理解，可能不正确）</p>
+
+<p>&mdash; EOF &mdash;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[“基于演示的开发”]]></title>
+    <link href="http://quxiao.github.io/blog/2013/11/22/presentation-based-development/"/>
+    <updated>2013-11-22T00:00:00+08:00</updated>
+    <id>http://quxiao.github.io/blog/2013/11/22/presentation-based-development</id>
+    <content type="html"><![CDATA[<h1>什么是“基于演示的开发”？</h1>
+
+<p>有一天和一个同事吃饭，我们聊到了大学里面做项目的事情，他说在大学的时候，他们那流行一种说法叫“基于演示的开发”，我心想这是什么高端的软件开发方法学?原来其实就是说对于作为课程中需要完成的小项目，后台功能是真的完成了，还是fake的，这个无所谓，只要当向其他人进行演示的时候，只要系统的界面好看些，系统“看起来”是功能完整的就行了，因此取名“基于演示的开发”。</p>
+
+<p>虽然我是第一次听到这个说法，但在学校的时候，大部分同学都是基于这套“理论”进行小项目开发的。后台真有连接数据库吗？不一定，只要把结果直接写在代码里面就可以了；点击开始运行某算法，真的运行了吗？不一定，只要把预期的结果直接返回就行了。这种“造假”，在我大学本科期间，甚至研究生期间，比比皆是。说实话，我自己也造过假，只不过比别人少很多罢了。</p>
+
+<p> 为啥会有那么多“基于演示的开发”呢？说白了，你随便弄个可以演示的DEMO，和自己认认真真、辛辛苦苦的开发，最后的结果是一样的，前者的结果甚至会更好，我干嘛费劲呢？反正老师也就是随便看看，大部分也不会问什么细节（有的计算机专业的老师，我都对TA的计算机知识的掌握程度表示怀疑），就是个走过场。</p>
+
+<h1>三位同学的三件事</h1>
+
+<p>说到这里，我想起来了大学三个同学的三件事情：</p>
+
+<p>同学A，学习挺刻苦，考试成绩很好。大学学习JAVA课程的时候，老师让每个人做一个基于JSP（全称：Java Server Pages，当年很流行的）的小网站，然后交一个设计文档。结果A同学不会写也不想写这个JSP，然后就随便写了几个HTML的网页，截个屏，写了个文档交差了，结果他截屏的时候，居然把浏览器地址栏也放进去了，地址栏里面赫然显示着<code>xxx.html</code>！我们在这个文档发回来的时候发现了A同学的“亮点”，貌似老师也没发现。。。</p>
+
+<p>（之后同学A考研考上了某著名985大学，读完硕士，去美国读计算机博士了）</p>
+
+<p>同学B，学习挺刻苦，考试成绩很好。本科期间倒是没什么太多的故事，他本科毕业之后，一心想读研，考了一年又一年，考了两年还是三年，好不容易考上了某著名985大学的软件学院。我平时觉得同学B编程能力也不是很强啊，为啥会选实用性较强的软件学院呢？有次我碰到他就问了他这个问题，他说，这个学校的软件学院，研究生入学考试不用考上机编程，只用做卷子和面试就可以了。。。。</p>
+
+<p>（同学B读硕士的时候，只知道去上海某著名外企实习过一段时间，毕业之后下落不明）</p>
+
+<p>同学C，学习上（个人感觉）不像前两位那么刻苦，不过成绩也不错。据说，只是据说，他大学四年期间，有的考试会用一些“特殊”手段，让考试成绩有所提高。这个是否属实，我不能百分之百确定，不过有次在考试的时候，他坐我旁边，的确问过我某一题选什么的，我看了看他，然后继续答题了。</p>
+
+<p>（同学C最后因为成绩不错，最后保送本校，读博士了）</p>
+
+<p>其实，我和这三位，都是很好的朋友，他们都不是有啥坏点子的人，大家都过着各自不同的生活，呵呵。好久没见他们，还是有些想念的。</p>
+
+<h1>浮躁</h1>
+
+<p>我觉得，类似这种“基于演示的开发”的出现，跟学生没太大关系，并且学生是受害者。大家从小接受的教育就是倾向于“随大流”或者“什么专业赚钱多就选什么”，很少有人因为这是自己的兴趣爱好而选择自己的专业的（至少我看我们学校本专业的是这个情况），既然学得不是自己感兴趣的东西，就没什么动力去深入挖掘其中的奥秘，需要交什么作业，随便糊弄个就完了，只要能在学校这个“system”里面玩转就行了。接着大家有的毕业去工作，有的留校当老师，优良的“传统”就在职场和校园里面一代代传下去了……</p>
+
+<p>出现了这种现象，到底是什么原因呢？我想“浮躁”这个词可以概括，社会很浮躁、学校很浮躁、学生们也难免浮躁。算了，还是不说什么抱怨了，太多的抱怨是没有用的。还是大家各自努力吧，沉下心来做好身边的事情，每个人都少点浮躁，多点执着！</p>
+
+<p>&mdash;EOF&mdash;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[从Wordpres迁移至Jekyll(@github.io)]]></title>
+    <link href="http://quxiao.github.io/blog/2013/11/17/immigrate-from-wordpress/"/>
+    <updated>2013-11-17T00:00:00+08:00</updated>
+    <id>http://quxiao.github.io/blog/2013/11/17/immigrate-from-wordpress</id>
+    <content type="html"><![CDATA[<p>用上Wordpress之后，总体感觉还是很不错的，安装、设置、撰写文章都很方便，但仍然有几点不足：</p>
+
+<ol>
+<li>许多功能都需要插件支持，比如代码语法高亮，首页截取文章摘要</li>
+<li>图片和文章的存储方式，图片需要单独找图床、或者上传到服务器，而文章又是保存
+mysql数据库中的</li>
+<li>数据备份比较麻烦，每次都得使用插件或者人工备份数据</li>
+</ol>
+
+
+<p>因此决定将博客迁移到github上面，即免费又能使用<a href="http://jekyllrb.com/">Jekyll</a>这种静态博客，不需要配置DB、使用git发布、markdown语法。简单、方便、
+很极客！</p>
+
+<h2>建立github.io初始环境</h2>
+
+<p>首先，你需要一个github帐号，然后使用<a href="http://jekyllbootstrap.com/">JekyllBootstrap</a>建立一个初始化的环境，参照<a href="http://jekyllbootstrap.com/usage/jekyll-quick-start.html">教程</a>一步一步来，环境很快就可以搞定。你就可以在USERNAME.github.io上面看到环境了</p>
+
+<p>PS: 教程上面说需要建立的是USERNAME.github.com的repository，需要改为USERNAME.github.io才可以</p>
+
+<h2>备份Wordpress数据</h2>
+
+<p>迁移之前，先备份下数据，如果是使用VPN的话，SSH登录到服务器上，备份数据库</p>
+
+<pre><code>mysqldump -u root -p -h localhost BLOG_TABLE &gt; BLOG_TABLE.sql
+</code></pre>
+
+<p>另外一些静态文件，比如图片什么的，也备份一份</p>
+
+<h2>选择迁移工具</h2>
+
+<p>迁移工具方面，基本上是基于下面两种方式：</p>
+
+<ol>
+<li>使用WordPress导出的xml文件，导出md文档</li>
+<li>连接WordPress的Mysql数据库导出md文档</li>
+</ol>
+
+
+<p>Jekyll有自带的<code>jekyll-import</code>工具，很想使用官方的迁移工具，但我一直“未遂”，说是无法load到<code>jekyll-import</code>模块……</p>
+
+<p>另外，Jekyll官网上还推荐了三个第三方的工具：</p>
+
+<ol>
+<li><a href="https://github.com/thomasf/exitwp">Exitwp</a></li>
+<li><a href="http://vitobotta.com/how-to-migrate-from-wordpress-to-jekyll/">A great
+article</a> ，
+其实是一篇详细的迁移教程</li>
+<li><a href="https://github.com/theaob/wpXml2Jekyll">wpXml2Jekyll</a></li>
+</ol>
+
+
+<p>第二个太过详细，第三个只能运行在Windows下，所以看来只能选择第一个工具了。</p>
+
+<h2>导出WordPress XML文件</h2>
+
+<p>在WordPress的<code>export.php</code>页面上可以轻松导出XML文件。但这一步遇到一个小插曲：blog上面太多spam评论了，结果也会一并export出来，这些spam
+评论会导致后面工具导出markdown文档失败。因为blog上面真实的评论并不多，所以就考
+虑把评论都删除，网上查了资料，只需要将WordPress Mysql表中的<code>wp_comments</code>表删除即可</p>
+
+<pre><code>DROP TABLE wp_comments;
+</code></pre>
+
+<h2>使用exitwp</h2>
+
+<p>这个工具带有鲜明的“反WordPress”风格，使用起来还是比较简单的，按照项目首页的
+README操作即可，你的WordPress文章就变成一个个markdown文档了！</p>
+
+<p>不过使用途中发现有几个问题：</p>
+
+<ol>
+<li>在Mac上使用pip进行依赖安装后，那些依赖的库还是会import失败（是我打开方式不对吗……），还是得自己将一个个依赖下载后安装</li>
+<li>Exitwp虽然支持下载图片，但是文章中的图片链接却没有换过来</li>
+<li>导出后的md文档，对于正文中的特殊字符没有做处理，比如<code>*</code>，会导致<code>jekyll build</code>失败，需要手动修改</li>
+<li>由于系统编码原因，会导致使用exitwp以及jekyll失败，参考这篇<a href="http://www.webplay.pro/linux/set-locale-terminal-settings-mac-os-x.html">文章</a>
+，需要在<code>/etc/profile</code>添加<code>export LANG=zh_CN.UTF-8</code>以及<code>export
+LC_ALL=zh_CN.UTF-8</code></li>
+</ol>
+
+
+<h2>发布！</h2>
+
+<p>发布之前，现在本地使用<code>jekyll server</code>或者<code>rake --preview</code>在本地预览，没问题就可以发布了。</p>
+
+<p>好了，下面将生成的markdown文档以及图片，push到你的github空间即可！Just enjoy it! :)</p>
+
+<p>最后，在使用markdown编写中文文章时，发现jekyll默认的markdown引擎对于中文支持不
+是很好，对于对于全部为中文的列表对完全失效，需要将markdown引擎改为<code>rdiscount</code>
+，在<code>_config.yaml</code>中添加：</p>
+
+<pre><code>markdown: rdiscount
+</code></pre>
+
+<p>就可以了。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[《Effective Go》学习笔记]]></title>
+    <link href="http://quxiao.github.io/blog/2013/10/28/effective-go-learning-note/"/>
+    <updated>2013-10-28T00:29:06+08:00</updated>
+    <id>http://quxiao.github.io/blog/2013/10/28/effective-go-learning-note</id>
+    <content type="html"><![CDATA[<p>最近抽时间把Go语言看了一下，把Go playground玩了一遍，把官方文档上的Effective Go也学习了一番。把一些重点或者说自己觉得比较有特点的地方记录下来，用作备忘和分享。</p>
+
+<h1>未使用的package或者变量是编译错误</h1>
+
+<p>这相当于就在代码层面对开发人员进行了规范，不像C++等其它语言，你多include一个.h文件，或者声明了一个变量但没有使用，这对你编译程序都不会有任何影响，挺多会打些编译warning。这样很容易造成程序编译了没有使用的库和变量，使程序变得臃肿。</p>
+
+<h1><strong>变量的可见性有变量名决定</strong></h1>
+
+<p>一个package中的变量名如果首字母是大写，则对于package外部是可见的，反之则不可见。Go里面没有public, private这样的关键字（至少我目前没看到），直接约定首字母大写的变量是public的，不是大写的是private的，简便并且规范。</p>
+
+<h1>函数可以返回多值</h1>
+
+<p>像Python一样，Go的函数可以返回多个值，这样就很方便的把正常情况下需要返回的数据以及发生错误时error一并返回了。</p>
+
+<h1>关键字defer——return之前执行</h1>
+
+<p>Go里面可以将语句前声明defer关键字，表示目前先不执行这条语句，等待函数return前再执行。这实在是太方便了！特别是对于一些需要管理资源的场景。</p>
+
+<pre><code>// Contents returns the file's contents as a string.
+func Contents(filename string) (string, error) {
+    f, err := os.Open(filename)
+    if err != nil {
+        return "", err
+    }
+    defer f.Close()  // f.Close will run when we're finished.
+
+    var result []byte
+    buf := make([]byte, 100)
+    for {
+        n, err := f.Read(buf[0:])
+        result = append(result, buf[0:n]...) // append is discussed later.
+        if err != nil {
+            if err == io.EOF {
+                break
+            }
+            return "", err  // f will be closed if we return here.
+        }
+    }
+    return string(result), nil // f will be closed if we return here.
+}
+</code></pre>
+
+<p>试想一下，在C++中，如果想要在每个分支都能释放资源，就得采用1）<code>goto</code>或<code>do-while</code>，例如以下代码，或者 2）<code>scoped pointer</code>。</p>
+
+<pre><code>int f1(const char* fname) {
+    int ret = 0;
+    FILE* fp = fopen(fname, "r");
+    if ( NULL == fp ) {
+        return -1;
+    }
+    if (....) {
+        ret = 1;
+        goto FINISH;
+    } else if (....) {
+        ret = 2;
+        goto FINISH;
+    }
+
+FINISH:
+    fclose(fp);
+    return ret;
+}
+
+int f2(const char* fname) {
+    int ret = 0;
+    FILE* fp = fopen(fname, "r");
+    if ( NULL == fp ) {
+        return -1;
+    }
+    do {
+        if (....) {
+            ret = 1;
+            break;
+        } else if (....) {
+            ret = 2;
+            break;
+        }
+    } while(0);
+
+    fclose(fp);
+    return ret;
+}
+</code></pre>
+
+<h1>new &amp; make</h1>
+
+<p>Go语言中的new和C++中的不太一样，它只负责分配一段全为<code>'\0'</code>的内存，不会进行任何其它初始化，需要你自己再做一些工作。
+而make关键字是用来新建slice, map, channel这三中类型的，因为它们内部必须做一些特殊的初始化才能使用。</p>
+
+<h1>结构体可以直接print</h1>
+
+<p>默认情况下，struct就可以直接打印出来，而且还会打印出每个字段的名称和值。这个对于开发人员排查问题，也是极其方便的。</p>
+
+<pre><code>type T struct {
+    a int
+    b float64
+    c string
+}
+t := &amp;T{ 7, -2.35, "abc\tdef" }
+fmt.Printf("%v\n", t)
+fmt.Printf("%+v\n", t)
+fmt.Printf("%#v\n", t)
+</code></pre>
+
+<p>会打印出</p>
+
+<pre><code>&amp;{7 -2.35 abc   def}
+&amp;{a:7 b:-2.35 c:abc     def}
+&amp;main.T{a:7, b:-2.35, c:"abc\tdef"}
+</code></pre>
+
+<p>当然，你也可以定义某个类型T的<strong>String()</strong>方法，用来改变输出的字符串，就像Python中实现<code>__str__</code>方法一样。</p>
+
+<h1>接口“嵌入”</h1>
+
+<p>如果想使用某套接口，在C++中一般都是将满足这套接口的实例作为某个类的成员，再调用这个成员的接口。在Go中，可以在某个接口里面直接“嵌入”其它已经实现的接口，比如需要一个ReadWriter接口，里面有Read()和Write()，但是已经有一个接口Reader里面有Read()，一个接口Writer里面有Write()，就直接使用以下代码就可以了，这样Read()和Writer()就是ReadWriter接口的方法了。</p>
+
+<pre><code>type Reader interface {
+    Read(p []byte) (n int, err error)
+}
+
+type Writer interface {
+    Write(p []byte) (n int, err error)
+}
+
+// ReadWriter is the interface that combines the Reader and Writer interfaces.
+type ReadWriter interface {
+    Reader
+    Writer
+}
+</code></pre>
+
+<h1>goroutine &amp;&amp; channel</h1>
+
+<p>goroutine以及channel可以说是Go语言最重要的特性了。goroutine有一个简单的思想，它就是一个通其它goroutine运行在同一份内存空间的函数。而channel顾名思义，就是一个管道，任何数据可以通过管道进行传输，可以往channel里面放数据，可以从channel里面获取数据。goroutine和channel的配合使用，很好的解释了Go语言“<strong>Do not communicate by sharing memory; instead, share memory by communicating</strong>”的思想，还有一个很好的例子在<a href="http://talks.golang.org/2012/waza.slide#12">这里</a>，这里例子同时也讲解了并发（concurrency）和并行（parallelism）之间的关系和区别。</p>
+
+<p>我觉得，并发是一种工作方式，它把一个整体的复杂的任务分解为小型的逻辑简单的任务；而并行就是真是的同时在做许多事情。就那例子中的任务来说，把一堆书送到另一端的火堆烧掉。如果是并行的话，就是原来是一个人“拿书-运书-烧书”，现在同时有多个人“拿书-运书-烧书”。如果是并发的话：，就是把任务可以分解为：1）一个人把一部分书从书堆中放到车子上；2）一个人把装有书的车子推到火堆旁；3）一个人把火堆旁的书烧掉。每个人各司其职，只需要从一个源头（channel或者其它地方）获取原始数据，自己进行简单的加工，然后堆到另外一边（另一个channel），自己不用管其他人是怎么工作、或者什么时候工作的，只需要把自己分内的事情完成就OK了。Divide and conquer真是一种简单精妙的思想！</p>
+
+<p>好了，暂时就先整理到这里吧~</p>
+
+<p>参考资料：</p>
+
+<p><a href="http://golang.org/doc/effective_go.html">Effetive Go</a>
+<a href="http://talks.golang.org/2012/waza.slide">Concurrency is not Parallelism</a>
+<a href="http://play.golang.org/">Go Playground</a></p>
+
+<p>&mdash;EOF&mdash;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[在脚本中使用文件锁]]></title>
+    <link href="http://quxiao.github.io/blog/2013/09/01/filelock_in_script/"/>
+    <updated>2013-09-01T00:04:09+08:00</updated>
+    <id>http://quxiao.github.io/blog/2013/09/01/filelock_in_script</id>
+    <content type="html"><![CDATA[<p>较早之前，一个模块的reload程序出现过这样一个问题：模块会定期检查一份文件是否被更新，如果被更新了，就reload；但是，如果文件正在被更新（没有写完）并且模块正好检测到更新，模块就会reload到一份不全的文件，导致数据异常。当时的解决方案是：使用一个done文件，推送文件的脚本在完成数据更新后，touch一下done，模块检测done文件的更新来判断是否reload。</p>
+
+<p>最近这个事情又被同们事提起，不过稍微扩展了下，问题变成了：<strong>有没有一种机制，能让许多并行的脚本能串行进行一系列操作</strong>。比如多个脚本对文件进行依次读写，以免产生脏数据。无疑，如果脚本如果shell中有一种“锁”的机制，就可以解决这个问题。原来只使用过API级别的锁，脚本中的锁还真没用过。其实，如果要在shell脚本实现锁，需要满足两个条件：</p>
+
+<ol>
+<li> 一个全局可见的状态</li>
+<li> 一种“检测 + 加锁”的原子操作</li>
+</ol>
+
+
+<p>大家可能会想到使用一个文件来当做锁，如果有这个文件，就表示某个脚本正在操作，其它脚本等待；如果没有这个文件，我就touch这个文件，然后开始我的操作。但是，“检测文件”和“新建文件”不是原子操作，所以是无法保证串行的。</p>
+
+<p>google了一下，还是有几种满足条件的方案的。</p>
+
+<h1>文件夹锁</h1>
+
+<p>检测文件和新建文件无法做到原子性，但是mkdir操作，却能做到原子地检测文件夹和创建文件夹，有点儿意思！所以，当脚本想对于竞争数据进行操作，就<code>mkdir</code>某个文件夹，根据返回码得知申请所是否成功，申请成功、完成操作之后再<code>rm -rf</code>就可以实现了。例如这样：</p>
+
+<div>
+  <pre><code class='bash'>#!/bin/sh
+    
+    if [ $# -ne 2 ]
+    then
+        exit 1
+    else
+        NUM=&quot;$1&quot;
+        SLEEP_TIME=&quot;$2&quot;
+    fi
+    
+    OUT_FILE=&quot;test.out&quot;
+    LOCK_FILE=&quot;lock.file&quot;
+    
+    while :
+    do
+        mkdir ${LOCK_FILE}
+        if [ $? -ne 0 ]
+        then
+            continue
+        fi
+        for ((i=0; i&lt;10; i++))
+        do
+            echo &quot;${NUM} is working in $i step!&quot; &gt;&gt; ${OUT_FILE}
+        done
+        sleep ${SLEEP_TIME}
+        rm -rf ${LOCK_FILE}
+    done</code></pre>
+</div>
+
+
+<h1>lockfile命令</h1>
+
+<p>原来直接就有个专门用于文件锁的命令，这个命令比mkdir更强大，可以设置申请文件锁的等待时长、重拾次数、锁的过期时间。但是，在写测试代码的时候，却发现只会有一个脚本一直获取到文件锁，其它脚本都处于申请锁等待并超时的状态，难道我参数用的不对？</p>
+
+<div>
+  <pre><code class='bash'>#!/bin/sh
+    
+    if [ $# -ne 2 ]
+    then
+        exit 1
+    else
+        NUM=&quot;$1&quot;
+        SLEEP_TIME=&quot;$2&quot;
+    fi
+    
+    OUT_FILE=&quot;test.out&quot;
+    LOCK_FILE=&quot;lock.file&quot;
+    
+    while :
+    do
+        echo &quot;${NUM} try to get lockfile&quot; &gt;&gt; ${OUT_FILE}
+        lockfile  ${LOCK_FILE}
+        if [ $? -ne 0 ]
+        then
+            echo &quot;${NUM} wait lock failed&quot; &gt;&gt; ${OUT_FILE}
+            continue
+        fi
+        echo &quot;${NUM} got lockfile&quot; &gt;&gt; ${OUT_FILE}
+        for ((i=0; i&lt;10; i++))
+        do
+            echo &quot;${NUM} is working in $i step!&quot; &gt;&gt; ${OUT_FILE}
+        done
+        sleep ${SLEEP_TIME}
+        echo &quot;${NUM} delete lockfile&quot; &gt;&gt; ${OUT_FILE}
+        rm -rf ${LOCK_FILE}
+    done
+    
+    exit 0</code></pre>
+</div>
+
+
+<h1>设置noclobber + 重定向文件</h1>
+
+<p>shell中有一个参数叫noclobber，设置了这个参数后，当脚本试图重定向文件时，如果发现改文件已经存在，重定向就会失败。这种方法自己没尝试过，下面是从网上抄来的code example：</p>
+
+<div>
+  <pre><code class='bash'>if ( set -o noclobber; echo &quot;locked&quot; &gt; &quot;$lockfile&quot;) 2&gt; /dev/null; then
+      trap &#39;rm -f &quot;$lockfile&quot;; exit $?&#39; INT TERM EXIT
+      echo &quot;Locking succeeded&quot; &gt;&amp;2
+      rm -f &quot;$lockfile&quot;
+    else
+      echo &quot;Lock failed - exit&quot; &gt;&amp;2
+      exit 1
+    fi</code></pre>
+</div>
+
+
+<p>看来在脚本中使用文件锁，还是比较方便的。不过，在我看来在脚本中使用文件锁，有个致命弱点：操作系统不会禁止其它进程对作为锁的文件（或者文件夹）进行操作。相当于一个脚本已经申请到了文件锁并正在操作，但是其它进程完全可以不受限制的删除这个文件锁，这样就会使得期间其它脚本能够成功申请到文件锁。或者一些脚本使用文件锁对竞争资源进行操作，但其它脚本直接操作竞争资源，这种情况也是无法避免的。使用文件锁，完全靠自觉！</p>
+
+<p>另外，文件锁也没有提供像共享锁、排它锁这样的高级功能，这也是文件锁的短板。</p>
+
+<p>参考资料：</p>
+
+<p><a href="http://en.wikipedia.org/wiki/File_locking">http://en.wikipedia.org/wiki/File_locking</a></p>
+
+<p><a href="http://wiki.bash-hackers.org/howto/mutex">Lock your script (against parallel run)</a></p>
+
+<p>&mdash;EOF&mdash;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Intrusive List]]></title>
+    <link href="http://quxiao.github.io/blog/2013/07/06/intrusive-list/"/>
+    <updated>2013-07-06T20:47:21+08:00</updated>
+    <id>http://quxiao.github.io/blog/2013/07/06/intrusive-list</id>
+    <content type="html"><![CDATA[<p>链表，应该是每一个学编程的人都会接触到的经典数据结构，大部分计算机专业的同学至少在上学期间也实现过单向、双向链表。在我的印象里，链表一般都是这么表示的：</p>
+
+<pre><code>struct LinkNode
+{
+    LinkNode* prev;
+    LinkNode* next;
+    int my_data1;
+    double my_data2;
+    //...
+};
+
+class LinkList
+{
+    LinkNode root;
+    //...
+};
+</code></pre>
+
+<p>或者，我们就干脆直接是用<code>std::list&lt;T&gt;</code>。无论是哪一种，它都是将使用的数据“嵌入”到链表的节点中，或者说是节点包在数据之外。这种实现也是教科书里面讲到的那个实现，也是我之前知道的唯一的实现方式。</p>
+
+<p>前段时间看网上的几篇博客（<a href="http://rdc.taobao.com/blog/cs/?p=1675">Tips of Linux C programming</a>，<a href="http://www.codeofhonor.com/blog/avoiding-game-crashes-related-to-linked-lists">Avoiding game crashes related to linked lists</a>），发现原来还有另外一种更优雅的链表实现——intrusive list。Linux kernel，以及许多底层软件（另外还有游戏星际争霸）的开发中，都是使用intrusive list进行链表操作的。</p>
+
+<p>所谓intrusive list，就是指不像上面说的那样将链表节点包在数据外面，而是将链表节点包在数据里面。例如下面这样：</p>
+
+<pre><code>struct list_node_t
+{
+    list_node_t* prev;
+    list_node_t* next;
+};
+
+struct MyClass
+{
+    int data;
+    list_node_t node;
+};
+</code></pre>
+
+<p>这样做，是为了让节点和数据在一个数据结构中。因为许多场景下，链表包含的数据是指针（考虑到数据拷贝构造的代价，以及一份数据被多个链表共享的情况），例如<code>std::list&lt;MyClass*&gt;</code>。使用intrusive list实现，就可以省去了&#8221;节点 &ndash;> 数据指针 &ndash;> 数据&#8221;的二次查找。找到intrusive list中的一个节点后，就可以立即找到这个节点对应的数据，即我知道一个<code>list_node_t</code>的地址，我改如何找到这个<code>list_node_t</code>对应的<code>MyClass</code>的<code>data</code>呢？这里用到了一段很优美的宏：</p>
+
+<pre><code>#define GET_ENTRY(ptr, type, member)\
+    ((type *)((char *)(ptr)-(unsigned long)(&amp;((type *)0)-&gt;member)))
+</code></pre>
+
+<p>第一眼肯定觉得晕，不急，我们一步一步来。首先看参数：</p>
+
+<ul>
+<li><p>ptr: <code>list_node_t</code>的地址</p></li>
+<li><p>type: 包含这个<code>list_node_t</code>的类型，对应上面的例子，就是<code>Myclass</code></p></li>
+<li><p>member：这个<code>list_node_t</code>类型变量在MyClass中的变量名，需要这个得到改变量的offset</p></li>
+</ul>
+
+
+<p>首先看</p>
+
+<pre><code>(&amp;((type *)0)-&gt;member)
+</code></pre>
+
+<p>这个的意思是：如果有个type类型的变量，它的地址是0，那type类型中的member变量的地址是多少，其实就是这个member变量距离所属的type类型变量的偏移量。</p>
+
+<p>然后是</p>
+
+<pre><code>((char *)(ptr)-(unsigned long)(&amp;((type *)0)-&gt;member))
+</code></pre>
+
+<p>这就很清楚了，知道了偏移量，我又知道了真正的member变量的地址（ptr），用ptr的地址减去ptr的偏移量，就得到了ptr所在的type变量的地址了，然后就可以获取type变量上的数据了。</p>
+
+<p>自己简单实现了intrusive list，再和<code>std::list</code>做一个简单的性能测试，对一个int数据的链表插入，结果是：<code>std::list push_back</code>的操作操作时间基本上都在intrusive list的2倍以上！这么看来，intrusive list的优势还是挺明显的。</p>
+
+<pre><code>QuXiaos-MacBook-Pro:intrusive_list quxiao$ ./a.out 1000
+std_list: 0.129 ms
+intrusive_list: 0.059 ms
+QuXiaos-MacBook-Pro:intrusive_list quxiao$ ./a.out 10000
+std_list: 1.297 ms
+intrusive_list: 0.550 ms
+QuXiaos-MacBook-Pro:intrusive_list quxiao$ ./a.out 100000
+std_list: 11.961 ms
+intrusive_list: 4.901 ms
+QuXiaos-MacBook-Pro:intrusive_list quxiao$ ./a.out 1000000
+std_list: 116.855 ms
+intrusive_list: 53.086 ms
+QuXiaos-MacBook-Pro:intrusive_list quxiao$ ./a.out 10000000
+std_list: 1061.955 ms
+intrusive_list: 544.419 ms
+</code></pre>
+
+<p>intrusive list的实现以及测试的代码如下：</p>
+
+<div>
+  <pre><code class='cpp'>#include &lt;stdlib.h&gt;
+    #include &lt;stdio.h&gt;
+    #include &lt;time.h&gt;
+    #include &lt;list&gt;
+    
+    struct list_node_t
+    {
+        list_node_t* prev;
+        list_node_t* next;
+    };
+    
+    struct MyClass
+    {
+        int data;
+        list_node_t node;
+    };
+    
+    void _list_add(list_node_t* cur, list_node_t* prev, list_node_t* next)
+    {
+        prev-&gt;next = cur;
+        next-&gt;prev = cur;
+        cur-&gt;prev = prev;
+        cur-&gt;next = next;
+    }
+    
+    void list_add_head(list_node_t* cur, list_node_t* head)
+    {
+        _list_add(cur, head, head-&gt;next);
+    }
+    
+    void list_add_tail(list_node_t* cur, list_node_t* head)
+    {
+        _list_add(cur, head-&gt;prev, head);
+    }
+    
+    void list_del(list_node_t* cur)
+    {
+        cur-&gt;prev-&gt;next = cur-&gt;next;
+        cur-&gt;next-&gt;prev = cur-&gt;prev;
+        cur-&gt;prev = cur-&gt;next = NULL;
+    }
+    
+    #define GET_ENTRY(ptr, type, member)\
+        ((type *)((char *)(ptr)-(unsigned long)(&amp;((type *)0)-&gt;member)))
+    
+    #define INIT_NODE(ptr)\
+        (ptr)-&gt;next = (ptr)-&gt;prev = ptr;
+    
+    #define list_for_each(pos, head) \
+            for (pos = (head)-&gt;next; pos != (head); \
+                            pos = pos-&gt;next)
+    
+    #define list_for_each_safe(pos, n, head) \
+            for (pos = (head)-&gt;next, n = pos-&gt;next; pos != (head); \
+                        pos = n, n = pos-&gt;next)
+    
+    void test_std_list(int run_num)
+    {
+        int t1 = clock();
+        std::list&lt;int&gt; std_list;
+        for (int i = 0; i &lt; run_num; i ++)
+        {
+            std_list.push_back(i);
+        }
+    
+        printf(&quot;std_list: %.3lf ms\n&quot;, double(clock() - t1) / CLOCKS_PER_SEC * 1000);
+    }
+    
+    void test_intrusive_list(int run_num)
+    {
+        int t1 = clock();
+        list_node_t list_head;
+        INIT_NODE(&amp;list_head);
+    
+        for (int i = 0; i &lt; run_num; i ++)
+        {
+            MyClass* c = (MyClass*) malloc(sizeof(MyClass));
+            c-&gt;data = i;
+            list_add_tail(&amp;c-&gt;node, &amp;list_head);
+        }
+        printf(&quot;intrusive_list: %.3lf ms\n&quot;, double(clock() - t1) / CLOCKS_PER_SEC * 1000);
+    }
+    
+    int main(int argc, char** argv)
+    {
+        if ( argc != 2 )
+        {
+            fprintf(stderr, &quot;argc is not 2&quot;);
+            return -1;
+        }
+        int run_num = atoi(argv[1]);
+        if ( 0 == run_num )
+        {
+            fprintf(stderr, &quot;argv[%s] is not num&quot;, argv[1]);
+            return -1;
+        }
+    
+        test_std_list(run_num);
+        test_intrusive_list(run_num);
+    
+        return 0;
+    }</code></pre>
+</div>
+
+
+<p>另外，intrusive list还有几个特点，比如：</p>
+
+<ul>
+<li><p>移植性好，不像数据包在链表里面的实现，要么每种链表类型都写重复的代码，要么就使用template，但只能在C++中使用</p></li>
+<li><p>容易使用，你需要使用哪种类型的列表，就在这种类型中添加节点即可</p></li>
+<li><p>可以方便实现一份数据被多个链表共享的情况，有几个链表，就在类型下添加几个节点变量即可，多个链表直接不会互相干扰</p></li>
+</ul>
+
+
+<p>要不是看了那几篇博客，我对链表的认识还停留在教科书上，好歹也看了几本数据结构的书，其中不乏经典书籍，但从没有听说过intrusive list这种实现，看来很多知识，并不是光靠看书就能获取的。</p>
+
+<p>参考材料：</p>
+
+<ul>
+<li><p><a href="http://highscalability.com/blog/2013/5/22/strategy-stop-using-linked-lists.html">Strategy: Stop Using Linked-Lists</a></p></li>
+<li><p><a href="http://www.codeofhonor.com/blog/avoiding-game-crashes-related-to-linked-lists">Avoiding game crashes related to linked lists</a></p></li>
+<li><p><a href="http://rdc.taobao.com/blog/cs/?p=1675">Tips of Linux C programming</a></p></li>
+<li><p><a href="http://isis.poly.edu/kulesh/stuff/src/klist/">Linux Kernel Linked List Explained</a></p></li>
+</ul>
+
+
+<p>&mdash;EOF&mdash;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Memcached源码学习——线程模型]]></title>
+    <link href="http://quxiao.github.io/blog/2013/05/31/memcached_source_code_study_thread_model/"/>
+    <updated>2013-05-31T09:30:39+08:00</updated>
+    <id>http://quxiao.github.io/blog/2013/05/31/memcached_source_code_study_thread_model</id>
+    <content type="html"><![CDATA[<p>Memcached中有以下几类线程：</p>
+
+<ul>
+<li>主线程</li>
+<li>工作线程</li>
+<li>维护线程</li>
+</ul>
+
+
+<p>主线程，又可以叫分发线程，除了完成程序的各种参数、以及其他线程的初始化以外，还会listen端口，新建连接，并且将该连接分发到其他的工作线程。</p>
+
+<p>工作线程，大部分实际的工作都是他们干的，包括读取请求的协议内容、解析、进行具体存、取、更新、删除kv的操作，最后返回结果。</p>
+
+<p>另外，还有一个维护线程，它的工作就是在需要的时候（存放的item大于总量的2/3）对hash表进行扩展。</p>
+
+<p>Memcached处理请求时，采用的是单进程多线程的Master-Worker模型，通过libevent这个事件响应库来实现的。</p>
+
+<p>首先来看一下主线程和工作线程之间是怎么交互的吧：</p>
+
+<p>工作线程在初始化的时候，会建立一个pipe（管道），两端分别为：<code>notify_receive_fd</code>，<code>以及notify_send_fd</code>：</p>
+
+<div>
+  <pre><code class='cpp'>for (i = 0; i &lt; nthreads; i++) {
+        int fds[2];
+        if (pipe(fds)) {
+            perror(&quot;Can&#39;t create notify pipe&quot;);
+            exit(1);
+        }
+
+        threads[i].notify_receive_fd = fds[0];
+        threads[i].notify_send_fd = fds[1];
+
+        setup_thread(&amp;threads[i]);
+        /* Reserve three fds for the libevent base, and two for the pipe */
+        stats.reserved_fds += 5;
+    }</code></pre>
+</div>
+
+
+<p>也就是说当其他线程向<code>notify_send_fd</code>文件描述符写内容的时候，<code>notify_receive_fd</code>就可以接受到。</p>
+
+<p>接着，就用到了libevent的API：</p>
+
+<div>
+  <pre><code class='cpp'>me-&gt;base = event_init();
+
+    /* Listen for notifications from other threads */
+    event_set(&amp;me-&gt;notify_event, me-&gt;notify_receive_fd,
+              EV_READ | EV_PERSIST, thread_libevent_process, me);
+    event_base_set(me-&gt;base, &amp;me-&gt;notify_event);
+
+    if (event_add(&amp;me-&gt;notify_event, 0) == -1) {
+        fprintf(stderr, &quot;Can&#39;t monitor libevent notify pipe\n&quot;);
+        exit(1);
+    }</code></pre>
+</div>
+
+
+<p>每个工作线程都新建一个libevent实例(<code>me-&gt;base</code>)，并且将<code>notify_event</code>绑定在这个实例上。</p>
+
+<p><code>notify_event</code>什么时候触发？
+当<code>notify_receive_fd</code>有内容的时候被触发。</p>
+
+<p>触发了执行什么函数？
+执行<code>thread_libevent_process (me)</code>函数。</p>
+
+<p>那在哪个地方会写<code>notify_send_fd</code>呢？
+在主线程将新建的连接分发给工作时，就会向某个线程的<code>notify_send_fd</code>写一个空的字符串用来唤醒这个线程。下面的代码一目了然：</p>
+
+<div>
+  <pre><code class='cpp'>void dispatch_conn_new(int sfd, enum conn_states init_state, int event_flags,
+                           int read_buffer_size, enum network_transport transport) {
+        CQ_ITEM *item = cqi_new();
+        /*这就是所谓的round robin*/
+        int tid = (last_thread + 1) % settings.num_threads;
+    
+        LIBEVENT_THREAD *thread = threads + tid;
+    
+        last_thread = tid;
+    
+        item-&gt;sfd = sfd;
+        /* ... */
+    
+        cq_push(thread-&gt;new_conn_queue, item);
+    
+        if (write(thread-&gt;notify_send_fd, &quot;&quot;, 1) != 1) {
+            perror(&quot;Writing to thread notify pipe&quot;);
+        }
+    }</code></pre>
+</div>
+
+
+<p>首先来看看主线程，当他把其他工作线程、维护线程启起来之后，就开始侦听socket端口了（可以在memcached的源码中看出tcp和udp在处理逻辑上有很多不同的地方，但我不知道为什么不一样，就只看了处理tcp部分的代码，看来改补一补网络通信的知识了……），主要逻辑在<code>server_sockets</code>函数中：</p>
+
+<div>
+  <pre><code class='cpp'>if (IS_UDP(transport)) {
+        int c;
+
+        for (c = 0; c &lt; settings.num_threads_per_udp; c++) {
+            /* this is guaranteed to hit all threads because we round-robin */
+            dispatch_conn_new(sfd, conn_read, EV_READ | EV_PERSIST,
+                              UDP_READ_BUFFER_SIZE, transport);
+        }
+    } else {
+        if (!(listen_conn_add = conn_new(sfd, conn_listening,
+                                         EV_READ | EV_PERSIST, 1,
+                                         transport, main_base))) {
+            fprintf(stderr, &quot;failed to create listening connection\n&quot;);
+            exit(EXIT_FAILURE);
+        }
+        listen_conn_add-&gt;next = listen_conn;
+        listen_conn = listen_conn_add;
+    }</code></pre>
+</div>
+
+
+<p><code>conn_new</code>函数建立了连接之后，将socket文件描述符于<code>event_handler</code>函数绑定，当有socket请求过来的时候，就执行<code>event_handler</code>。在<code>event_handler</code>中，就是直接调用<code>drive_machine</code>这个大大的状态转移函数，一次连接的所有状态就都在这个函数里面处理了。</p>
+
+<p>主线程首先达到<code>drive_machine</code>中的<code>conn_listenning</code>状态，然后通过<code>dispatch_conn_new</code>将这次的连接分配给某个工作线程，工作线程再经历其他的状态，完成一次请求。</p>
+
+<p><code>drive_machine</code>的具体逻辑比较复杂，这里就不讲了。</p>
+
+<p>好，最后简单回顾下这个工作流程：</p>
+
+<ol>
+<li> 主线程接受到memcached客户端的请求（是在哪儿一直接收请求的？）</li>
+<li> 主线程通过round robin找到一个工作线程</li>
+<li> 主线程将创建的连接push到工作线程的连接队列中，然后唤醒这个工作线程</li>
+<li> 工作线程被唤醒后，从自己的线程队列中取出一个连接</li>
+<li> 解析请求、对hash表进行相应的操作，写入返回</li>
+</ol>
+
+
+<p>整体看下来，感觉memcached的源码并没有什么高深的算法，用的都是很朴素的链表、底层的网络通信、线程间互斥、字符串解析等等，感觉除了网络通信比较繁琐以外，其他的地方都是一个刚毕业的计算机专业的学生可以也应该掌握的。通过对一些简单、实用的东西进行有效的组合，就可以获取一个功能更强大的合成体。</p>
+
+<p>&mdash;EOF&mdash;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[我也来说说大公司的那些“病”]]></title>
+    <link href="http://quxiao.github.io/blog/2013/05/13/the_diseases_in_big_company/"/>
+    <updated>2013-05-13T00:01:43+08:00</updated>
+    <id>http://quxiao.github.io/blog/2013/05/13/the_diseases_in_big_company</id>
+    <content type="html"><![CDATA[<p>入职一年多，在大公司里面学到了不少东西，比如学习了模块的开发流程，了解了公司的许多业务系统、模块，也体会到了不少工作中的“狼性”。但是工作的这一年多，尤其是最近这段时间，也感受到了大公司的一些“病”，今天来吐槽一下。（可能并不一定就是病，也可能和自身的理解有关，我这里只是罗列一下，仅代表个人观点）</p>
+
+<h1>会议太多</h1>
+
+<p>周一到周五，几乎每隔一天就要开上一次会，会议时间有长有短，短的15分钟，长的要开上一下午。虽然大部分的会议时间并不算很长，但也严重打断了我们RD的思路。经常是问题想了一半，然后被拉过去开会，开完会再试图把上下文切换回来，结果花费很长时间，说不定中间再被一个事情打断，那整个下午（或者上午）就算是废了。</p>
+
+<p>大多数的会议，内容就是在过进度，PM这周做了哪些事，RD开发到什么进度了。这种事情大家每天写在一个公共的地方（比如日报、周报系统），让大家都能看到也就行了，不必每次都把所有相关人员聚到一个专门的会议室。大家来会议室，也都是带着自己的笔记本电脑，做自己的事情。做自己事情的效率、以及开会的效率都很低。</p>
+
+<h1>项目太多</h1>
+
+<p>公司大了，不管旧的项目维护，还是新的项目开发，都渐渐多了起来。这样一来，一个人所涉及到的项目也就多了起来。作为一个RD，经常需要维护A项目的升级、排查B项目的bug、再进行C项目的开发。你的C项目开发正进入状态的时候，让你再弄一下啊项目A和B，换做谁效率都高不了。对于QA，可能更悲剧，公司QA人手本来就少，结果项目、模块越来越多，QA经常一个项目接着一个项目进行测试，之前我甚至看到过一个QA的签名是“同时测10个模块……”，这么赶，测试case就不一定想得很周全了，线上出现问题的概率也会越来越大。</p>
+
+<h1>人员比例失调</h1>
+
+<p>不知为何，公司里面，PM（产品经理）：RD：QA差不多是3：2：1 这么个奇怪的比例，按我的理解，PM：RD：QA应该是1：2：2.5才比较合理，RD和QA，都算是开发，具体什么比例其实可以比较灵活；至于PM，应该保持少而精，1~2个人就能撑起一个规模不小的项目。对于目前公司PM的人数，我觉得是太多了。经常1个RD需要接口5~6个PM，别说是5、6个PM，就算是2、3个PM同一天有事联系你，也够RD同学喝一壶的，要是5、6个PM每周“均匀”地“骚扰”你，你也别干什么事了。</p>
+
+<p>而且，许多PM同学也都是新人，经验明显不足，本来PM应该是给项目规划好一个大的方向，协调各方、共同朝这个方面努力的。结果许多新的PM是在一边参与项目，一边学习，能不添乱就已经很好了。许多PM，连基本的处理数据的能力都欠缺。经常是，PM有一个数据的需求，RD在服务器上运算好了，PM不会登录服务器，需要RD线下或者邮件提供，有的甚至一定要Excel格式的才行。数据里面多了一列、多了个逗号啥的，PM就不会处理了，需要RD调整一下格式再提供……</p>
+
+<p>不过话说回来，还是有些PM是比较给力的，文档写得明确、数据也能自己处理，有的更给力的直接对RD说，“把mysql的账号密码告诉我，我自己跑sql”，对于RD来说，遇到这种PM真是件令人愉快的事情！</p>
+
+<h1>KPI</h1>
+
+<p>这个算是老生长谈了，每半年或者一年，大家都需要回顾一下过去，并对自己所做的事情打个分，还要展望一下未来，对于半年甚至一年之后的事情，做一下规划。回顾下过来也就算了，这是有必要的。对下一个半年进行规划，这就有点勉为其难的。比如项目刚刚开展实验，还不知道效果怎么样，如何确定半年里面对这个项目做规划，或者说半年里面，这个项目做不做还要打上一个问号呢。</p>
+
+<p>另外，不同职位上的同学对于KPI的理解和要求不一致，也会导致许多问题。比如对于一个商业产品，PM的KPI会是指这个产品给公司带来了多少收益、新增了多少客户；而对于我们RD同学，我们KPI的定义除了收益之外，还有这个产品中的系统的稳定性、能够承受的性能指标，还有比如采用了什么新的技术，使得系统扩展性更好、同时减少人力的投入等等这些。</p>
+
+<p>这样一来，双方为了达到各自的KPI，所采取的行为可能就是相悖的。比如对于一个新的商品产品，PM想到的往往是接几个大客户、大单子，这样一下子PM的KPI就很容易达标了。而如果是这样的话，对于RD来说，所需要做的工作可能就是：开发一个能够满足功能的系统、修改下配置、上线这几家客户。这对于RD来说，意义很小。</p>
+
+<p>RD的想法一般是接入许多中小客户，使得大规模的客户能在系统中运转起来，产生规模效应，RD在这个过程中就可以依据线上的效果，对系统进行迭代的升级，以提高这个产品的整体收益。不过整个过程肯定是要花上不短的时间的，PM可能对于这个时间就不能接受了，毕竟接大单子一下子就有不小的收益，还体现了PM的工作能力，PM何乐而不为呢。</p>
+
+<p>不过，KPI这种事，就像是高考一样，虽然有各种各样的弊端，不过对于一个有上万乃至十几万人的公司来说，可能已经算是最公平的方法了，谁让我们在一个大公司呢，呵呵。</p>
+
+<p>&mdash;EOF&mdash;&ndash;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[日常工作中用到的Shell/Python命令——文本篇]]></title>
+    <link href="http://quxiao.github.io/blog/2013/04/08/shell_and_python_in_daily_work_part1_text_processing/"/>
+    <updated>2013-04-08T22:44:54+08:00</updated>
+    <id>http://quxiao.github.io/blog/2013/04/08/shell_and_python_in_daily_work_part1_text_processing</id>
+    <content type="html"><![CDATA[<p>作为一名RD，作为一名后端RD，每天大部分的工作都是在终端上面完成的，除了在vim上面编写代码，也需要分析日志、数据，定时跑一些任务，因此各种shell、各种脚本语言也是不少用。罗列些自己平时工作中用到查看、处理文本的命令：</p>
+
+<h2>查看日志</h2>
+
+<p>平常查看模块打印的日志，肯定是必需的，比如需要知道一个模块重启后运行是否正常，需要查看请求返回的一些字段。日志比较小的话（100Mb以内），可以直接用<code>vim</code>打开，否则会把服务器内存全部吃掉，甚至把服务器搞挂。。。</p>
+
+<p>文件太大的话，可以用<code>less</code>或者<code>more</code>命令打开，这样不会把整个文件都load到内存，然后再使用“/”或者&#8221;?&ldquo;向后或者向前查找需要的字符串</p>
+
+<p>有时只需要看看文件的头尾几行，看看日志的格式如何，用<code>head</code>以及<code>tail</code>就可以，特别，如果需要实时查看日志，则可以使用<code>tail -f</code>。</p>
+
+<h2>过滤日志</h2>
+
+<p>有时只需要获取日志的某些行，比如查找哪些行包含&#8221;FATAL&#8221;，就可以用</p>
+
+<p><code>grep "FATAL" xxx.log</code></p>
+
+<p>如果先是想看看有没有这类日志存在，就用管道结合<code>wc -l</code></p>
+
+<p><code>grep "FATAL" xxx.log | wc -l</code></p>
+
+<p>也可以结合之前的<code>less</code>、<code>head</code>、<code>tail</code>查看部分日志</p>
+
+<p><code>grep "FATAL" xxx.log | less</code></p>
+
+<p>如果是想获取日志中的某些字段，可以使用<code>cut</code>命令进行分割</p>
+
+<p>假设有如下日志：</p>
+
+<blockquote><p>1 2 3 4 5</p></blockquote>
+
+<p>11 12 13 14 15</p>
+
+<p>获取第三列，用<code>cat xxx.log | cut -d'\t' -f3</code>，就可以得到</p>
+
+<blockquote><p>3</p></blockquote>
+
+<p>13</p>
+
+<p>有时候，日志比较复杂，比如：</p>
+
+<blockquote><p>a=1,b=2,c=3</p></blockquote>
+
+<p>比如还是获取第三列，则可以：</p>
+
+<p><code>cat xxx.log | cut -d',' -f3 | cut -d'=' -f2</code></p>
+
+<p>过滤日志，也可以使用<code>awk</code>，但感觉如何不是对于日志的数据进行计算，只用<code>awk</code>进行过滤，未免有些大材小用了，呵呵。</p>
+
+<h2>计算日志字段</h2>
+
+<p>好，这个时候<code>awk</code>就可以排上用场了，它不但能对字段进行过滤、累加、对日志按类似C语言<code>printf()</code>的格式进行输出，还可以进行dict运算。比如有一份日志保存着每次请求的query字段：</p>
+
+<blockquote><p>htc</p></blockquote>
+
+<p>iphone4s</p>
+
+<p>htc</p>
+
+<p>sumsung</p>
+
+<p>xiaomi</p>
+
+<p>我需要知道每个query的频次，用几行python应该也能很快搞定，不过用<code>awk</code>，仅需用一行：</p>
+
+<pre><code>cat xxx.log | awk '{dict[$1]++;} END{for(i in dict){printf "query:[%s] pv:[%d]\n", i, dict[i];}}'
+</code></pre>
+
+<blockquote><p>query:[xiaomi] pv:[1]</p></blockquote>
+
+<p>query:[sumsung] pv:[1]</p>
+
+<p>query:[htc] pv:[2]</p>
+
+<p>query:[iphone4s] pv:[1]</p>
+
+<h2>遍历文件</h2>
+
+<p>有时候需要依次对一些文件进行相同的处理，如果只是想遍历文件一个文件夹下面的某些文件，可以直接</p>
+
+<pre><code>for file in ./*.log; do echo "$file"; done
+</code></pre>
+
+<blockquote><p>./zhixin_stat.log
+./zhixin_stat.py.log</p></blockquote>
+
+<p>有时候需要构造一些序列，一般情况，用类似C语言的for循环，比如：</p>
+
+<pre><code>for ((i=0; i&lt;=10; i++)); do echo 201304$i; done
+</code></pre>
+
+<blockquote><p>2013040
+2013041
+2013042
+2013043
+2013044
+2013045
+2013046
+2013047
+2013048
+2013049
+20130410</p></blockquote>
+
+<p>但是可以发现，生成的序列宽度是不一样的，就需要用到seq命令了，它可能生成固定宽度的序列：</p>
+
+<pre><code>for i in `seq -w 1 10`; do echo 201304$i; done
+</code></pre>
+
+<blockquote><p>20130401
+20130402
+20130403
+20130404
+20130405
+20130406
+20130407
+20130408
+20130409
+20130410</p></blockquote>
+
+<h2>用python进行排序</h2>
+
+<p>统计数据，难免需要对某几个维度进行分析，在python中进行排序，无非就是对于一个<code>list</code>进行排序，<code>list</code>中的元素一般为某个<code>class</code>或者一个<code>dict</code>。</p>
+
+<p>对于排序class，需要定义&#8217;&lt;&lsquo;, &rsquo;>&lsquo;, &rsquo;&lt;=&lsquo;, &rsquo;>=&lsquo;, &rsquo;==&lsquo;, &rsquo;!=&lsquo;六种比较行为，就好像C++中的operator重载一样。具体Python doc中这篇<a href="http://docs.python.org/2/howto/sorting.html">HowTo</a>讲解的很清楚，这里不再赘述了。</p>
+
+<p>对于dict进行排序，如果需要按照dict的某个key进行排序，则可以这么写：</p>
+
+<pre><code>from operator import itemgetter
+#按照name字段进行排序  
+newlist = sorted(list_to_be_sorted, key=itemgetter('name'))
+</code></pre>
+
+<h2>用python发送邮件</h2>
+
+<p>好了，文本统计完了，生成了一份统计报表，这时候可能就需要我们通过邮件的形式发送给同事看。用<code>crontab</code>每天凌晨开始抓数据、跑统计、然后把统计数据邮件给大家，显得专业！</p>
+
+<p>发送邮件的功能，可以用python + sendmail实现：</p>
+
+<pre><code>from os import path
+import datetime
+import time
+import sys
+import subprocess
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
+
+sender = 'quxiao@somewhere.com'
+receiver = 'someone@somewhere.com'
+
+def main(date):
+    EmailBody = 'blablabla'
+    msg = MIMEMultipart()
+    msg['Subject'] = 'some subject'
+    msg['From'] = sender
+    msg['To'] = receiver
+    msg.attach(MIMEText(EmailBody,'html','GB18030'))
+    #send
+    proc = subprocess.Popen(['/usr/lib/sendmail','-t'],stdin = subprocess.PIPE)
+    proc.stdin.write(str(msg))
+    proc.stdin.close()
+</code></pre>
+
+<p>&mdash;EOF&mdash;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Memcached源码学习——item]]></title>
+    <link href="http://quxiao.github.io/blog/2013/02/13/memcached_source_code_study_item/"/>
+    <updated>2013-02-13T22:03:13+08:00</updated>
+    <id>http://quxiao.github.io/blog/2013/02/13/memcached_source_code_study_item</id>
+    <content type="html"><![CDATA[<p>item是memcached操作的最小单位，一个item包括以下数据：</p>
+
+<ul>
+<li>struct item 本身大小</li>
+<li>key (<code>uint8_t</code>)</li>
+<li>suffix (<code>uint8_t</code>)，内容是&#8221; %d %d\r\n&#8221;, flag, nbytes-2</li>
+<li>value</li>
+<li>CAS（optional, <code>uint64_t</code>）
+(参考<code>do_item_alloc</code> &amp;&amp; <code>item_make_header</code>)</li>
+</ul>
+
+
+<p>与item相关的操作有以下几种</p>
+
+<h1>分配item</h1>
+
+<p>流程如下：</p>
+
+<ol>
+<li>确定item大小——ntotal</li>
+<li>找到合适的slab</li>
+<li>看该slab的（LRU）tails中是否有item
+
+<ul>
+<li>如果tails没有，在该slab上申请ntotal大小的内存</li>
+<li>如果a) tails上面有item，并且b)其引用计数（refcount）为0，c)item是过期的（time和exptime），那么
+
+<ul>
+<li>重新计算这个slab上面分配的总item大小，</li>
+<li>更新关联数组（do_item_unlink_noblock），就是链表的删除节点操作。</li>
+<li>（注意：_hashitem_before()函数中，使用了&amp;引用操作）</li>
+</ul>
+</li>
+<li>如果slab上面试图分配但是分配不到，并且最tails上的item没有过期（expire）
+
+<ul>
+<li>如果不允许将item给evict，return NULL</li>
+<li>否则，a) 只好把这个tails上的item给evict掉; b) 重新计算这个slab上面分配的总item大小; c) 删除关联数组中的该item节点</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>初始化item各个字段</li>
+</ol>
+
+
+<h1> free item</h1>
+
+<ol>
+<li>当一个item的引用计数为0时，就将这个item“释放”（其实没有真正的释放）</li>
+<li>计算item的大小ntotal</li>
+<li>判断是在哪个<code>slab_class</code>上</li>
+<li>在该<code>slab_class</code>上，释放ntotal大小的空间（之前的slab上释放空间的操作）</li>
+</ol>
+
+
+<h1>hashtable &amp;&amp; heads &amp;&amp; tails</h1>
+
+<p>当对item进行创建、删除等操作的时候，除了在slab上进行申请、释放空间之外，还需要更新以下数据：</p>
+
+<ul>
+<li>item的time和flag</li>
+<li>全局stats</li>
+<li><code>primary_hashtable</code></li>
+<li>与item对应的slab的heads和tails数组</li>
+</ul>
+
+
+<p>其中，</p>
+
+<p>time就是当前创建时间，flag表示item目前的状态（TODO）</p>
+
+<p><code>primary_hashtable</code>是一个<code>item**</code>结构
+<code>primary_hashtable</code>的大小是2 ^ hashpower，hashpower默认大小为16
+item与<code>primary_hashtable</code>的对应关系为：</p>
+
+<pre><code>hash_key(item) &amp; (2^hashporwer - 1)
+</code></pre>
+
+<p>heads和tails数组用于记录每一个<code>slab_class</code>的<code>item*</code>的链表，用于进行LRU淘汰，所以说，memcached的LRU算法是每个<code>slab_class</code>独立的。</p>
+
+<p>&mdash;EOF&mdash;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[memcached源码学习——Slab结构及操作]]></title>
+    <link href="http://quxiao.github.io/blog/2013/02/03/memcached_source_code_study_slab_struct_and_operation/"/>
+    <updated>2013-02-03T23:15:55+08:00</updated>
+    <id>http://quxiao.github.io/blog/2013/02/03/memcached_source_code_study_slab_struct_and_operation</id>
+    <content type="html"><![CDATA[<p>memcached的内存结构中，内存被分为一个一个的页（slab），每一个slab会被分到不同的slab_class。不同的slab_class，申请的item大小就不一样。</p>
+
+<p>slab_class所对应的数据结构如下：</p>
+
+<pre><code>typedef struct {
+
+    //当前slab_class的最大item大小
+    unsigned int size;      /* sizes of items */
+    //当前slab_class每一个slab的item数
+    unsigned int perslab;   /* how many items per slab */
+    //被释放过的item的list
+    void **slots;           /* list of item ptrs */
+    //free list大小
+    unsigned int sl_total;  /* size of previous array */
+    //free list下标 
+    unsigned int sl_curr;   /* first free slot */
+    //最近申请的page(slab)的指针
+    void *end_page_ptr;         /* pointer to next free item at end of page, or 0 */
+    //最近申请的page(slab)所剩的item个数
+    unsigned int end_page_free; /* number of items remaining at end of last alloced page */
+    //当前slab_class申请了多少slab(page)
+    unsigned int slabs;     /* how many slabs were allocated for this class */
+    //申请的slab的指针数组
+    void **slab_list;       /* array of slab pointers */
+    unsigned int list_size; /* size of prev array */
+    //没用到？
+    unsigned int killing;  /* index+1 of dying slab, or zero if none */
+    size_t requested; /* The number of requested bytes */
+
+} slabclass_t;
+</code></pre>
+
+<h1>slab初始化</h1>
+
+<p>memcached的slab初始化比较简单，主要是设定一些字段的大小，逻辑如下：</p>
+
+<p>下标i从0开始遍历每一个slab class：</p>
+
+<ul>
+<li><p>对齐当前slab class的size，使其是<code>CHUNK_ALIGN_BYTES</code>字节对齐的。</p></li>
+<li><p>设置slabclass[i] 为size</p></li>
+<li><p>设置当前slab class中，每一页能存放的iterm数据slabclass[i].perslab</p></li>
+<li><p>更新size为下一个slab class的size</p></li>
+<li><p>设置最大的一个slab class，其中<code>size = setting.item_size_max, perslab = 1</code></p></li>
+</ul>
+
+
+<h1> slab分配内存</h1>
+
+<p>如果是采用系统的malloc，就是直接申请；
+如果是预先申请了所有的内存的话，依次通过以下手段获取内存：</p>
+
+<ul>
+<li><p>之前被“free”掉的item的地址会被标记在freelist中，如果freelist中有，则直接从freelist中拿；</p></li>
+<li><p>如果最近申请过的页中还有剩余空间，则从页的末尾申请item</p></li>
+<li><p>申请一个新的page</p></li>
+</ul>
+
+
+<h1>释放slab上的item空间</h1>
+
+<p>如果是系统分配，free指针，mem_malloc &ndash;= size；
+否则，将地址设置到free_list末尾，如果free_list满了，double一下长度</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[我认为的健康生活]]></title>
+    <link href="http://quxiao.github.io/blog/2012/12/30/e68891e8aea4e4b8bae79a84e581a5e5bab7e7949fe6b4bb/"/>
+    <updated>2012-12-30T12:55:09+08:00</updated>
+    <id>http://quxiao.github.io/blog/2012/12/30/e68891e8aea4e4b8bae79a84e581a5e5bab7e7949fe6b4bb</id>
+    <content type="html"><![CDATA[<p>工作已有大半年，身为一个coder，工作还是挺辛苦的，生活也有时难免不规律，比如需要临时排查一个问题，或者要在晚上上线等等。但是，另一方面，正因为工作辛苦，健康对于我们来说就更为重要，毕竟身体是革命的本钱啊。经常看到关于IT从业者猝死的新闻，真是让人唏嘘不已。如果他们能够进行“可持续发展”，肯定能对社会有更大的贡献。</p>
+
+<p>那么，什么样的生活才是健康的呢？才是可持续的？我想了想，至少应该有这么几点：</p>
+
+<h1>早睡早起</h1>
+
+<p>首先是要睡得早，你睡得晚必定起得就不会早。尽量能在23点上床睡觉，最好不要超过23：30。睡觉前泡泡脚，喝点牛奶蜂蜜啥的，有助睡眠。早上7点左右起床，在家吃好早饭，然后不急不忙的去上班。因为去公司比较早，人比较少，你还可以在比较安静的环境下高效的工作1.5个小时左右。在我们公司，上班的大部分时间都是十分吵闹的，各种交流、各种讨论，但是，coding有是项需要集中精力才能完成的事情，周围环境很吵闹的话，工作效率就不会很高（即使你戴上耳机听音乐）。因此，比别人早来公司的那段时间，就显得无比宝贵了。高效的完成一天的工作，你也就可以按时下班了。
+可能人们心中会有这种等式：“生活规律” == “碌碌无为”，或者是“很晚下班” == “工作努力”。我觉得，很少部分情况下，这个等式才是成立的，绝大部分情况，只是说明你工作效率低下而已。</p>
+
+<h1>饮食清淡</h1>
+
+<p>现在，大家的午餐和晚餐基本上都是在外面吃了，其实是还是一个人住的时候。不过大家都知道，我国的食品，尤其是饭店的食品，可以说没什么安全可言。所以，能不在外面吃，就尽量不在外面吃，能自己做菜最好。不过可能也会中这样的烦恼：下班太晚，都没时间买菜、烧菜了。其实，只要能做到早点来公司并且工作效率较高的话，还是可以早点下班买菜的。
+另外，就是吃的东西应该尽量清淡些，多吃蔬菜少吃肉。现在生活条件多好了，在外面吃的东西，基本都是很多肉、很多油的，我们早就摄入的过多了。所以当自己可以选择吃什么的时候，还是选择清淡些为好。</p>
+
+<h1>定期锻炼</h1>
+
+<p>工作了之后，锻炼的机会越来越少了，而且坐的时候越来越长了，这样子迟早会出问题的。坐了1、2个小时就站起来走走，去倒杯水，或者做些简单的操。（现在公司每天下午3点，大家会做广播体操，这个很赞）也可以去办张健身卡，用“既成事实法”，先把钱花出去，然后“逼迫”自己去锻炼，况且健身房的氛围也不错，也不用怕外面天气太冷或太热。</p>
+
+<h1>养成看书的习惯</h1>
+
+<p>身体需要锻炼，思想同样需要锻炼。不过，现在生活节奏快，发现我以及周围许多人，己经连读一篇几百字的文章的耐心都没有了，有个同事甚至开玩笑说，“我现在的头脑里面的内存很小，只有140字节，读太长的文章就溢出了”。
+尽量争取每天读一篇比较有意义、有深度的文章，可以是和业界相关的，也可以说一些杂书里面的文章，不用太长时间，30分钟就足够了。少逛一次人人，少刷一次微博，时间就省下来了。</p>
+
+<p>&mdash;EOF&mdash;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Memcached调研]]></title>
+    <link href="http://quxiao.github.io/blog/2012/12/06/memcached_study/"/>
+    <updated>2012-12-06T00:28:32+08:00</updated>
+    <id>http://quxiao.github.io/blog/2012/12/06/memcached_study</id>
+    <content type="html"><![CDATA[<p>最近因开发需要，调研了下memcached，share一下！</p>
+
+<h1>什么是memcached</h1>
+
+<p>Memcached是一个开源的高性能，分布式的内存对象缓存系统，通过键值对的形式来对数据进行存取。</p>
+
+<h1>特性</h1>
+
+<h2>简单的Key Value存储</h2>
+
+<p>|&mdash;-Memcached只把key value当作一组字符串来组织，不关心数据的格式
+|&mdash;-没有持久化，所有数据都存储在内存中，当内存用满时，丢弃最旧的数据
+-&mdash;数据只会保存一份，不支持replication，也不支持容错（一些客户端有自己的实现）</p>
+
+<h2>Server和client共同决定操作的行为</h2>
+
+<p>|&mdash;-Server只关心如何获取数据、存储数据、丢弃数据
+-&mdash;Client只关心如何通过key定位server，以及如何和server通信</p>
+
+<h2>Server相互独立</h2>
+
+<p>|&mdash;-Server之间不会有通信，也不知道其他server的存在，但是Client知道所有server的存在。</p>
+
+<h2>所有操作都是常数时间，所有操作也都是原子操作</h2>
+
+<h1>数据组织</h1>
+
+<h2>内部结构</h2>
+
+<p>Memcached将内存分为不同的page（默认为1 Mb）、每个page被（永久）赋给某一个slab。Memcached中有多个级别的slab，每一种slab决定了内存的粒度。举例说明：
+假设memcached可以操作1 Mb的内存，每个page为1Kb，有3类slab：class1、class2、class3。Class1的内存分配粒度为96字节，class2的内存分配粒度为288字节，class3的内存分配粒度为1024字节。那么，memcached的内存结构为下图：</p>
+
+<p><a href="http://qxavier.me/wp-content/uploads/2012/12/memcached_internal_struct.png"><img src="http://qxavier.me/wp-content/uploads/2012/12/memcached_internal_struct.png" alt="" /></a></p>
+
+<p>实际运行效果：</p>
+
+<blockquote><p>./bin/memcached -vv -m 1 -I 1k -f 3 -M -p 11225</p>
+
+<p>slab class   1: chunk size        96 perslab      10</p>
+
+<p>slab class   2: chunk size       288 perslab       3</p>
+
+<p>slab class   3: chunk size      1024 perslab       1</p></blockquote>
+
+<p>class 1中，chunk的大小为96字节，共有10个chunk；
+class 2中，chunk的大小为288字节，共有3个chunk；
+class 3中，chunk的大小为1024字节，共有1个chunk；</p>
+
+<h1>数据处理</h1>
+
+<h2>存储</h2>
+
+<p>数据（item）以key、value的形式进行存储，key最大为250 byte，value最大为1 Mb。
+当存储item时，memcached会找到最“适合”大小的chunk用于保存这个item。例如item大小为200字节，对于上面的例子，这个item会被保存至class 2。</p>
+
+<h2>删除</h2>
+
+<p>Memcached不会主动删除数据，删除数据的情况有两种：</p>
+
+<ol>
+<li><p> 当新数据无法找到合适的位置进行存储时，会删除数据，删除数据的原则是LRU算法。</p></li>
+<li><p> 当client查找一个数据，server发现其已经过期时，就会删除该数据。</p></li>
+</ol>
+
+
+<p>对于情况1，具体来说，当对一个item进行存储时，如果在适合的slab class中，既找不到空闲的chunk，又找不着这个slab class中空闲的page，memcached就会选择数据进行删除。Memcached首先会在处于LRU队列尾部的几个数据中，查找已经过期的数据；如果找不到过期的数据，就在队列尾部选择一个未过期的数据进行删除。</p>
+
+<h1>线程工作方式</h1>
+
+<p>Memcached采用libevent库进行多线程请求处理。
+（libevent是一个事件出发的网络库，使用与 windows, linux, mac os 等的高性能跨平台网络库 ,支持的多种I/O 网络模型 epoll poll dev/poll select kqueue 等）
+Memcached中，每个线程拥有一个自己的libevent实例。
+如果memcached采用TCP/IP连接，将采用单线程监听端口，监听线程获取到请求之后，将其分配给其中一个处理线程，选取处理线程的算法为round-robin。
+如果memcached采用UDP连接，所有（空闲的）处理线程都有监听UDP socket，其中一个线程监听到请求之后，进行相应处理。</p>
+
+<h1>操作</h1>
+
+<p>Memcached中，所有操作都是原子操作，操作时间都是常数级别。Memcached的操作有以下几类：</p>
+
+<h2>存储</h2>
+
+<p>Set
+如有没有key对应的value，添加value；如果已存在该key对应的value，更新value。</p>
+
+<p>Add
+如有没有key对应的value，添加value；如果已存在该key对应的value，则操作失败。</p>
+
+<p>Replace
+如果已存在该key对应的value，更新value；如果没有key对应的value，则操作失败。</p>
+
+<p>Append / Prepend
+在key对应的value前/后添加数据</p>
+
+<p>Cas（check and set）
+Client会事先获取一个关于key的64位cas值，更新时，只有当server的cas值与client的cas一致时，才会执行value更新操作，否则操作失败。</p>
+
+<h2>查询</h2>
+
+<p>Get（Mget）
+根据一个key或者一系列key，获取对应的value(s)。</p>
+
+<p>Gets（get with cas）
+获取key所对应的value的同时，也会返回cas值。</p>
+
+<p>Exist
+查询某个key是否存在（不是官方标准，部分client会实现该功能）</p>
+
+<h2>删除</h2>
+
+<p>Del
+删除对应key的value</p>
+
+<h2>自增/自减</h2>
+
+<p>Incr / Decr
+如果value的形式是为64位整数的字符串，Incr / Decr将对该value进行自增/自减操作。</p>
+
+<h2>Flush</h2>
+
+<p>将memcached中的所有item都设置为过期。</p>
+
+<h1>参考</h1>
+
+<ul>
+<li><p><a href="http://memcached.org/">http://memcached.org/</a></p></li>
+<li><p><a href="http://work.tinou.com/2011/04/memcached-for-dummies.html">Memcached for Dummies</a></p></li>
+<li><p><a href="http://docs.oracle.com/cd/E17952_01/refman-5.5-en/ha-memcached-using.html">http://docs.oracle.com/cd/E17952_01/refman-5.5-en/ha-memcached-using.html</a></p></li>
+<li><p><a href="http://libmemcached.org/">http://libmemcached.org/</a></p></li>
+</ul>
+
+
+<p>&mdash;EOF&mdash;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[几个实用有趣的Vim设置]]></title>
+    <link href="http://quxiao.github.io/blog/2012/11/18/some_interesting_setting_in_vim/"/>
+    <updated>2012-11-18T22:18:01+08:00</updated>
+    <id>http://quxiao.github.io/blog/2012/11/18/some_interesting_setting_in_vim</id>
+    <content type="html"><![CDATA[<h1>cmdheight (ch)</h1>
+
+<p>设置vim下方命令行的行数，觉得命令行在最下面一行有些压抑的同学，可以把行数设置得大一些</p>
+
+<p><img src="data:image/png;base64,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" alt="" /></p>
+
+<h1>cursorline (cul)</h1>
+
+<p>高亮光标当前行</p>
+
+<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAjUAAAF+CAIAAAD1AHz9AAAgAElEQVR4nO3dO47jSpqG4X8/abfDNdQejkfgALWGNhsoj72D45RzjAHGoV2Ysdsaa4ZrmLMFthEiGfcbb0HpfSCjKlMSKWUqvowL45f/+b//f6fbH3/8cfs5nHD73z/+/vvv//zv0B3+85+///73//iv1Dsz41rv+wvJjdsVN7n9DI690RxE3pm7m+uPwy8kN257buTTp9zIp+vxC8mN257bu+UTN27cuHF7j5v8AQBAe+R3AADaIwAAvL9hknmse2gv8ySd/g9dJ9MsY1/4PHkPGSaZZ8l57qzjJu+W+UIAALupFv51q8unfpRpEBHpBt9TZOfTOMugUuLafNqOG0c+AcAd6vtPw/RqtdegMuTlk5FtFyaBP1O9yCcAuEN9Pq39D39HJC+fjMdemAS5nSchnwDgHuX51Mk0a4OD682ay8nIJ7sTsyRBN2xPqz+BMShpHW5NEf30Ai/M03nq7ZfjSc2MZwYAHKWy/5SYfBIRkTGeT51MVieml3mWadpGC4fJv4ShHwP5NMi0fj3U73GP28k0+4YoS58ZAHCcynxas2edhYrcx8sza6XyabC/4j5JKJ+sL46+1PEcNyOfcp4ZAHCg4nwyBtm8A2KL2BxPJ5O7AM9No8AgYbD/ZN7TkyLe46onnJ10LHpmAMChavpP25he9BKiSD75l/y5SVDYf0qmiP+4q3WGSX9y8gkA7lCTT2srn2juQwKdGDcJ1EIJN+Qq8yl0XIfxQPIJAO5Qk085k0+vaRvfUwcftSyie31T9WZ8z1CXT6HjdoMRgSoUt3uSTwBwIf8sUs52P3ovJDbDFMqnyJBg/+otjXN4NkjdsSKfwsfVl7N75tLIJwD4BLEu1zseFwDwAN2Q2Ud7k+MCAAAAAAAAJ7E2nGM/OQBAE3ptuUB4ITcAAHcKXQgLAMCdyCcAQIvU/qhcHwQAaEm8vgQAALeoL/EOAMBJhomeEwCgMfScAADN8WwCDgDAzQKVaQEAuJNaUB4rewQAAAAAAAAAAABARERGYasmAHiu0VwcUdGiq11lQ4sArSUYBc9v1qYqvHx4Nm/OU8tk/qN96m0u+/mox6w3FmoCeJJea7OGqSaiIvm0a0P0vnqz2llk0PpP7nOMIiru1N1aZkVMfcKM5BOA5zq8vsaunSkq86kXmUW66PjetHxrDar21fSfdOQTgAfb2wQ67sinTmQW6aP5pAJM/0f7yCcAH6twLwlr4MnodalS8e6taCOl+vG9SWT25VPnzEup2wFTUOP8SmI1RuodjNO/VR4V5BOAzzPunD/vg6OCd/SflHmZhXKdMvmk8mmYtvdhTSwRp7ZWzbZS5BOAj6U6PRV7xbaYTyIyBhbvzUu/ajpwAfrodCL1jXfdTXiN9MpCPgH4ZHXbxbabT4M5fDcFxvfyErn3jFiu75WbN3om6SN72418AoBcdSXem86n3kygdUzv4Cuf4vlU3ltykU8APtkb9p86M5/WyaeDV5bH80ldpLwvHcgnAB+lcyZFHj//NCxpNC69Jb2fdMrkk6TyyTu31/VFbzX5BOCjWAvB67KkuXwKrR3vtOUSB1/5lMgndWbWLFTWnwLWMv76Kl3kEwAc5JjxPbyQTwBwkF37w0KE/WEBAAAAAAA+h1oocVytiSOu+AEAfLxXFUHyCQDQkP61t2lFooQeRT4BAPYaZxk68gkA0JJ+1AoXlSTK6LtqdF0FvqceUs5jAQBvTbsG9oz+U109pMRjAQBvb5i2kDg+n2rrIcUfCwB4c9aGo2fPP+XXQ8rZyw4A8LZea8r37Txal0/x8TryCQCwubL/FK+HRD4BADZ1+RRKmj31kMgnAMCmulbTWDuHFKqHRD4BAAAAAAAAAAAAAIBD2YsU3noboVP3SVLvZO/8+5MdXVbsdtZF7Rt++sDxhsnYm/W9nZ5P+gYZLDh8n3xSsRTbrJifPnA88uko607wwoL4dgU7QDsfzk8fOB75dBS7hXp+r+EdXZVP/PSB/bb5p0f9xReqHaVYtamsyh0SqSzV129FmH2+7jTf2upt40hj8OF9n3tq6+Ye+vDU+mbYW3+YNU/U1vbqPuqL7rbyQWpYzykKZp2Ye2X2zlekjIFD+/ebLPyt3xlvAKqoJvC4Fvk00dpR/p2TzDpSwcpSvdGkqabooM7loLfRvf3E6lDD8Dp4Nxj5ZExnLE1/fj6tTytmJiXz6XWS6l2ZpK/aY2R08un1Yqt+0eKvSB3Ofq8CfwrUIZ+AmzyiDGC8dlR659lwZSl3Wvukie5OJl8+GclohqYnzLLzaXKiUT02nU+j7yEN5FPoFbnPHPoK+QQ8zSPmdeO1o+J/4cd29rO6ZSKyrylNnbgbOd5Wz/1WaT6545eZ+fT699H5JNoQXOlbG39Fnj8nnJ8q+QQ8U7zz0Yh4J6/NfLIGmgL9J+8b7/5M3iCf9BfinaAKIZ+AT/WY8b1wC7GnstRp43veJCjqP8XHrHKPK7F8ssYYL8gn95SS4q+I8T3gTb2mnhsf3ZNE7ah1/YDR4/CuhhARa0jzrPUR1jOpgb78P+r1s+4GmbIXsuS35t0g83RR/2kYPVVWMt/l+CuSjPUR7nxeEfIJuIy5EPhBH7tQ7Sjvd9cGMl1ZynxDjktrfXHz0C1DW8uRE62edlLTUNBEJlvz7X0arxvfi//odr4i6/m9XTdroXnOO2ntH3HCLwgAPB9/wgMAmtAbY5WeZRwAANwgsjAdAAAAwNXO2nSuXYfuXeQ+MT0cANjNc4UI+VT5fE9cCAkAbXKuFEXFHqga+k8AcAR1WeYH9JcKkE8AcL9XW9w/b/IpVP/J3aFc31HAGoazXuzouwKzcCk3+QQAR3i18mZxitYjKl7/aYmZrcaRt4MY3vSN/hMA3G90ZvPb3yI2Xv9JZNugr49spEo+AUDLLqvId6B4/aeX3jP0596BfAKARrnbbVbsAHqxnB5eurIQ+QQALXMvfkqX67lbuojismhe3dPfhSKfAKBx7vK21hvXeP0nM2KDxYXC+bSviPAz3kIAeIZtRqftmSedv4iQryCdu+JcJFG0dYzMbPlRHwgAAAAAAAAAAAAAgGZ5d5wrXXymFryFHn5apSUAwMfox+KLn9wrqLx3IJ8AALU6mcrXl++7mhUAgJRhqunlkE8AgDP1hTGjroR1b3mVlgAAyDJMlRGS7j9Fd2oAACCstPOkIZ8AAGep7jwJ+QQAOMuOzpOQTwCAk9Qt29MfTj4BAI7WybSvWhH5BAA4wb7BPSGfAAAAAAAAAAAAAADAM4xslAcAaM04azWf+pr6hAAAHM1a/N3JRBcKAHC/TiatuK0qikH/CQBwv36UWQ3x9RRiBwC0REUUiyMAAA0ZZ5lHrR4uxdoBALdTPafe/C9DfACAm41Oh8n9CgAAV3N3HzcuhwIA4BZqQfm6LML6LwAA9+m3zY24+AkAAAAAAAAAAABozSjM4gHAIbb6T0VXPg3TzSsr9LpV7qmr0+t9XzzxnGfzZulEZtILADKY+5ePs8yTFC8vv2Xb82FKnKs3n1annPMsMmj9p/XZOzO0yCcASOlHs5Gv28L8hnwyc7XmCQ4/515kFumi43v0nwAgzzDZu0XU7B9BPolo2UM+AcBux+y/F2rr17ods2/cUD1K3cY+Nxj1R+m39bHGDFN4ADCYT+tG7hUTVJPITD4BwAHsSRzVOJdOQXnbehVO615J1myQtZOS+m5Bxy2j/2SPXWacs3VW1u7uWeZlFipw2uQTAGTpfX2PA/Kpk8nKG/MrdjfNvX/ikKfkk92H06bjvv34FfDjm/XUY2DxnpBPAFBC239v6Dw7mqe5bb13o9mts+amSwv5ZI7s6WOPZUaRQWQWmTynTT4BQJ3xkPV7iXxylwm2kE91ixddKp/W5XzGUcknAKhRuaiteHwvNfqXccizxvdCncey8b1hiSLyCQDqdLsvfpKq9RHG0oNOpqmJfFJftE6jz3xHhiWNxuUqXcb3AKCaWfypsjJhqNtlrAV3omJbCD5JV3o90zn5tD6zd+V6wmBuEqGHk7V/xJxa5gcAaMWaN2Zg2rfSlRu3GAkeAHisrjd6NsnN9AAAuIK9DcQjOkYAANxn9C28w3uhRheQcGlLGLnw1lipcN3ZZGxzF6+RcZo+sP3DIwy+kx93rH/Z89i4PlB3JF5Eaww8Klv86fXz0he5TKlHnU0/uvtJnnxnteech/CxcnXD246MvP2nTH/siYwg8P2u6LkVX/J2ivglVzfl06N5Pzl73siTfghdeAmj/nvqtrv6mQzFERWq0ZVzXvoxLzb5Llew7hA5qz3nXL/Q9NPy6Z0+ZVfz9p/cdKipr7HHKbU5dlffOMc1DVvwk1P7l8dJi1cy3414XCTDxJRTo8u78Yfu+nzaf9ncnnOeqrtQt+QTnzLjaY/4lF3Bm0/um3L1Sjry6ZKj9GN9S7HnsREH5lP2T/qQGl2flk8P6z/xKdM9O5/cDX1Kako41ypVjJ568ylRwyly3MDlU8cN61qTH6P59e1lmT9v61Hu5MZOk/actww/FZl870aoz9JH2+by6ZFkjS6pHd8boz9b/fLtPrs1GAJv1frYKe8XKnTO1pXjoTtURmN1PvEp2+/AT9kVQvlk7+aTm0+lO+aFnibaf/JMiOUc96z+0+T8gNd/xz85ykm/0/rURBduaVqT+W54J15Gp+UqMft+ONYdSvPJWutkjecPvu+W7OaVbj28+2nFz9k6q9F3nxvyiU/ZgfZ8yi5FPpXs8eo7l+gn9a5PjntW7f9lp+ScZ/I+bluWJ1mjq2j+yf1pW1+xkrR0NOWkfLLOIfQLfun809t9ysZ798I55FN2hePH99by7XtSqjifco57Sv8p/lM89ZPjdtLXH5r7nE38tkXPWUme55D3N11VL8pbo6vPGxAKveXWr+n6J6mbLi3kU2hPSO9Rhrq3uSKf+JQVuexTdrrT1kesG6pWLauoyKf0cd8tnyLcQZlGPjlJ8fPMfxVVQxN7anSV5pP7x3cL+ZQ/41B0qoZn5VMEn7LTnb6+vO6R9fkUOe7943vDVZ8ct2n0TiM0KPJuJJd463b0n0JDefEWuXR8Lzn6l3Te+F7ynbt6/untPmXtju8VfcpOF9o/ovL63G4wFsWpmKnospTmU+ZxI5UGd5h8fwkr+m/wEJgBP2ORTGc2M5F5ldZEPjnxhtNtJrI/Y8MRNboq1kforVnX2PoI95fUcmn/SfiUHar6U3YRayMh75rtmv2N7A1ea9dwV+RT1nHNhebHjfVZC369G+CM4b+QrSWwh9BnEvqm+uxRofO0tmOZnXdyx6Y9kZ+edfyK63OH6DPri5NLOyUn5ZOYvzvuO72e+dXX5/IpO0r1p+yNvUENJ7y3SI2u/RfDJq2H8LYSs9YCt6D+TN54fyMAuMXg+8N9Dyvt7r/aJMMBbwL5BACNG5rsGAEAACAiUv8p+V0cQV/acUadFwB4lHj9p2R1KBzEWKfYE1EAsHpa/6nNGhmVZ+U87IZKkADQKPLpCHVnpTpP7nXFdKEA4Kx8WjfBm43LbLtB5km6frvoV23q+tqIqH9dM6vPyGxtfqSGkzqce6JFm6k7z6+Puo29+aLG4KMKJpI8m+6uBwOAT3d8Pll9AL0RfgXPKKL2x5u2NOpla+vXRPHsShvoqXg7HvmjZerhRpJ1ywNVZAwyTeZXzJ1WavpPnvMjnwDg5fh8sjdm1ZpcfTXAaHabevE1ziVJYO+tV9LUx/bl03p7wddYt/Ms+QQAYUfnkzmyZ+109xrfE5HMfHLb/XA+WV2oglOP9358kZGZTwmM7wFA2NH5FG1gi/OpcCRtGw8sWqp9Vz6xPgIAwk4Z3ws9pjSfPM11XpaUnndyfK8un1KVpVhfDgBBZ62PsFbN9dnje9uIV2BVXryG03ppcVEnRF+4sX2x204vkU/VlaW4PhcATPH6TznVoaKcWSjVmmf2n0bzUbZ4Dac+/MDCcx5K8qm+shT7GwFA645YHBBacxC8tXX5MQCgQfvzieVvAIDj7UiXdUSScAIAoMR4cnVwAHgv/hV6/QFzNGomyN7Nrm1qrcIJfbDZvLn6o2uHT6kj6nc70EA1WAC7JCo89VobHdp8NeqhF5qek0+zyKD1n9xn75b7nGG4Np9W570iAJ8h5wqnirBprzDHXVTHqIuO7633OUM8n+qoQI3H+EQXCsAu5NPJ1qY8kk85zX21u/KJ/hOAfXKCxHNNUUhge1jj2l5zcsuKvfV8ylfk2bsJ/fz+lflI/RJZ95TWrSH0QdGSMJmW+ZjIg7ytee9MXFX0sbz5pM9OuTNekeO63/Ke2KmJC+AzpPOpqMhf8mnN7R3c+R71wGF6hcQwZebT1/efJYkU4ttiSOXTekpSs5nRnOpPuN89alIq3n8anXzKOW4yfsgnALsl86lupC70KLfioPUV1UfRq2Q0kU/mF6u2cR3DS+m6cBfkofkkzD8B2Cu5P2zNVnahp/V1xerLNlnW4b09KRXuPxn3qsynwRlP66NryseMjldSaT7lHDezezSw0BxAvUge7FnjcEM+vXx9/7kjpk7PJ+9SvXhz3+27NKoin5LHZX0EgPOF8mBnJaJd43tH/MH97UdVQp2eT96hPMlrzeta/Op8ihyX+ScA54vsH7HnMtWd6yOKfX3/oYeR6kSpIoBFjs+nYUmjcblKN7M7MpgxNtS2+KX5lHnc5MAd/ScAVeIVnqytiSpqE8VixlyDHlpfXmYd1StfXG44JZ/0ddjezop30M96YPUFvBX5lHNca6G5G2CsjwCAZxh3LzdYhS5Camrju3bOBABQb4h2sB7kbV4IAAAAAADAM4TWI4zm4og9K4XZKxYAkCtR/0mk7+07V0cU+QQAKHZSfY3SQwAAYMjPJ/pPAIDrpMOjYi8J7QrcaXAOEa3/BACASDSf1iUSFeFk7WC0HSK1vxEAACLZ9Qnzt0N1i+3qh0juDwsAgEjm5FDJEJ/7hNtXMuprAAAgkplPJSXe3d1UyScAQLFT+k/meJ2eWIzvAQCyhArd2gGTHSHWkodxZn0EACBbvP6TVaKp9Oql15q9ZWMkOwKj9Z8AAAAAAAAAAAAA5BhLKrgDwMdLrC9XaxnefXdX95qto83mDQAQkKz/pKjNisinfWaRQes/0YsCgAyx/lMv8/gR1THOzKdeZBbpGN8DgDLx/cuHjnzaqROZRXryCQDKhOKnH19ff1Y+6eOW7rYUo3k9srHJxWg/3Hj0rppVk8gcyKfemZricmUAEJFQ/PRbA/2YfLI2n7X2DPRVCemW/6h8GqYteIwe1QF7Ms3LLJR5xp4vAgBEJBA/w7Q1x0/Jp36M7UvrVqUS655mr0h/toP2tB2dxXvkEwCEufGj+gd9+A5t8u8oqO+bHn4V7vzTlk+H1QQZRQaRWWQyv+jtWgHAx3Mb7teacufW+Eau8TUOzeRT75tk6paUmvwPBYAPlOwePaX/FB/BS4/vhfLpyPG9YYmi0EPpSAHA4m3yyb8CorcrhugR1XlXQ4iINZu1a33EsKTRuFylOznfWv87swYdwKdL1H+y7vmIfBIR93W5/R7tu2vkJPJJ9tSsGszl41P4WywuBwDcYGTsDgAAAAAAAICDnf0AvKPQ8gd7ocFzlkjE19dZV3cVtOu9f23F3Y6vLKXewMg2hgBwomT9p2F6asMUyaeq62oXfWGeXeH0ylIj+QTgLpH+0/s1TLvWyjeXT1dUliKfANyGfMrVXD5dUVmKfAJwm/T8U/FGPvewZk2MQTzz6tr49chBJ+STf6vDggQ9vbIU+QTgNln7GzW/OayhD55w4/0nFVeFb/W5laXIJwC3yWmyzyx/foJn5lNV2UPlxMpS5BOA2+Q02W7pv6Y1lU+9ZwTPbfFVONWuWT+xshT5BOA2ufnU1tKAqKbyKcO+cJJTK0uRTwBuw/he0dMe3la/lnXsentPrCxFPgG4TbLJrpq0v9WD8qnfE05XVJYinwBcLVH/yVyQ/bAG6jn5NPpWvWcP9F1RWYp8AoDmNXd97urEylLkEwA0r9H9YY/H/rAAAAAAAAAPElsyYI5oPWkJn+NhS+QB4GMl6z+5pZI68gkAcBl//6mT6ZkT46HuIPkEAA/jbdC74VEb7mnIJwB4E94G/fXF/kmTT/FrXdd80gc2rf6h/i2975jzWADAwYL5pHU4HrTFUbz/NEzbqzB6VJ1M+iVNvRFRiccCAM7gbdBHp4vwlBY5lk9mxOpFQ9wCIvrrjT8WAHCKYP/JbH/dr7Qpf/5Jzxj/boRj1mMBAKfwNuhuwad+fH7/KZwx8d4h+QQANwiu3zNHtMaH7DhXl0/xAozkEwDcINagL02wiqtHrFgLJU0iY1Q9ETNyuj7YuyKfAOAsifpP1n0e1RaPtXNI9nsSHv0jnwAAAAAAAAAAANCcv6LuPjsAuFtk/wjr9oj1e9erroZOPgGAR7L+k64fn3Hx080Ki5KQTwAQE6ufq3QysZY6R2U+/esffxP57c/G8unr+89fv358u/s0LG2eFYBzJPNpmB5ZqPAG5NPp2jwrAOdI5FP/jG33mhDOJ29lqb/++vM339P87R//ys6nr+8/f622dvvr+89fP79/ffvx69evXz+/f4lo/3z958c3/dFam6/uavv5/Ws5nJsPX99/rk+eZD//8nTLWRkvaj1W5KzsMwnnV/y7ABoTzye96BESvPkUriy1t/9khcLavMvawv/4pr788+fPJY1+fJOtrV8e7IuXQE/Fm0TffuSmkzox475fX1/6C/j+/ef6bf0lRc/KvAP5BLyJWD7ReSriy6dIZamd+eSEgtaaa824drdvP/R8MtrpgiRw7uo+NnrOwbsaXbzAaySfgE8SySc6T2V8+RSpLLUvn4yRPXuw7DW+J5KbT267H04CswtVMiMUv68nvMgn4KMF84nOUylfPkUqS+3Lp2hXpDifykbStITKH9pLPOeufPJPTv2yhjMDYQ6gVaF8YtlesdD4XuDS5gPG92IBUpJPnlmlrCwpXU6XHt+j/wRg5c+nTiY2jCgVXh/hrSy1RtGfv4kbUOnDedYayNe3b1+Sl09bO+9flRefVlqHF7M7T/rDzJ7aa4FETj4lJ7vIJ+D5EvWfGNyrkLe+fH2ftTAyF5r/9mfd+vItLvL6T9u4lz9kzHExb36VpZP/nJfnyMqn1FmRTwCw219RZx65YMVdyXME53mY7AFwv1gD9Y48fdDsG+8kgI9yRQjhEE/sP21jc3SHAAAA8Iki1+fqVaAedKGuWtIdKlulyjWxdB4AGpWs/zQ6u8Y9oklX8RNJU/IJAJ7B33/qzVa+k+khXah0OSsAwCNErs9dOxmqz/GILgf5BABvItSgq1mcaTBKQrRLbdMQvuJYRewTp9MA4ENFOhzrQoMHtebp/lP/sFcEAB8q1KC/Nt5e+yUPGTQjnwDgTXgbdGvXbfXf1of4RIR8AoC34W3Q3apFkTpGTSGfAOBNeBt094vG5VANI58A4E14G3TrKtfkRa/tIJ8A4NkS9Z/k1Y6HdglqFvkEAAAAAAAAAAAAAAAcWfWf9l35xJ6tAIBcifpP5v7lo7W0r+JY5BMAoEhwfyNnrXn1/kbkEwCgWGj/CGu3iD37R5BPAIBip+y/p1VjmgbnEOaVv/qlsutR9OFHq9umf+sRW9YCAGoE99/Tx/dU3mROQXUyaZ2tV2HA9RD9UvZQ+64x0TXKMG2hZeSi+czPKJwIAKjjH3wzU+TVZcnLJ6s2h3UIO/nMr4xOj0qfCbNnxZ6zqzoAoFhwcqg3huDy55Dce25fsTpA6mva5rNu3uiZ5N8zkHwCgLeUGTxj9kiamzFH5RO9JQD4IDn5pCIkc6LHHcHTcyU9vhfOJ3fkEADwtvz51NVf/ORZ8lC4PkJnzDn5lml0ff2FwwCA5iTqP4WXgOd4rdlbVofbEaitPg+tL1+5ayLsM9+xsQUAAAAAAAAAAAAAAHhvffoq120lAmsQAAAX6bUl42pBXeiiWt8iOgAArqBv4iC+C3L31NcAAKCSlU/xXR4AALiItXWQ/zpZ9hYCAFzK2bbVHc0jnwAAV3O34COfAAA3GybPwgfG9wAAdwoV12B9BADgNpGrmlhfDgC4SaqqE9fnAgBuoOaTrJtV54n9jQAAAAAAAAAAAICkUbiOCwDalVH/ScIXSJ3EvS74aLN5c/XLt6ZTz+PJhuUtuvA3A8AHidZ/2lbunR4YhpPzaRYZtP6T24vqlvsgB+8VgPNZ9TVWb9R/Uh2jLjq+t97nSioUWxtyzDmriS4UgNN9QD6tDW4kn26JiufmE/0nAOcLbf9anU/6CKG7S8VoXhe83mHNJ/3hxqP72AXFKdMyaxJpdkNtbheYuBpEpqXjpaasRu1J+qWVH3yP7c3nXG/dcjj3rS8agXSfX/96b76oMfyo9azcM2ktVgG8Gaf+06omn6xnszZSUnNd5oYU3fIflU/DtAWP0aPqZdaeWfX5Ils0+cyp9t373cFsoEetrR+0xn1esmpY7tA7R5yclRehhn7wpcKYvXBjcF7L+lT98q3J/Epv3jkeP+QTgPNFQqgin9zN+vSMidfpGJ1ekf5sB+2qPoYX73WB+Seroddb80F7KqvbJL52vygJrC6U+9iIyPo6vben398KM+afANzKW/9J/25pPhlr/5xFgPEn9NedUgnk6+SFps2ixiVU9Aba22S/DhIY71rzaX1UTj657X4kCawuVH4exNPFm3MV+SRm9xEAjpOMn4p8iq9xaCafvEv1vI1yvNdSmk+lI2nreGDR2sJr8on1EQDOkVM1o3J8LzyClx7fC+XTkeN7Q/ZQ3vrF0LtQmk/urFJmlpQOpiXH93bmE/NPAE6Sqv+kVK+PsFdA9Mt/1XfNiLLWRxinqYforvURw5IK43KVrjuaF1+qYOVW/vjeOkEVWpUXHyKbAivo4rwjb512VpbYK4sAAAORSURBVPF8Sp6V9yEAsFu8/pN/Dqmkp2I/g9vv0b67Rk4in2SLt/L15foK79BUU2QMzZ2FGpanzek/WY/yHtea2bK+W5EE7jkX5VP8rIT1EQBwrDHc1h8+ZlW04i5EX86uP23odllmsDICAK6zdrMO2R92fz4dknDHOvYtAgDcYE+6TOGBNQDAexnLlxk8ARWtDvCmvxvAE8XrP+VVhzrc+fWftqULLegOmDiyJp9c3opWU+pRZ4u/7sl3VnvOOatmVVO/G8AHi9Z/Snz3NBfkU7OqFsPNuytaDXe0ye4mhO4dIme155xZEw88TXwjhqptGmqQTyUOqWh1fT7tXyS555xZEw88Dfl0u/KG85CKVp+WT/SfgKfZsymRV5P1nwKnGmjtOvPrY2rOZKeqP+z3VLRSQq9ef7nuWJx+sXP+5cPWJdLuNctT9KDJcw7V6LLuwFoS4EHC9Z/S303ev636T97z3YbABq0B67U2cnKGyQ7vTNYOPEW2pVjvUJpP1lo2azbI3VW9qFOSExLxMlfec47U6Co6NICWxDfZK92Cr/n6Tx5ro6Um7tedi9RZX3OJ7I6JkYqKViu3rXeXVFhfsXqPRSV95bR8ss4h9ENj/gl4jmT9p4Ke0/KQtus/eUzaluZrt2nUgmrPFE3mBkT78qmoopXOfXHeur3rirtQ/ap78yleo8v7cFIKaNuxPSel+fpPvuMuczhrnXZ30O9su/Mpv6KVrjSfQvWr7s2n/C4u6yOAJ4jXf8qpDhV8YNP1nzyGJR7WUT69CXzC+F5pRatV6fhecvQv6bzxveT7x/wT8Ajx+k951aH8Gq3/FGOVaXIHyyZfr+FY5fm0p6KV/iSl6yP0pQddY+sjvDW6dPSfgObF6z/Fv5ujvfpPCXogeVdM59SP2qMqn5JnVH197hB95kn7Vmmn5KR8Wp/Zu3JdP3NmngDgIldWtIocopGqVHHtnAkAfLrDyzVZaZfcTK8F1KwCgPc3NNkxAgAAAE6UqvBkbZHHmlwAwCVSFZ56LZHUcjsiCgBwtUbqawAAYMjJJ/pPAICrxbYd2rOXBAAA9QIVntYlEoQTAOAGiX3KffvpAQBwrqwKTwzxAQCulFvhqbTEOwAA1QoqPNF/AgBcJB45nZFbI/NPAIBrJCo8mWWWKqq8AwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAN9SLzMtNN4iwWxEA4Gr/BsnWhVW6kRJvAAAAAElFTkSuQmCC" alt="" /></p>
+
+<h1>incsearch (is)</h1>
+
+<p>在搜索字符串时，会高亮显示当前匹配的位置</p>
+
+<p><img src="data:image/png;base64,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" alt="" /></p>
+
+<h1>list</h1>
+
+<p>显示Tab和分行符，处理log的时候很有用</p>
+
+<p><img src="data:image/png;base64,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" alt="" /></p>
+
+<h1>updatecount (uc)</h1>
+
+<p>设置输入多少个字符之后，会刷新swap文件</p>
+
+<h1>updatetime (ut)</h1>
+
+<p>设置多长时间后，会刷新swap文件</p>
+
+<h1>visaulbell (vb)</h1>
+
+<p>一般情况下，如果键入错误的命令或者光标到达一行结尾，都会发出声音作为提示。如果set vb，则这些情况就不会有声音，而是用视觉上的提醒，就是屏幕闪一下</p>
+
+<p>参考资料：</p>
+
+<p><a href="http://vimdoc.sourceforge.net/htmldoc/quickref.html#option-list">http://vimdoc.sourceforge.net/htmldoc/quickref.html#option-list</a></p>
+
+<p>&mdash;EOF&mdash;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[C++虚函数的实现]]></title>
+    <link href="http://quxiao.github.io/blog/2012/11/01/virtual-function-implement-in-cpp/"/>
+    <updated>2012-11-01T22:47:02+08:00</updated>
+    <id>http://quxiao.github.io/blog/2012/11/01/virtual-function-implement-in-cpp</id>
+    <content type="html"><![CDATA[<p>前段时间公司进行校招，大家那段时间也顺带看看一些面试题目。其中一道经典的题目就是C++中的虚函数是如何实现的？要是直接问我，我还真不记得了。（现在让我再去面试，肯定完蛋）</p>
+
+<p>所谓虚函数，就是函数声明前使用virtual关键字，作用是当基类指针指向子类对象时，通过基类指针调用虚函数，运行的就是实际子类的对应函数，而不是基类的。这种特性在像Java这种“纯”面向对象的语言中，是默认实现的，在C++中就要进行显示声明。如果不显示声明的话，运行的就会是基类的函数。</p>
+
+<p>C++中的虚函数是通过虚表（virtual table）实现的。声明类时，编译器会放一个隐藏的指针，这个指针放在了类的最开始位置，并且指向的就是虚表，虚表里面存放着这个类声明的各个虚函数的地址。假设如果有基类Base：</p>
+
+<pre><code>class Base {
+    virtual void f1();
+    virtual void f2();
+}
+</code></pre>
+
+<p>那么Base类的虚表的结构就是：</p>
+
+<pre><code>Base
+    __vptr    --&gt;    Base::f1(), Base::f2()
+    .....（其他成员）
+</code></pre>
+
+<p>假设还有类D：</p>
+
+<pre><code>class D: public Base {
+    virtual void f1();
+}
+</code></pre>
+
+<p>那么D的虚表就是下面这个样子的：</p>
+
+<pre><code>D
+    __vptr    --&gt;    D::f1(), Base::f2()
+    .....
+</code></pre>
+
+<p>这样的话，当Base类的指针p_base= D()并且p_base->f1()的时候，调用的就是D的f1()了。注意，因为Base和D的虚表的结构一致，所以才能保证调用了正确的函数。</p>
+
+<p>那么，如果是多重继承，即有多个基类时，结果如何呢？C++中，一个类的每一个基类，都有一个单独的虚表与之对应。假设类结构如下：</p>
+
+<pre><code>class B1 {
+    virtual void f1();
+    virtual void f3();
+}
+
+class B2 {
+    virtual void f2();
+    virtual void f3();
+}
+
+class D: public B1, public B2 {
+    virtual void f1();
+    virtual void f2();
+}
+</code></pre>
+
+<p>那么D类的虚表结构就是：</p>
+
+<pre><code>D
+    __vptr  --&gt; D::f1(), B1::f3()
+            --&gt; D::f2(), B2::f3()
+    .....
+</code></pre>
+
+<p>还有种情况，那就是在多重继承的情况下，子类声明了不属于任何父类的虚函数。例如：</p>
+
+<pre><code>class B1 {
+    virtual void f1();
+    virtual void f3();
+}
+
+class B2 {
+    virtual void f2();
+    virtual void f3();
+}
+
+class D: public B1, public B2 {
+    virtual void f1();
+    virtual void f2();
+    virtual void f4();
+}
+</code></pre>
+
+<p>子类声明的不属于任何父类的虚函数地址就会继续向第一个虚表的结尾放。</p>
+
+<pre><code>D
+    __vptr  --&gt; D::f1(), B1::f3(), D::f4()
+            --&gt; D::f2(), B2::f3()
+    .....
+</code></pre>
+
+<p>这样的话，不管你用什么类的声明，声明类的虚表结构和实际类的就会是一致的（准确的说应该是父类虚表的结构一定是子类对应的虚表的前缀），这样就实现了基类指针调用子类函数的功能。</p>
+
+<p>参考文章：</p>
+
+<p><a href="http://blog.csdn.net/haoel/article/details/1948051">C++ 虚函数表解析</a></p>
+
+<p><a href="http://www.learncpp.com/cpp-tutorial/125-the-virtual-table/">The virtual table</a></p>
+
+<p><a href="http://coldattic.info/shvedsky/s/blogs/a-foo-walks-into-a-bar/posts/3">Busting C++ myths: virtual function calls are slow</a></p>
+
+<p>&mdash;EOF&mdash;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[马太效应 and 长尾理论]]></title>
+    <link href="http://quxiao.github.io/blog/2012/09/26/matthew-effect-and-long-tail/"/>
+    <updated>2012-09-26T21:46:31+08:00</updated>
+    <id>http://quxiao.github.io/blog/2012/09/26/matthew-effect-and-long-tail</id>
+    <content type="html"><![CDATA[<p>平常准备没事记录下与专业相关的概念，再加上一些例子。让看的人更容易理解，也让自己更容易记忆和消化。</p>
+
+<h1>马太效应</h1>
+
+<p>这个名字来源于《圣经 马太福音》中的一句话：</p>
+
+<blockquote><p>“For to all those who have, more will be given, and they will have an abundance; but from those who have nothing, even what they have will be taken away.”</p></blockquote>
+
+<p>“凡有的，还要加给他叫他多余；没有的，连他所有的也要夺过来。”</p>
+
+<p><strong>马达效应就是指好的越好，差的越差，是一种两级分化的现象。</strong></p>
+
+<p>财富的分配就会遇到这种问题，有钱的人，更容易获取各种资源，因此可以凭借这些资源获得更多的钱；没钱的人，很难获取资源，也就很难有赚钱的机会，也就很难变得有钱。</p>
+
+<p>好吧，社会问题就不说了。互联网中，也有很多这样的例子。</p>
+
+<p>比如排序问题，可以想象成一个网站对各种商品进行排序的问题。需要根据商品的权重大小来对商品排序，商品的权重除了与自身的属性有关外，还跟在页面上面的表现有关，比如展现次数、点击次数、下单次数。这样，问题就出现了，一开始由于自身属性好而排在前面的商品，它的展现数据、点击数和下单数从概率上就会比排在后面的商品要好。也就是一开始排在前面的商品，它的权重就会越来越大，而一开始在后面的商品，与前面商品的权重差距就会越来越大，这就出现了马太效应。后续可能要加入时间热度、或者轮流展现的技术来消除这种马太效应。</p>
+
+<h1>长尾理论</h1>
+
+<p><a href="http://qxavier.me/wp-content/uploads/2012/09/rawtail.jpg"><img src="http://qxavier.me/wp-content/uploads/2012/09/rawtail.jpg" alt="" /></a>这是一种与“二八定律”相悖的理论。“二八定律”是指80%的价值存在于总体的20%里面，例如80%的财富掌握在20%的人手中；80%程序运行时间被20%的代码所占用。但是，长尾理论是指，有些情况下，少部分个体的单位价值比较大，绝大部分个体的单位价值都比较少。例如，大公司就那么几家，而中小公司就有很多很多。这个似乎是符合“二八定律”的，但是，如果符合“二八定律”，那么少部分个体的价值之和应该占据总体价值的大多数。而实际情况是，<strong>那些单位价值较少的许多个体的价值之和，占了总体价值的大多数</strong>。</p>
+
+<p>Google就是利用长尾理论的公司之一，它的AdSense产品的用户就是不计其数的中小网站和个人用户上面，而没有面向那些看起来价值更大的大公司，结果AdSense占据了其收入的半壁江山。</p>
+
+<p>亚马逊副经理史蒂夫·凯塞尔也说过：</p>
+
+<blockquote><p>“如果我有10万种书，哪怕一次仅卖掉一本，10年后加起来它们的销售就会超过最新出版的《哈利·波特》。”</p></blockquote>
+
+<p>但这长尾理论有个前提，那就是成本足够低。就好像出版书籍的成本足够低了，我才可以接受一本书只卖出去几本，因为就算只卖出去几本，我也是赚钱的。怪不得电子书现在这么火，一旦谁占领了市场，大概就是稳赚不赔了，我比较看好Amazon。</p>
+
+<p>&mdash;EOF&mdash;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[博客搬家了]]></title>
+    <link href="http://quxiao.github.io/blog/2012/09/19/blog-has-moved/"/>
+    <updated>2012-09-19T21:44:25+08:00</updated>
+    <id>http://quxiao.github.io/blog/2012/09/19/blog-has-moved</id>
+    <content type="html"><![CDATA[<p>博客搬家了，从原来<a href="http://hugege.com/">胡戈戈</a>的虚拟主机搬到了<a href="http://hellohostnet.com">Hello,Host!</a>的VPS上面，域名也从qxavier.info换成了<a href="http://qxavier.me">qxavier.me</a>了。给博客搬家不是因为主机的质量或者服务问题，对于胡戈戈的服务态度以及虚拟主机的质量，我感到很满意。每次我有问题，他都能及时的响应，给我满意的答复。博客搬家的主要原因是自己想“折腾”、或者说是虚拟主机的限制有些多，除了写博客，其他事情基本做不了，就算在上面搭一个很简单的PHP程序，也很费劲。于是自己就将眼光投向了自由度更大、费用也还算合理的VPS。</p>
+
+<p>自由度大了，但你也要因此而付出代价，那就是在博客搬家途中会踩到各种各样的“坑”。在这也整理一下，给大家提供些参考。</p>
+
+<h1>域名解析</h1>
+
+<p>.me等“非主流”域名，需要第三方解析服务，例如dnspod.cn，可以参考<a href="http://hellohostnet.com/wiki/doku.php?id=dnspod_%E8%AE%BE%E7%BD%AE%E6%95%99%E7%A8%8B">这里</a>。这也是防止域名或者DNS服务器被墙的一个措施。</p>
+
+<h1>FTP服务安装</h1>
+
+<p>wordpress在安装插件或者上传图片时，需要FTP服务。因为操作系统用的是ubuntu，所以安装软件apt-get install一下就可以了，安装的是vsftpd。安装过程很简单，但关键是修改配置。除了以下配置：</p>
+
+<pre><code># Uncomment this to allow local users to log in.
+local_enable=YES
+#
+# Uncomment this to enable any form of FTP write command.
+write_enable=YES
+</code></pre>
+
+<p>还需要特别注意掩码的设置，之前就是因为忘了设置，结果在上面耗了几乎两天的时间！</p>
+
+<pre><code># Default umask for local users is 077. You may wish to change this to 022,
+# if your users expect that (022 is used by most other ftpd's)
+local_umask=022
+</code></pre>
+
+<h1>用户权限设置</h1>
+
+<p>一般VPS直接就给我们root帐号用了，但是如果没有其他帐号，vsftpd是无法使用的，因为它不支持root登录，所以之前还得创建一个用户。另外，如果是将wordpress文件夹放在该用户下，还需要将里面所有文件的所有者和所有组从root改为这个用户。</p>
+
+<h1>Apache开启rewrite_mod模块</h1>
+
+<p>wordpress的文章url是虚拟的，依赖于apache的rewrite_mod模块，所以必须开启该模块。</p>
+
+<h1>数据库导入</h1>
+
+<p>之前以为很困难，其实比较简单。因为换了域名，所以数据库中的出现域名的地方需要替换成新的域名，只要dump处理，替换一下，然后导入到新的数据库就行了。</p>
+
+<p>&mdash;EOF&mdash;</p>
+]]></content>
+  </entry>
+  
+</feed>

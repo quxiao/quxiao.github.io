@@ -1,0 +1,272 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>32位？64位？ - Xavier Blog</title>
+  <meta name="author" content="Xavier">
+
+  
+  <meta name="description" content="前两天室友买了台Dell Inspiron 14R，装机的时候向我要Win7 64位的安装盘，我略感惊讶，原来笔记本也普及64位了，我还停留在Windows XP的3.2G的“美好”回忆里。借此机会，正好看看平常所说的“32位”“64位”到底有什么不同。 到底是哪个地方的“位”？ 本质上， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://quxiao.github.io/blog/2012/07/26/32e4bd8defbc9f64e4bd8defbc9f">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Xavier Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Xavier Blog</a></h1>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:quxiao.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">32位？64位？</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-07-26T22:46:20+08:00" pubdate data-updated="true">Jul 26<span>th</span>, 2012</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>前两天室友买了台Dell Inspiron 14R，装机的时候向我要Win7 64位的安装盘，我略感惊讶，原来笔记本也普及64位了，我还停留在Windows XP的3.2G的“美好”回忆里。借此机会，正好看看平常所说的“32位”“64位”到底有什么不同。</p>
+
+<h1>到底是哪个地方的“位”？</h1>
+
+<p>本质上，讲的就是一个地方的“位”——CPU，也就是CPU进行一次运算支持的数据位数，或者是CPU一条基本指令的位数。</p>
+
+<p>CPU的位数决定了运算的范围或者说是精确程度，也决定了计算机内存的寻址范围。</p>
+
+<p>说到数字的精度，下面是IEEE754的标准中，32位浮点数（float）和64位浮点数（double）在内存中分别是如下形式：</p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2012/07/image.png"><img src="http://www.qxavier.me/wp-content/uploads/2012/07/image_thumb.png" alt="image" /></a></p>
+
+<p><img src="http://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/IEEE_754_Double_Floating_Point_Format.svg/618px-IEEE_754_Double_Floating_Point_Format.svg.png" alt="IEEE 754 Double Floating Point Format.svg" /></p>
+
+<p>其中，</p>
+
+<p>float的计算方式为<a href="http://www.qxavier.me/wp-content/uploads/2012/07/image1.png"><img src="http://www.qxavier.me/wp-content/uploads/2012/07/image_thumb1.png" alt="image" /></a>，数值范围为1.18 × 10−38 ～ 3.4 × 1038 。</p>
+
+<p>double的计算方式为<a href="http://www.qxavier.me/wp-content/uploads/2012/07/image2.png"><img src="http://www.qxavier.me/wp-content/uploads/2012/07/image_thumb2.png" alt="image" /></a>，数值范围为2.2250738585072014 x 10−308 ～ 1.7976931348623157 x 10308</p>
+
+<p>大家也可以看一下斯坦福大学的公开课《<a href="http://v.163.com/special/opencourse/paradigms.html">范式编程</a>》，前2节课讲的就是各种基础类型是如何在内存中存储的。</p>
+
+<p>至于寻址范围，理论上32位的寻址范围是2<sup>32</sup>，64位的就是2<sup>64</sup>。但实际用户能用到的并没有那么多，32位机器也就3.4G左右可供用户使用，而64位机器一般是支持100～200G左右的内存，64位Windows 7专业版支持最大192G。</p>
+
+<h1>CPU –> OS –> Application</h1>
+
+<p><img src="http://www.techsupportalert.com/files/images/pc_freeware/64bit-software/32-bit-64-bit-explained-442-322.jpg" alt="Processor, OS and application hierarchy" /></p>
+
+<p>CPU、OS和Application，是一个前者决定后者的关系。是否可以运行64位的应用程序，得看OS是不是64位的；能不能安装64位的OS，得看CPU（以前主板等硬件）是否是支持64位的。下表可以清晰的各种情况的CPU、OS和Application是否兼容的情况：</p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2012/07/image3.png"><img src="http://www.qxavier.me/wp-content/uploads/2012/07/image_thumb3.png" alt="image" /></a></p>
+
+<p>&mdash;EOF&mdash;</p>
+
+<p><a href="http://www.techsupportalert.com/content/32-bit-and-64-bit-explained.htm">http://www.techsupportalert.com/content/32-bit-and-64-bit-explained.htm</a></p>
+
+<p><a href="http://en.wikipedia.org/wiki/IEEE_floating_point">http://en.wikipedia.org/wiki/IEEE_floating_point</a></p>
+
+<p><a href="http://v.163.com/special/opencourse/paradigms.html">http://v.163.com/special/opencourse/paradigms.html</a></p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">admin</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-07-26T22:46:20+08:00" pubdate data-updated="true">Jul 26<span>th</span>, 2012</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/digest/'>Digest</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2012/05/13/add-startup-programe-with-expect/" title="Previous Post: 利用Expect添加开机启动程序">&laquo; 利用Expect添加开机启动程序</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2012/08/28/rde5ba94e8afa5e5838fqae4b880e6a0b7e6809de88083/" title="Next Post: RD应该像QA一样思考">RD应该像QA一样思考 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/01/31/test/">Test</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/30/information_retrievial_in_practice_note_architecture/">《Information Retrieval in Practice》笔记——整体架构</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/22/presentation-based-development/">“基于演示的开发”</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/quxiao">@quxiao</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'quxiao',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Xavier -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

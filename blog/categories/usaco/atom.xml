@@ -1,0 +1,650 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: USACO | Xavier Blog]]></title>
+  <link href="http://quxiao.github.io/blog/categories/usaco/atom.xml" rel="self"/>
+  <link href="http://quxiao.github.io/"/>
+  <updated>2014-01-31T11:56:48+08:00</updated>
+  <id>http://quxiao.github.io/</id>
+  <author>
+    <name><![CDATA[Xavier]]></name>
+    <email><![CDATA[quxiao86@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[USACO Section 4.1 Cryptcowgraphy]]></title>
+    <link href="http://quxiao.github.io/blog/2011/07/15/usaco-section-4-1-cryptcowgraphy/"/>
+    <updated>2011-07-15T00:00:54+08:00</updated>
+    <id>http://quxiao.github.io/blog/2011/07/15/usaco-section-4-1-cryptcowgraphy</id>
+    <content type="html"><![CDATA[<p>题目大意：</p>
+
+<p>一种字符串加密算法，即在原有字符串的任意位置插入C、O、W，C的下标 &lt; O的下标 &lt; W的下标，将C、O之间和O、W之间子串交换，得到新的字符串。给你一个字符串，问其是否是对字符串Begin the Escape execution at the Break of Dawn经过多次加密过后的字符串。</p>
+
+<p>我的思路：</p>
+
+<p>首先，原字符串中并没有COW三个字母，所以不用判断COW是属于原先的字符还是加密时加上的字符，这样简单很多。另外，对于已加密的字符串，只要找到任意一组COW，交换CO和OW之间的子串，再把COW删掉，得到的字符串就是可能的一种原字符串，再这样递归下去，直到不可能的情况或者字符串变为Begin the Escape execution at the Break of Dawn。</p>
+
+<p>在搜索时，有几种减枝可以排除目前的字符串：</p>
+
+<ul>
+<li><p>如果目前字符串的长度不等于原串长度+3×k，排除。（其实只需在开始时判断一次即可）</p></li>
+<li><p>如果目前字符串中COW三个字母的数目不相等，排除。（也可只判断一次）</p></li>
+<li><p>如果任意COW字符之间的子串，没有出现在原串中，排除。（这个减枝很重要，但是没想到，不应该啊）</p></li>
+<li><p>字符串中，所有出现COW的地方，C应该排在第一个，W应该排在最后一个。否则，无法还原成原字符串。</p></li>
+<li><p>用hash来判断目前字符串之前有没有出现过。（hash表的大小选择很关键，选的太大，可能会超时，选的太小，可能会WA）</p></li>
+</ul>
+
+
+<p>另外，枚举COW时的搜索方式也很重要。如果每一层都会从i到len，像这样：</p>
+
+<pre><code>    for (i = 0; i &lt; l; i ++)
+    {
+        if ( str[i] != 'C' )
+            continue;
+        for (j = i + 1; j &lt; l; j ++)
+        {
+            if ( str[j] != 'O' )
+                continue;
+            for (k = j + 1; k &lt; l; k ++)
+            {
+                if ( str[k] != 'W' )
+                    continue;
+                if ( CheckStr( RestoreString(str, i, j, k)) )
+                    return true;
+            }
+        }
+    }
+</code></pre>
+
+<p>很容易就超时了。</p>
+
+<p>但是，如果先把所有COW的下标先记下来，再在每一层枚举它们的下标，像这样：</p>
+
+<pre><code>    for (i = 0; i &lt; cNum; i ++)
+    {
+        for (j = 0; j &lt; oNum; j ++)
+        {
+            for (k = 0; k &lt; wNum; k ++)
+            {
+                if ( cIdx[i] &lt; oIdx[j] &amp;&amp; oIdx[j] &lt; wIdx[k] )
+                {
+                    if ( CheckStr( RestoreString(str, cIdx[i], oIdx[j], wIdx[k])) )
+                        return true;
+                }
+            }
+        }
+    }
+</code></pre>
+
+<p>就会快很多。</p>
+
+<p>好了，废话不多说，直接上代码：</p>
+
+<pre><code>unsigned int elf_hash(string str)
+{
+    unsigned long h = 0, g, i, l;
+    l = str.length();
+    for (i = 0; i &lt; l; i ++)
+    {
+        h = (h &lt;&lt; 4) + str[i];
+        if (g = h &amp; 0xf0000000l)
+            h ^= g &gt;&gt; 24;
+        h &amp;= ~g;
+    }
+    return h % HASH_NUM;
+}
+
+//COW的数目是否相等，以及数目是多少
+//其实跟CheckStr中的判断有重复，还可以优化！
+int CheckCOWNum (string str)
+{
+    int i, l;
+    int nC, nO, nW;
+    nC= nO = nW = 0;
+    l = str.length();
+
+    for (i = 0; i &lt; l; i ++)
+    {
+        if ( str[i] == 'C' )
+            ++ nC;
+        else if ( str[i] == 'O' )
+        {
+            ++ nO;
+        }
+        else if ( str[i] == 'W' )
+        {
+            ++ nW;
+        }
+    }
+    if ( nC == nO &amp;&amp; nO == nW )
+        return nC;
+    else
+        return -1;
+}
+
+//还原加密的字符串
+//idx1 &lt; idx2 &lt; idx3
+string RestoreString (string now, int idx1, int idx2, int idx3)
+{
+    string pre = "";
+    int i, l;
+    l = now.length();
+    pre = now.substr(0, idx1);
+    pre += now.substr(idx2+1, idx3-idx2-1);
+    pre += now.substr(idx1+1, idx2-idx1-1);
+    pre += now.substr(idx3+1, l-idx3-1);
+
+    return pre;
+}
+
+bool CheckBetweenCOW (string str)
+{
+    int lastIdx;
+    int i, l;
+    lastIdx = -1;
+    l = str.length();
+    for (i = 0; i &lt; l; i ++)
+    {
+        if ( str[i] == 'C' || str[i] == 'O' || str[i] == 'W' )
+        {
+            if ( finalStr.find(str.substr(lastIdx + 1, i - lastIdx - 1)) == string::npos )
+            {
+                return false;
+            }
+            lastIdx = i;
+        }
+    }
+    return true;
+}
+
+bool CheckStr (string str)
+{
+    if ( str == finalStr )
+        return true;
+
+    int hash;
+    hash = elf_hash(str);
+    if ( hashVisited[hash] )
+        return false;
+    hashVisited[hash] = true;
+
+    int i, j, k, l;
+    int cNum, oNum, wNum, allNum;
+    int cIdx[NUM], oIdx[NUM], wIdx[NUM], allIdx[NUM];
+    cNum = oNum = wNum = allNum = 0;
+    l = str.length();
+
+    //记录C O W的下标
+    allIdx[allNum++] = -1;
+    for (i = 0; i &lt; l; i ++)
+    {
+        if ( str[i] == 'C' )
+        {
+            cIdx[cNum++] = i;
+            allIdx[allNum++] = i;
+        }
+        else if ( str[i] == 'O' )
+        {
+            oIdx[oNum++] = i;
+            allIdx[allNum++] = i;
+        }
+        else if ( str[i] == 'W' )
+        {
+            wIdx[wNum++] = i;
+            allIdx[allNum++] = i;
+        }
+    }
+    if ( allIdx[allNum-1] != l - 1 )
+        allIdx[allNum++] = l;
+
+    //所有出现COW的地方，C应该排在第一个，W应该排在最后一个。否则，无法还原成原字符串
+    if ( cNum )
+    {
+        if ( cIdx[0] &gt; oIdx[0] || cIdx[0] &gt; wIdx[0] )
+            return false;
+        if ( wIdx[wNum-1] &lt; cIdx[cNum-1] || wIdx[wNum-1] &lt; oIdx[oNum-1] )
+            return false;
+    }
+
+    //任意COW之间的子串都应该在原串中出现过
+    for (i = 0; i &lt; allNum-1; i ++)
+    {
+        if ( finalStr.find(str.substr(allIdx[i]+1, allIdx[i+1]-allIdx[i]-1)) == string::npos )
+            return false;
+    }
+
+    for (i = 0; i &lt; cNum; i ++)
+    {
+        for (j = 0; j &lt; oNum; j ++)
+        {
+            for (k = 0; k &lt; wNum; k ++)
+            {
+                if ( cIdx[i] &lt; oIdx[j] &amp;&amp; oIdx[j] &lt; wIdx[k] )
+                {
+                    if ( CheckStr( RestoreString(str, cIdx[i], oIdx[j], wIdx[k])) )
+                        return true;
+                }
+            }
+        }
+    }
+
+    //这样就会很慢。。。
+    //  for (i = 0; i &lt; l; i ++)
+    //  {
+    //      if ( str[i] != 'C' )
+    //          continue;
+    //      for (j = i + 1; j &lt; l; j ++)
+    //      {
+    //          if ( str[j] != 'O' )
+    //              continue;
+    //          for (k = j + 1; k &lt; l; k ++)
+    //          {
+    //              if ( str[k] != 'W' )
+    //                  continue;
+    //              if ( CheckStr( RestoreString(str, i, j, k)) )
+    //                  return true;
+    //          }
+    //      }
+    //  }
+
+    return false;
+}
+
+void Solve ()
+{
+    if ( (str.length() - finalStr.length()) % 3 != 0 )
+    {
+        printf("0 0\n");
+        return;
+    }
+
+    int nCOW = CheckCOWNum(str);
+    if ( nCOW == -1 || !CheckStr(str) )
+    {
+        printf("0 0\n");
+        return;
+    }
+    printf("1 %d\n", nCOW);
+}
+</code></pre>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[USACO Section 4.1 Fence Loops]]></title>
+    <link href="http://quxiao.github.io/blog/2011/07/05/usaco-section-4-1-fence-loops/"/>
+    <updated>2011-07-05T21:56:12+08:00</updated>
+    <id>http://quxiao.github.io/blog/2011/07/05/usaco-section-4-1-fence-loops</id>
+    <content type="html"><![CDATA[<p>题目大意：</p>
+
+<p>有N个栏杆，告诉你它们的长度以及它们各自的连接情况，求出围成的最短的封闭空间的周长。其中，1 &lt;= N &lt;= 100，栏杆长度Ls，1 &lt;= Ls &lt;= 255，每个栏杆至多与另外8跟栏杆相连。</p>
+
+<p>思路：</p>
+
+<p>就是在图中找最小环。因为N（即边数）最大为100，即使通过枚举每个点进行搜索，复杂度也不过为100×100，可以采用搜索。枚举每个栏杆的一端顶点，如果搜索到这根栏杆的另一端顶点，那么就意味着找到环了，更新答案。</p>
+
+<p>这题思路倒很简单，但是由于输入是以边为中心的，所以实现起来稍稍有点困难。我将每个栏杆的两个顶点定义为s端和e端，如果从某栏杆a的s端出发，那么枚举与a的e端相连的栏杆b，再判断是b的哪一端连接着a，枚举b的另一端，以此类推。</p>
+
+<p>还有一些减枝和优化，比如：</p>
+
+<ol>
+<li><p> 收到<a href="http://www.qxavier.me/2011/07/01/usaco-section-4-1-fence-rails/">上一题</a>的启发，可以限定搜索深度，因为组成环的边数少，周长小的概率就比较大。</p></li>
+<li><p> 当前的长度和大于等于目前的答案，退出。</p></li>
+<li><p> 当前栏杆之前访问过，退出。</p></li>
+<li><p> 只需枚举栏杆的一端即可，因为s->e和e->s的效果是一样的。</p></li>
+</ol>
+
+
+<p>看了USACO的官方分析，貌似处理的比较复杂，先把输入转化成标准的图，再对于每一条边，先删除它，然后用Dijkstras算法求最短路。这种方案相交于我的思路，没有太多优越性，但是编码的复杂度却也高。-_&ndash;</p>
+
+<p>关键代码如下：</p>
+
+<pre><code>const int N = 101;
+
+int n;
+int len[N];
+vector&lt;int&gt; childSeg[N][2];     //[0] s end; [1] e end
+short int connect[N][N];        //connect[a][b] = 0/1 means the s/e end of a connects with seg b
+int curMax = 1&lt;&lt;20;
+int visited[N];
+
+/*
+seg为负，表示当前节点为seg的s端
+seg为正，表示当前节点为seg的e端
+*/
+void Search(int seg/*negtive s end; positive e end*/, int curLen, int destSeg, int depth)
+{
+    if ( seg == destSeg &amp;&amp; curLen != 0)
+    {
+        if ( curLen &lt; curMax )
+            curMax = curLen;
+        return;
+    }
+    if ( !depth )
+        return;
+    if ( curLen &gt;= curMax )
+        return;
+
+    int segId = abs(seg);
+    if ( visited[segId] )
+        return;
+    visited[segId] = 1;
+    int childSegId;
+    //whichEnd, segId的另一端
+    int whichEnd = 0;
+    if ( seg &lt; 0 )
+        whichEnd = 1;
+    int i;
+    for (i = 0; i &lt; childSeg[segId][whichEnd].size(); i ++)
+    {
+        childSegId = childSeg[segId][whichEnd][i];
+        //从childSegId的另一端继续搜索
+        if ( connect[childSegId][segId] == 0 )
+        {
+            Search(childSegId * -1, curLen + len[segId], destSeg, depth-1);
+        }
+        else if ( connect[childSegId][segId] == 1 )
+        {
+            Search(childSegId, curLen + len[segId], destSeg, depth-1);
+        }
+    }
+    visited[segId] = 0;
+}
+
+void Solve ()
+{
+    int i, j;
+    for (i = 3; i &lt;= n; i ++)
+    {
+        for (j = 1; j &lt;= n; j ++)
+        {
+            Search(j, 0, j, i);
+//          不需要枚举另一端，因为s-&gt;e和e-&gt;s的效果是一样的
+//          Search(-1*j, 0, -1*j, i);
+        }
+    }
+    printf("%d\n", curMax);
+}
+</code></pre>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[USACO Section 4.1 Fence Rails]]></title>
+    <link href="http://quxiao.github.io/blog/2011/07/01/usaco-section-4-1-fence-rails/"/>
+    <updated>2011-07-01T14:01:32+08:00</updated>
+    <id>http://quxiao.github.io/blog/2011/07/01/usaco-section-4-1-fence-rails</id>
+    <content type="html"><![CDATA[<p>题目大意：</p>
+
+<p>给你N(1 &lt;= N &lt;= 50)段长度不一的木材，另外有R(1 &lt;= R &lt;= 1023)条栏杆需要修复，1 &lt;= ri &lt;= 128。问以这些木材为原材料，能够做出最多多少块栏杆？（做出的栏杆需要是完整的，不能拼接）</p>
+
+<p>思路：</p>
+
+<p>这是一道背包问题，不过，这是高维背包。是把R个栏杆放入N段木材中，传统背包的DP解法在这里貌似就无能为力了，看了hint才知道，原来要用到DFSID算法，也就是限制搜索深度的DFS。是一种类似BFS的求解过程，但是却用DFS来实现的算法。简单的说，每次枚举搜索深度，进行DFS，如果未得到解，则继续增加（减少）搜索深度，直至找到解。</p>
+
+<p>搜索的过程中，有一些重要的减枝：</p>
+
+<ol>
+<li><p> <strong>如果可以组成k块栏杆，那么最小的前k块栏杆一定是其中的一个解。</strong>因为就算存在不连续的解，我们也可以将较大的栏杆替换成较小的栏杆，最终转化为最小的k块栏杆。</p></li>
+<li><p> 根据R和ri ，可以看出栏杆的长度有很多都是<strong>重复</strong>的。将木材和栏杆排序，搜索时记录下当前的栏杆是选择哪块木材。搜索到当前栏杆i时，如果发现与上一个栏杆i+1的长度相同，则我们可以从i+1块栏杆所选择的那块木材开始搜。</p></li>
+<li><p> 假设前k块栏杆是题目的解，那么在这种情况下最大浪费掉的木材maxWaste就是sumBoard – sumRail[k]。在搜索过程中，如果发现某块木材的剩余量比最小的栏杆都小，就可以把他计入curWaste，如果发现curWaste > maxWaste，那么肯定无解。</p></li>
+<li><p> 我们还可以将R的范围减小，如果发现sumRail[k] &lt;= sumBoard并且sumRail[k+1] > sumBoard，那么我们可以将R减小到k。</p></li>
+</ol>
+
+
+<p>嗯，差不多就是这些。还有一个减枝，就是如果发现栏杆长度比最大的木材还要长的话，那在输入的时候就略去它（貌似减枝效果不明显-_-）。我们从（经过优化过的）R开始搜索，假设前k个栏杆就是解，对于每个栏杆，枚举木材，基本上就是这么个思路。做完这题的最大感受就是：要善于挖掘题目中的潜在信息。根据R和ri的关系，得知栏杆有许多重复的情况，以及如何推导出如果k为解，则前k个栏杆肯定能构成解，这就是真正的分析问题的能力了！</p>
+
+<p>以下是关键代码：</p>
+
+<pre><code>bool Search (int rIndex)
+{
+    if ( rIndex &lt; 0 )
+        return true;
+    int bound = 0;
+    //如果当前rail和上一个rail的长度相同，则从上一个rail选的board开始搜索
+    if ( rIndex &lt; r - 1 &amp;&amp; rail[rIndex] == rail[rIndex+1] )
+        bound = railSelect[rIndex+1];
+    int i;
+    bool ret = false;
+
+    for (i = bound; i &lt; n; i ++)
+    {
+        if ( board[i] &gt;= rail[rIndex] )
+        {
+            board[i] -= rail[rIndex];
+            railSelect[rIndex] = i;
+            if ( board[i] &lt; rail[0] )
+            {
+                curWaste += board[i];
+                //如果当前浪费的board大于最大允许的浪费量，则不选这个board
+                if ( curWaste &gt; maxWaste )
+                {
+                    curWaste -= board[i];
+                    board[i] += rail[rIndex];
+                    railSelect[i] = -1;
+                    continue;
+                }
+            }
+            ret = Search(rIndex - 1);
+            //恢复之前状态，顺序很重要！
+            if ( board[i] &lt; rail[0] )
+                curWaste -= board[i];
+            board[i] += rail[rIndex];
+            railSelect[rIndex] = -1;
+            if ( ret )
+                return true;
+        }
+    }
+
+    return false;
+}
+
+void Solve ()
+{
+    int i;
+    memset(railSelect, -1, sizeof(railSelect));
+    sort(rail, rail + r);
+    sort(board, board + n);
+
+    boardSum = 0;
+    for (i = 0; i &lt; n; i ++)
+        boardSum += board[i];
+    //找到可以优化的R
+    //用一个int表示前k个rail之和
+    railSum = 0;
+    for (i = 0; i &lt; r; i ++)
+    {
+        railSum += rail[i];
+        if ( railSum &gt; boardSum )
+        {
+            railSum -= rail[i];
+            break;
+        }
+    }
+
+    -- i;
+    for (; i &gt;= 0; i --)
+    {
+        curWaste = 0;
+        maxWaste = boardSum - railSum;
+        if ( Search(i) )
+        {
+            printf("%d\n", i+1);
+            return;
+        }
+        railSum -= rail[i];
+    }
+    printf("0\n");
+}
+</code></pre>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[USACO Section 4.1 Beef McNuggets]]></title>
+    <link href="http://quxiao.github.io/blog/2011/06/23/usaco-section-4-1-beef-mcnuggets/"/>
+    <updated>2011-06-23T14:58:11+08:00</updated>
+    <id>http://quxiao.github.io/blog/2011/06/23/usaco-section-4-1-beef-mcnuggets</id>
+    <content type="html"><![CDATA[<p>题目大意：有n（&lt;=10）个整数a1, a2, …, an（&lt;=256），问是否存在无法用a1～an的线性表达式（k1a1 + k2a2 + … + knan）组成的数，如果有，其中最大的数是多少？（这个数的上限为2,000,000,000！）</p>
+
+<p>思路：本想可以用简单的DP来实现，但一看到2,000,000,000的上限，放弃了DP的想法，结果好几天都没有思路。如果这个上限可以下降的足够小，那该多好！上网查了下资料以及问了下周围同学，得到一个结论：a1~an所无法组成的最大数的上限可以为其中最大两个数的最小公倍数！这样的话，题目的上限就可以一下子缩小到256×256了！DP就变得可行了。</p>
+
+<p>其实，完整的证明我也暂时不能完全理解，这里先给出只有两个数的情况。</p>
+
+<p>当有两个数a1和a2，a1和a2互质，可以证明无法用他们表达的数的上限为a1×a2，即大于a1×a2的数都可以表示成k1×a1+k2×a2。</p>
+
+<p>即，对于任意正整数x，有：</p>
+
+<pre><code>a1*a2 + x = k1*a1 + k2*a2
+
+=&gt;  (a2 - k1)*a1 + x = k2*a1
+</code></pre>
+
+<p>因为k1任意，所以a2-k1也任意，将(a2-k1)<em>a1对a2取模，因为a1和a2互质，所以余数必然在0～a2-1的范围内，设为x’。另外，因为x也是任意的，所以我们将x表示成k</em>a2-x’。这样，等式左半边就可以被a2整数，等式得证。</p>
+
+<p>再一次意识到，数学对于计算机科学来说是多么的重要！</p>
+
+<p>好！上限确定下来之后，剩下的就是简单的DP了，以下是关键代码：</p>
+
+<pre><code>void Solve ()
+{
+     int i, j, bound, gcdNum;
+
+     gcdNum = box[0];
+     for (i = 1; i &lt; n; i ++)
+          gcdNum = gcd(gcdNum, box[i]);
+     if ( gcdNum != 1 )
+     {
+          printf("0\n");
+          return;
+     }
+
+     canMake[0] = 1;
+     sort(box, box+n);
+     bound = box[n-1] * box[n-1];
+     for (i = 0; i &lt; bound; i ++)
+     {
+          if ( ! canMake[i] )
+               continue;
+          for (j = 0; j &lt; n; j ++)
+          {
+               if ( i + box[j] &lt; bound )
+                    canMake[i+box[j]] = 1;
+          }
+     }
+
+     for (i = bound-1; i &gt;= 0; i --)
+     {
+          if ( !canMake[i] )
+          {
+               printf("%d\n", i);
+               return;
+          }
+     }
+     printf("0\n");
+}
+</code></pre>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[USACO Section 3.4 Raucous Rockers]]></title>
+    <link href="http://quxiao.github.io/blog/2011/05/31/usaco-section-3-4-raucous-rockers/"/>
+    <updated>2011-05-31T10:52:29+08:00</updated>
+    <id>http://quxiao.github.io/blog/2011/05/31/usaco-section-3-4-raucous-rockers</id>
+    <content type="html"><![CDATA[<p>题目大意：有N(&lt;=20)首歌，打算放在M(&lt;=20)张CD中，每张CD可存储T(&lt;=20)分钟的音乐，给定每首歌的时长，问如何将歌曲按照日期（也就是输入）的顺序，存在这M张CD中，并且每首歌不可以分开存在多张CD上，使得存储的歌曲的数目最多。</p>
+
+<p>来看给的样例：</p>
+
+<pre><code>4 5 2
+4 3 4 2
+</code></pre>
+
+<p>答案是3，可以直接看出，存放的方案是将第1首4分钟的歌存入第1张CD，然后将第2首3分钟和第4首2分钟的歌存入第2张CD。</p>
+
+<p>思路：</p>
+
+<pre><code>一看到题，就冲动的想到搜索。后来理智还是打败了冲动，20层的搜索还是有些接受不了。于是试着看这题能不能DP。DP的关键就是能否准确的记录子问题，我们来想一想子问题应该如何表示。很自然的，子问题可以表示为：前n首歌考虑放入前m张CD，所能放入的最大歌曲数。然后我们就可以将问题逐渐扩展，直至N、M的规模。但是，子问题如何扩展呢？那就是将[n][m]的情况下，考虑第n+1首歌。如果不放这首歌，就转化为[n+1][m]；如果放这首歌，可以分两种情况：将第n+1首歌放在第m张CD上，将第n+1首歌放在第m+1张CD上。那怎么判断第n+1首歌可以放入第m张CD上呢？因此，还需要一个维度，那就是在[n][m]的规模下，第m张CD还剩余的时长。最后，子问题就可以表示成如下的形式：
+</code></pre>
+
+<p><code>maxSong[songNum][diskNum][remain]</code></p>
+
+<ul>
+<li><p>songNum表示已考虑到的前songNum首歌</p></li>
+<li><p>diskNum表示已考虑到的前diskNum张CD</p></li>
+<li><p>remain表示在第diskNum张CD上剩余的时长</p></li>
+</ul>
+
+
+<p><code>maxSong[songNum][diskNum][remain]</code>（假设值为n）可以扩展为以下状态：</p>
+
+<ol>
+<li><p> <code>maxSong[songNum+1][diskNum][remain]</code>( = n ) 不放第songNum+1首歌</p></li>
+<li><p> <code>maxSong[songNum+1][diskNum][remain-songTime[songNum+1]]</code>( = n+1 ) 将第songNum+1首歌放入第diskNum张CD</p></li>
+<li><p> <code>maxSong[songNum+1][diskNum+1][T-songTime[songNum+1]]</code>( = n + 1 ) 将第songNum+1首歌放入第diskNum+1张CD</p></li>
+</ol>
+
+
+<p>这样，按n、m和t的规模从小到大一次进行扩展，最终maxSong中最大的值即为答案。</p>
+
+<p>关键代码如下：</p>
+
+<pre><code>void Expand(int songNum, int diskNum, int remain)
+{
+     if ( maxSong[songNum][diskNum][remain] == -1 )
+           return;
+     if ( songNum == N &amp;&amp; diskNum == M )
+           return;
+     int curMax = maxSong[songNum][diskNum][remain];
+     if ( remain &gt;= songTime[songNum+1] )
+     {
+          maxSong[songNum+1][diskNum][remain-songTime[songNum+1]] =
+                max( maxSong[songNum+1][diskNum][remain-songTime[songNum+1]], curMax+1);
+     }
+     if ( T &gt;= songTime[songNum+1] )
+     {
+           maxSong[songNum+1][diskNum+1][T-songTime[songNum+1]] =
+                max( maxSong[songNum+1][diskNum+1][T-songTime[songNum+1]], curMax+1);
+     }
+     maxSong[songNum+1][diskNum][remain] = max( maxSong[songNum+1][diskNum][remain], curMax);
+}
+
+void Solve ()
+{
+     int i, j, k, ans;
+     ans = -1;
+     memset(maxSong, -1, sizeof(maxSong));
+     maxSong[0][0][0] = 0;
+     for (i = 0; i &lt;= M; i ++)
+     {
+           for (j = 0; j &lt;= N; j ++)
+           {
+                for (k = 0; k &lt;= T; k ++)
+                {
+                     Expand(j, i, k);
+                }
+           }
+     }
+
+     for (i = 0; i &lt;= M; i ++)
+     {
+           for (j = 0; j &lt;= N; j ++)
+           {
+                for (k = 0; k &lt;= T; k ++)
+                {
+                     if ( maxSong[j][i][k] &gt; ans )
+                     {
+                           ans = maxSong[j][i][k];
+                     }
+                }
+           }
+     }
+     printf("%d\n", ans);
+}
+</code></pre>
+]]></content>
+  </entry>
+  
+</feed>

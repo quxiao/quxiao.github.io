@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Tool | Xavier Blog]]></title>
+  <link href="http://quxiao.github.io/blog/categories/tool/atom.xml" rel="self"/>
+  <link href="http://quxiao.github.io/"/>
+  <updated>2014-01-31T11:56:48+08:00</updated>
+  <id>http://quxiao.github.io/</id>
+  <author>
+    <name><![CDATA[Xavier]]></name>
+    <email><![CDATA[quxiao86@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[一些Python图表工具]]></title>
+    <link href="http://quxiao.github.io/blog/2011/12/04/some_python_plotting_tools/"/>
+    <updated>2011-12-04T17:10:39+08:00</updated>
+    <id>http://quxiao.github.io/blog/2011/12/04/some_python_plotting_tools</id>
+    <content type="html"><![CDATA[<p>考虑到最近写毕业论文以及以后自己博客中的实验分析，绘制一些图表就变得在所难免，再加上最近对Python比较感兴趣，于是就找了写利用Python绘制图表的工具库。说实话，一找一大堆，挑了几个自己感觉不错的，作为候选。</p>
+
+<h1><a href="http://matplotlib.sourceforge.net/">matplotlib</a></h1>
+
+<p>matplotlib可谓是matlab的Python版本，可以绘制高质量的2D图表，例如柱状图，饼状图，散点图，以及很多我不知道科学图表。除了能以python script的形式编程，还能通过ipython shell来进行交互。另外，matplotlib不但能进行绘图，还能进行复杂的科学计算（通过 <a href="http://scipy.org/Numpy_Example_List_With_Doc">numpy</a>和<a href="http://matplotlib.sourceforge.net/api/mlab_api.html">matplotlib.mlab</a>）。如果之前熟悉matlab的话，应该能很快上手。    <br/>
+matplotlib很好很强大，图表又好看，就算对于一个搞科研的人来说，也是足够的。不过相应的代价就是学习曲线较陡，尤其是对于之前没有接触过matlab和python的人来说。</p>
+
+<h1><a href="https://bitbucket.org/lgs/pycha/wiki/Home">Pycha</a> (PYthon CHArts)</h1>
+
+<p>Pycha是一个基于<a href="http://www.cairographics.org/">Cairo</a>图形库的、轻量级、易于使用的python包。Pycha在大多数默认情况下能有很漂亮的外观，当然你也可以定制各种细节。它并不像matplotlib那样可以画出几乎所有的图形，只是提供了一些常用的图表类型。</p>
+
+<h1><a href="http://home.gna.org/pychart/">Pychart</a></h1>
+
+<p>也是一个轻量级的python图形库，支持线状图、柱状图、饼状图、范围图，以及Encapsulated Postscript, PDF, PNG, SVG 等多种格式。图表外观朴素不花哨，已经够用了。   <br/>
+有意思的是，官网上，作者还说自己写的这个图形库已经用在了自己发表的几篇论文里面了，还列举了一些与它类似的图形库并讲了他们的优缺点。再一查作者信息，果然是牛人，在HP实验室待过 ，05年去了google。</p>
+
+<p>另外，还有像<a href="http://linil.wordpress.com/2008/09/16/cairoplot-11/">CairoPlot</a>、<a href="http://www.advsofteng.com/product.html">ChartDirector for Python</a>等也是不错的选择。下面是这些图形库的柱状图例子，可以有个直观的感觉。总的来说，如果时间充裕或者今后后大量用到科学图表的话，matplotlib就是最好的选择了。如果就偶尔画一些简单的图形的话，上面介绍的都能基本满足需求，实在不行干脆直接用VISIO！</p>
+
+<p><strong>matplotlib</strong></p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/12/matplotlib.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/12/matplotlib.png" alt="" /></a></p>
+
+<p>//////////////////////////////////////////////////////////////</p>
+
+<p><strong>Pycha</strong></p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/12/pycha.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/12/pycha.png" alt="" />      <br/>
+</a></p>
+
+<p>//////////////////////////////////////////////////////////////</p>
+
+<p><strong>Pychart</strong></p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/12/pychart1.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/12/pychart1-1024x350.png" alt="" /></a></p>
+
+<p>//////////////////////////////////////////////////////////////</p>
+
+<p><strong>CairoPlot</strong></p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/12/cairoplot.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/12/cairoplot.png" alt="" /></a></p>
+
+<p>//////////////////////////////////////////////////////////////</p>
+
+<p><strong>ChartDirector for Python</strong></p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/12/ChartDirector.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/12/ChartDirector.png" alt="" /></a></p>
+
+<p>&mdash;EOF&mdash;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[在OJ判题模块中使用ActiveMQ]]></title>
+    <link href="http://quxiao.github.io/blog/2010/12/13/oj-sub-module-in-question-uses-activemq/"/>
+    <updated>2010-12-13T12:04:41+08:00</updated>
+    <id>http://quxiao.github.io/blog/2010/12/13/oj-sub-module-in-question-uses-activemq</id>
+    <content type="html"><![CDATA[<p>这两天在考虑如何在OJ中实现分布式判题，之前想到了JMS，但觉得不是很好入门。随后发现了<a href="http://activemq.apache.org/">ActiveMQ</a>这个东西，其实就是在JMS上面有包装了一层，但是使用起来很方便。于是就做了一个样例模拟程序，以验证其可行性和效率。下图是样例程序大致思想：</p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2010/12/image.png"><img src="http://www.qxavier.me/wp-content/uploads/2010/12/image_thumb.png" alt="image" /></a></p>
+
+<p>只要开启ActiveMQ的服务，Server和Client再做一些简单的配置，就可以共享ActiveMQ中的某一消息队列（比如图中的pending-queue）。Server程序无需管理Client Node，相应工作是由ActiveMQ来完成的。queue中的消息是具有事务性的，所以Client既不会获取重复的消息，也不会漏读消息（至少按目前的观察是这样的）。这样，就实现了Server和Client之间的异步消息传递，达到分布式的效果。</p>
+
+<p>样例程序的Server每隔1秒发送一个带有id的消息到pending queue；多个Client端从queue中读取消息，接着sleep一段时间。下图是样例程序的运行效果：</p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2010/12/activemq_sample_screen.jpg"><img src="http://www.qxavier.me/wp-content/uploads/2010/12/activemq_sample_screen_thumb.jpg" alt="activemq_sample_screen" /></a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Total Commander实用功能总结]]></title>
+    <link href="http://quxiao.github.io/blog/2010/10/24/total-commander-functional-summary/"/>
+    <updated>2010-10-24T14:42:36+08:00</updated>
+    <id>http://quxiao.github.io/blog/2010/10/24/total-commander-functional-summary</id>
+    <content type="html"><![CDATA[<p>用了TC很久了，要不是看了xbeta的<a href="http://xbeta.info/studytc">【TC学堂】</a>，现在还把TC当作有两个窗口的资源管理器用，粗看了一遍【TC学堂】之后，不禁感慨，TC真的很强大！以下是我觉得一些实用的功能：（一些功能需要插件支持）。当然，再好的工具还要看人怎么去使用，只有熟练掌握TC的操作，才能有效提高我们平时电脑办公的效率。</p>
+
+<p>功能</p>
+
+<p>说明</p>
+
+<p>目录跳转（Ctrl+d）</p>
+
+<p>通过ctrl+d加一个或几个字母的超快捷方式直接跳转到位</p>
+
+<p>访问历史（alt+↓）</p>
+
+<p>按下alt+↓，你会发现一个弹出菜单，列出了访问历史。直接点击其一，即可进入该目录</p>
+
+<p>预览（F3 / Ctrl+q）</p>
+
+<p>F3为弹出窗口显示文件内容，Ctrl+q则是在另一个窗口显示文件内容，再按一次则还原该窗口之前的内容</p>
+
+<p>文件展开（Ctrl+b）</p>
+
+<p>将当前目录下的所有的文件都不分层级的展示了出来</p>
+
+<p>添加文件注释（Ctrl+z）</p>
+
+<p>选中一个文件，按Ctrl+z，就可以输入注释信息</p>
+
+<p>切换磁盘（Alt+F1/F2）</p>
+
+<p>无论当前在何处，要切换到X盘，只要alt+F1 x即可，（F1为左窗口，F2为右窗口）</p>
+
+<p>压缩（Alt+F5）</p>
+
+<p>选中需压缩文件，通过Alt+F5，TC将压缩包生成到对面窗口</p>
+
+<p>复制文件至对面窗口（F5）</p>
+
+<p>移动文件至对面窗口（F6）</p>
+
+<p>文件搜索（Alt+F7）</p>
+
+<p>功能十分强大，这里就不展开了</p>
+
+<p>批量改名（Ctrl+m）</p>
+
+<p>同步文件夹</p>
+
+<p>将两个文件夹（也可以是压缩文件）在两侧窗口分别打开，然后进行比较，并提供后续同步功能</p>
+
+<p>任务管理器/删除程序</p>
+
+<p>Alt+R进入网上邻居后，有任务管理器、删除程序、注册表等文件夹，你就可以查看当前运行的进程、删除已安装程序以及查看修改注册表了！</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[决定用Zotero了！]]></title>
+    <link href="http://quxiao.github.io/blog/2010/09/30/decided-to-use-zotero-it/"/>
+    <updated>2010-09-30T14:27:36+08:00</updated>
+    <id>http://quxiao.github.io/blog/2010/09/30/decided-to-use-zotero-it</id>
+    <content type="html"><![CDATA[<p>用了一段时间Evernote和Zotero，经过使用和对比，还是决定用Zotero来进行资料的管理，原因有以下几点：</p>
+
+<p><strong>跨平台      <br/>
+</strong>Evernote在电脑上只有Windows版本，而Zotero作为FireFox的插件，可以说是跨平台的</p>
+
+<p><strong>文献管理      <br/>
+</strong>因为经常要看一些论文，Zotero可以自动识别网页中的论文相关信息，这一点我很喜欢</p>
+
+<p><strong>运行速度</strong>     <br/>
+Zotero运行起来比较流畅，而Evernote就比较慢了，而且会占用很多内存</p>
+
+<p><strong>分类管理</strong>     <br/>
+Zotero可以按文件夹进行树形的管理，Evernote中只有按tag分类的，虽然也可以建立子tag，但用起来还是很别扭</p>
+
+<p>不过，其实Evernote还是挺好的，只要认准用一个就行了。</p>
+]]></content>
+  </entry>
+  
+</feed>
