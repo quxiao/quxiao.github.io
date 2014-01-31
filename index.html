@@ -9,17 +9,7 @@
   <meta name="author" content="Xavier">
 
   
-  <meta name="description" content="前段时间在看其他同事的代码，无意间看了类似下面的代码： 1
-2
-3
-4
-5
-6
-TypeList&lt; FilterA,
-TypeList&lt; FilterB,
-TypeList&lt; FilterC,
-TypeList&lt; FilterD,
-TypeList&lt; FilterE &hellip;">
+  <meta name="description" content="上一篇博客讲到了模板元编程中的Typelist，这种技术能够让编译器帮你生成许多结构类似的代码，省去了程序员自己编写代码的时间以及一些运行时的效率损失。设计模式中的Abstract Factory，其Template MetaProgramming版本也依赖于TypeList技术。 普通实现 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -73,6 +63,502 @@ TypeList&lt; FilterE &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/01/31/typelist-and-abstract-fatory/">Typelist && Abstract Fatory</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-31T14:35:26+08:00" pubdate data-updated="true">Jan 31<span>st</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>上一篇博客讲到了模板元编程中的Typelist，这种技术能够让编译器帮你生成许多结构类似的代码，省去了程序员自己编写代码的时间以及一些运行时的效率损失。设计模式中的Abstract Factory，其Template MetaProgramming版本也依赖于TypeList技术。</p>
+
+<h1>普通实现</h1>
+
+<p>Abstract Factory模式，即规定了一组抽象产品（Abstract Product）的接口，再由各个具体的Factory生成不同组的具体产品（Concrete Product）。我一下子想到了公司的RD、QA以及PM，就以这三种角色为例吧。（虽然不是很恰当，因为不同级别的不同职位是可以共存的）</p>
+
+<p>普通的代码一般会写成这样：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">class</span> <span class="nc">AbstractFactory</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'><span class="k">public</span><span class="o">:</span>
+</span><span class='line'>    <span class="k">virtual</span> <span class="n">RD</span><span class="o">*</span> <span class="n">create_RD</span><span class="p">()</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">virtual</span> <span class="n">QA</span><span class="o">*</span> <span class="n">create_QA</span><span class="p">()</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">virtual</span> <span class="n">PM</span><span class="o">*</span> <span class="n">create_PM</span><span class="p">()</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">JuniorFactory</span><span class="o">:</span> <span class="k">public</span> <span class="n">AbstractFactory</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'><span class="k">public</span><span class="o">:</span>
+</span><span class='line'>    <span class="n">RD</span><span class="o">*</span> <span class="n">create_RD</span><span class="p">()</span> <span class="p">{</span><span class="k">return</span> <span class="k">new</span> <span class="n">JuniorRD</span><span class="p">();}</span>
+</span><span class='line'>    <span class="n">QA</span><span class="o">*</span> <span class="n">create_QA</span><span class="p">()</span> <span class="p">{</span><span class="k">return</span> <span class="k">new</span> <span class="n">JuniorQA</span><span class="p">();}</span>
+</span><span class='line'>    <span class="n">PM</span><span class="o">*</span> <span class="n">create_PM</span><span class="p">()</span> <span class="p">{</span><span class="k">return</span> <span class="k">new</span> <span class="n">JuniorPM</span><span class="p">();}</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">SeniorFactory</span><span class="o">:</span> <span class="k">public</span> <span class="n">AbstractFactory</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'><span class="k">public</span><span class="o">:</span>
+</span><span class='line'>    <span class="n">RD</span><span class="o">*</span> <span class="n">create_RD</span><span class="p">()</span> <span class="p">{</span><span class="k">return</span> <span class="k">new</span> <span class="n">SeniorRD</span><span class="p">();}</span>
+</span><span class='line'>    <span class="n">QA</span><span class="o">*</span> <span class="n">create_QA</span><span class="p">()</span> <span class="p">{</span><span class="k">return</span> <span class="k">new</span> <span class="n">SeniorQA</span><span class="p">();}</span>
+</span><span class='line'>    <span class="n">PM</span><span class="o">*</span> <span class="n">create_PM</span><span class="p">()</span> <span class="p">{</span><span class="k">return</span> <span class="k">new</span> <span class="n">SeniorPM</span><span class="p">();}</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">//使用方代码</span>
+</span><span class='line'><span class="n">AbstractFactory</span><span class="o">*</span> <span class="n">fact</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+</span><span class='line'><span class="k">if</span> <span class="p">(</span><span class="cm">/**/</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">fact</span> <span class="o">=</span> <span class="k">new</span> <span class="n">JuniorFactory</span><span class="p">();</span>
+</span><span class='line'><span class="p">}</span> <span class="k">else</span> <span class="p">(</span><span class="cm">/**/</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">fact</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SeniorFactory</span><span class="p">();</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">RD</span><span class="o">*</span> <span class="n">rd</span> <span class="o">=</span> <span class="n">fact</span><span class="o">-&gt;</span><span class="n">create_RD</span><span class="p">();</span>
+</span><span class='line'><span class="c1">//...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可以看出来，每一个具体的Factory类只是重复的实现AbstractFactory提供的接口，唯一的不同就是填写具体的类名，其它的语句都是重复的。（我不得不在编写以上代码的时候使用了Vim的替换功能）</p>
+
+<h1>定义接口</h1>
+
+<p>有了Typelist，我们可以联想到，如果有了一个Typelist例如：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">TypeList</span><span class="o">&lt;</span><span class="n">RD</span><span class="p">,</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">QA</span><span class="p">,</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">PM</span><span class="p">,</span> <span class="n">NullType</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>再加上一个模板函数：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">T</span><span class="o">&gt;</span>
+</span><span class='line'><span class="n">T</span><span class="o">*</span> <span class="n">create</span><span class="p">()</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">return</span> <span class="k">new</span> <span class="n">T</span><span class="p">();</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>应该就可以生成一组接口了吧！但是有个问题，如何根据Typelist中的每一个类，生成一个对应的接口呢？这里用到了一种技巧，能够根据Typelist，生成一个<strong>松散结构</strong>的复杂类，这个复杂类中就声明了一组接口。其代码如下：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="cm">/*</span>
+</span><span class='line'><span class="cm"> * Scatter Hierarchy</span>
+</span><span class='line'><span class="cm">*/</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">TypeList</span><span class="p">,</span> <span class="k">template</span><span class="o">&lt;</span><span class="n">class</span><span class="o">&gt;</span> <span class="k">class</span> <span class="nc">Unit</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">ScatterHierarchy</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">Head</span><span class="p">,</span> <span class="k">class</span> <span class="nc">Tail</span><span class="p">,</span> <span class="k">template</span><span class="o">&lt;</span><span class="n">class</span><span class="o">&gt;</span> <span class="k">class</span> <span class="nc">Unit</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">ScatterHierarchy</span><span class="o">&lt;</span><span class="n">TypeList</span><span class="o">&lt;</span><span class="n">Head</span><span class="p">,</span> <span class="n">Tail</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">Unit</span><span class="o">&gt;</span>
+</span><span class='line'>    <span class="o">:</span> <span class="k">public</span> <span class="n">ScatterHierarchy</span><span class="o">&lt;</span><span class="n">Head</span><span class="p">,</span> <span class="n">Unit</span><span class="o">&gt;</span>
+</span><span class='line'>    <span class="p">,</span> <span class="k">public</span> <span class="n">ScatterHierarchy</span><span class="o">&lt;</span><span class="n">Tail</span><span class="p">,</span> <span class="n">Unit</span><span class="o">&gt;</span>
+</span><span class='line'><span class="p">{};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">SingleType</span><span class="p">,</span> <span class="k">template</span><span class="o">&lt;</span><span class="n">class</span><span class="o">&gt;</span> <span class="k">class</span> <span class="nc">Unit</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">ScatterHierarchy</span><span class="o">:</span> <span class="k">public</span> <span class="n">Unit</span><span class="o">&lt;</span><span class="n">SingleType</span><span class="o">&gt;</span>
+</span><span class='line'><span class="p">{};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">template</span><span class="o">&lt;</span><span class="n">class</span><span class="o">&gt;</span> <span class="k">class</span> <span class="nc">Unit</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">ScatterHierarchy</span><span class="o">&lt;</span><span class="n">NullType</span><span class="p">,</span> <span class="n">Unit</span><span class="o">&gt;</span>
+</span><span class='line'><span class="p">{};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>ScatterHierarchy类型，其模板参数有两个，一个是Typelist，这个很明显，第二个的语法有点怪，是一个<code>template template parameter</code>，他是一种类型，并且这个类型也是一个模板类，就是他规定了接口。假设实际应用中，Unit的定义是这样的：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">T</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">Type2Type</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">T</span> <span class="n">OriginType</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">T</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">AbstractFactoryUnit</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'><span class="k">public</span><span class="o">:</span>
+</span><span class='line'>    <span class="k">virtual</span> <span class="n">T</span><span class="o">*</span> <span class="n">doCreate</span><span class="p">(</span><span class="n">Type2Type</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">virtual</span> <span class="o">~</span><span class="n">AbstractFactoryUnit</span><span class="p">()</span> <span class="p">{};</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样如果代入Typelist的话，我们就会得到三个AbstractFactoryUnit基类，分别是：<code>AbstractFactoryUnit&lt;RD&gt;</code>、<code>AbstractFactoryUnit&lt;QA&gt;</code>以及<code>AbstractFactoryUnit&lt;PM&gt;</code>，他们都有一个<code>doCreate</code>接口。Wait a minute，那个<code>Type2Type</code>是做什么的？里面不就是<code>typedef</code>了一下嘛！这个其实是一个tricky的技巧：<strong>让不同接口的doCreate函数有不同的函数签名</strong>。这样当我调用<code>doCreate</code>接口的时候，就能让编译器确定接口是哪个Type（RD、QA or PM）的了。</p>
+
+<p>好了，有了这些基础，就可以开始定义AbstractFactory了，其实我们仅需要继承上面的ScatterFactory即可，然后将具体的TypeList和AbstractFaUnit作为模板参数即可：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">template</span>
+</span><span class='line'><span class="o">&lt;</span>
+</span><span class='line'><span class="k">typename</span> <span class="n">Tlist</span><span class="p">,</span>
+</span><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="o">&gt;</span> <span class="k">class</span> <span class="nc">Unit</span> <span class="o">=</span> <span class="n">AbstractFactoryUnit</span>     <span class="cm">/*默认模板参数*/</span>
+</span><span class='line'><span class="o">&gt;</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">AbstractFactory</span><span class="o">:</span> <span class="n">ScatterHierarchy</span><span class="o">&lt;</span><span class="n">Tlist</span><span class="p">,</span> <span class="n">Unit</span><span class="o">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'><span class="k">public</span><span class="o">:</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">Tlist</span> <span class="n">ProductList</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">T</span><span class="o">&gt;</span>
+</span><span class='line'>        <span class="n">T</span><span class="o">*</span> <span class="n">create</span><span class="p">()</span>
+</span><span class='line'>        <span class="p">{</span>
+</span><span class='line'>            <span class="n">Unit</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;*</span> <span class="n">unit</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>   <span class="c1">//AbstractFactory是任意一个Unit&lt;T&gt;的子类, for T in Tlist</span>
+</span><span class='line'>            <span class="k">return</span> <span class="n">unit</span><span class="o">-&gt;</span><span class="n">doCreate</span><span class="p">(</span><span class="n">Type2Type</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">());</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">//使用方代码，定义了三个接口的AbstractFactory</span>
+</span><span class='line'><span class="k">typedef</span> <span class="n">AbstractFactory</span>
+</span><span class='line'><span class="o">&lt;</span>
+</span><span class='line'><span class="n">TypeList</span><span class="o">&lt;</span><span class="n">PM</span><span class="p">,</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">RD</span><span class="p">,</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">QA</span><span class="p">,</span> <span class="n">NullType</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">&gt;</span>
+</span><span class='line'><span class="o">&gt;</span>
+</span><span class='line'><span class="n">AbstractSoftwareEngineerFactory</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>实例化</h1>
+
+<p>现在来想想看怎么实例化一个抽象工厂。需要这样三部分元素：</p>
+
+<ul>
+<li>抽象接口（AbstractSoftwareEngineerFactory提供）</li>
+<li>实例Typelist（<code>TypeList&lt;JuniorRD, TypeList&lt;JuniorQA, Typelist&lt;JuniorPM, NullType&gt; &gt; &gt;</code>）</li>
+<li>实例函数（当用户代码为<code>create&lt;RD&gt;()</code>时，能够<code>new JuniorRD();</code>）</li>
+</ul>
+
+
+<p>前两部分都比较容易提供，第三部分的实例函数怎么提供呢？怎么能够一一对应上呢？初步的想法是：AbstractSoftwareEngineerFactory中有Abstract Product（RD / QA / PM），实例Typelist中有Concrete Product（Junior RD / Junior QA / Junior PM），能够把这两种Typelist中的第一个类型（<code>TypeList::Head</code>）对应起来，并且实现了<code>doCreate</code>接口，接着再用递归的思想将剩下的Type依次实现即可！</p>
+
+<p>模板元编程中的递归思想，其表现形式我想到了两种：1）类继承；2）模板特化。另外还需考虑到的是，这种递归应该是一种<strong>线性式</strong>的，因为需要按顺序遍历Typelist。与之前提到过的ScatterHierarchy实现类似，还有一种技术能够生成一种线性式的类继承关系——<strong>LinearHierarchy</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="cm">/*</span>
+</span><span class='line'><span class="cm"> * Linear Hierarchy</span>
+</span><span class='line'><span class="cm"> */</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span>
+</span><span class='line'><span class="o">&lt;</span>
+</span><span class='line'>    <span class="k">class</span> <span class="nc">Tlist</span><span class="p">,</span>
+</span><span class='line'>    <span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">SingleType</span><span class="p">,</span> <span class="k">class</span> <span class="nc">Base</span><span class="o">&gt;</span> <span class="k">class</span> <span class="nc">Unit</span><span class="p">,</span>
+</span><span class='line'>    <span class="k">class</span> <span class="nc">Root</span> <span class="o">=</span> <span class="n">NullType</span>
+</span><span class='line'><span class="o">&gt;</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">LinearHierarchy</span> <span class="p">{};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span>
+</span><span class='line'><span class="o">&lt;</span>
+</span><span class='line'>    <span class="k">class</span> <span class="nc">Head</span><span class="p">,</span>
+</span><span class='line'>    <span class="k">class</span> <span class="nc">Tail</span><span class="p">,</span>
+</span><span class='line'>    <span class="k">template</span><span class="o">&lt;</span><span class="n">class</span><span class="p">,</span> <span class="n">class</span><span class="o">&gt;</span> <span class="k">class</span> <span class="nc">Unit</span><span class="p">,</span>
+</span><span class='line'>    <span class="k">class</span> <span class="nc">Root</span>
+</span><span class='line'><span class="o">&gt;</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">LinearHierarchy</span><span class="o">&lt;</span><span class="n">TypeList</span><span class="o">&lt;</span><span class="n">Head</span><span class="p">,</span> <span class="n">Tail</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">Root</span><span class="o">&gt;</span>
+</span><span class='line'>    <span class="o">:</span> <span class="k">public</span> <span class="n">Unit</span><span class="o">&lt;</span> <span class="n">Head</span><span class="p">,</span> <span class="n">LinearHierarchy</span><span class="o">&lt;</span><span class="n">Tail</span><span class="p">,</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">Root</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="p">{};</span>    <span class="c1">//Head被“提取”出来了</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">template</span>
+</span><span class='line'><span class="o">&lt;</span>
+</span><span class='line'>    <span class="k">class</span> <span class="nc">T</span><span class="p">,</span>
+</span><span class='line'>    <span class="k">template</span><span class="o">&lt;</span><span class="n">class</span><span class="p">,</span> <span class="n">class</span><span class="o">&gt;</span> <span class="k">class</span> <span class="nc">Unit</span><span class="p">,</span>
+</span><span class='line'>    <span class="k">class</span> <span class="nc">Root</span>
+</span><span class='line'><span class="o">&gt;</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">LinearHierarchy</span><span class="o">&lt;</span><span class="n">TypeList</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">NullType</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">Root</span><span class="o">&gt;</span>
+</span><span class='line'>    <span class="o">:</span> <span class="k">public</span> <span class="n">Unit</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">Root</span><span class="o">&gt;</span> <span class="p">{};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果，我们将Tlist设置为Concrete Product的Typelist，Root中含有Abstract Product的Typelist，这样就不难找到对应关系了。别忘了，AbstractSoftwareEngineerFactory中就含有Abstract Product，Root用它就好了。</p>
+
+<p>那么对于<code>RD / QA / PM</code>的例子，生成的类之间的继承关系就会如下所示（最上面是基类）：</p>
+
+<pre><code>   ASF
+    |
+Unit&lt;PM, ASF&gt;
+    |
+LinearHierarchy&lt;TypeList(PM), ASF&gt;
+    |
+Unit&lt;QA, LinearHierarchy&lt;TypeList(PM), ASF&gt;
+    |
+LinearHierarchy&lt;TypeList(QA, PM), ASF&gt;
+    |
+Unit&lt;RD, LinearHierarchy&lt;TypeList(QA, PM), ASF&gt;
+    |
+LinearHierarchy&lt;TypeList(RD, QA, PM), ASF&gt;
+    |
+ConcreteFactory
+</code></pre>
+
+<p>对于Unit，我们可以这样实现：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">ConcreteProduct</span><span class="p">,</span> <span class="k">class</span> <span class="nc">Base</span><span class="o">&gt;</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">OpNewUnit</span><span class="o">:</span> <span class="k">public</span> <span class="n">Base</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'><span class="k">private</span><span class="o">:</span>
+</span><span class='line'>    <span class="c1">//AbstractSoftwareEngineerFactory中的TypeList</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="k">typename</span> <span class="n">Base</span><span class="o">::</span><span class="n">ProductList</span> <span class="n">BaseProductList</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">protected</span><span class="o">:</span>
+</span><span class='line'>    <span class="c1">//将Abstract Product中的Head“吃掉”，将Tail作为整个Typelist传至子类，精妙！</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="k">typename</span> <span class="n">BaseProductList</span><span class="o">::</span><span class="n">Tail</span> <span class="n">ProductList</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">public</span><span class="o">:</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="k">typename</span> <span class="n">BaseProductList</span><span class="o">::</span><span class="n">Head</span> <span class="n">AbstractProduct</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">ConcreteProduct</span><span class="o">*</span> <span class="n">doCreate</span><span class="p">(</span><span class="n">Type2Type</span><span class="o">&lt;</span><span class="n">AbstractProduct</span><span class="o">&gt;</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="k">new</span> <span class="n">ConcreteProduct</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>最后，终于可以实例化一个工厂模板类了，只需继承一个含有以上三部分元素（抽象接口、具体TypeList、实例函数）的LinearHierarchy模板类就可以了：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">template</span>
+</span><span class='line'><span class="o">&lt;</span>
+</span><span class='line'>    <span class="k">class</span> <span class="nc">AF</span><span class="p">,</span>
+</span><span class='line'>    <span class="k">class</span> <span class="nc">ConcreteProductTypeList</span><span class="p">,</span>
+</span><span class='line'>    <span class="k">template</span><span class="o">&lt;</span><span class="n">class</span><span class="p">,</span> <span class="n">class</span><span class="o">&gt;</span> <span class="k">class</span> <span class="nc">Creator</span> <span class="o">=</span> <span class="n">OpNewUnit</span>
+</span><span class='line'><span class="o">&gt;</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">ConcreteFactory</span><span class="o">:</span> <span class="k">public</span> <span class="n">LinearHierarchy</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">Reverse</span><span class="o">&lt;</span><span class="n">ConcreteProductTypeList</span><span class="o">&gt;::</span><span class="n">Result</span><span class="p">,</span> <span class="n">Creator</span><span class="p">,</span> <span class="n">AF</span><span class="o">&gt;</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'><span class="k">public</span><span class="o">:</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="k">typename</span> <span class="n">AF</span><span class="o">::</span><span class="n">ProductList</span> <span class="n">ProductList</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="n">ConcreteProductTypeList</span> <span class="n">ConcreteProductList</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">//使用方代码</span>
+</span><span class='line'><span class="k">typedef</span> <span class="n">ConcreteFactory</span>
+</span><span class='line'><span class="o">&lt;</span>
+</span><span class='line'>    <span class="n">AbstractSoftwareEngineerFactory</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">JuniorRD</span><span class="p">,</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">JuniorQA</span><span class="p">,</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">JuniorPM</span><span class="p">,</span> <span class="n">NullType</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">&gt;</span>
+</span><span class='line'><span class="o">&gt;</span>
+</span><span class='line'>    <span class="n">JuniorFactory</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">typedef</span> <span class="n">ConcreteFactory</span>
+</span><span class='line'><span class="o">&lt;</span>
+</span><span class='line'>    <span class="n">AbstractSoftwareEngineerFactory</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">SeniorRD</span><span class="p">,</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">SeniorQA</span><span class="p">,</span> <span class="n">TypeList</span><span class="o">&lt;</span><span class="n">SeniorPM</span><span class="p">,</span> <span class="n">NullType</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">&gt;</span>
+</span><span class='line'><span class="o">&gt;</span>
+</span><span class='line'>    <span class="n">SeniorFactory</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">AbstractSoftwareEngineerFactory</span><span class="o">*</span> <span class="n">junior_fact</span> <span class="o">=</span> <span class="k">new</span> <span class="n">JuniorFactory</span><span class="p">;</span>
+</span><span class='line'><span class="n">PM</span><span class="o">*</span> <span class="n">pm</span> <span class="o">=</span> <span class="n">junior_fact</span><span class="o">-&gt;</span><span class="n">create</span><span class="o">&lt;</span><span class="n">PM</span><span class="o">&gt;</span><span class="p">();</span> <span class="c1">//&quot;junior PM&quot;</span>
+</span><span class='line'><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">pm</span><span class="o">-&gt;</span><span class="n">get_title</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">AbstractSoftwareEngineerFactory</span><span class="o">*</span> <span class="n">senior_fact</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SeniorFactory</span><span class="p">;</span>
+</span><span class='line'><span class="n">RD</span><span class="o">*</span> <span class="n">rd</span> <span class="o">=</span> <span class="n">senior_fact</span><span class="o">-&gt;</span><span class="n">create</span><span class="o">&lt;</span><span class="n">RD</span><span class="o">&gt;</span><span class="p">();</span> <span class="c1">//&quot;seinor RD&quot;</span>
+</span><span class='line'><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">rd</span><span class="o">-&gt;</span><span class="n">get_title</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可能你会看到，上面的代码用到了<code>Reverse</code>，把使用方的ConcreteProductList给反转过来，这是为什么呢？可以再看下<code>OpNewUnit</code>的实现，它是将AbstractProductList中的Head去掉之后，将剩下的部分传递至<strong>子类</strong>，而根据<code>LinearHierarchy</code>的实现，在ConcreteProductList中越是头部的类，越是在子类中，所以需要将其中一个ProductList给反转过来，以便让<code>OpNewUnit</code>中的<code>BaseProductList::Head</code>和模板参数<code>ConcreteProduct</code>能够对应起来。关于<code>Reverse</code>的实现，可以查看上一篇文章的最后部分。</p>
+
+<h1>参考资料</h1>
+
+<ul>
+<li><a href="http://book.douban.com/subject/1119904/">《C++设计新思维》</a> TypeList &amp;&amp; AbstractFactory章节</li>
+</ul>
+
+
+<p>&mdash; EOF &mdash;</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1632,74 +2118,6 @@ intrusive_list: 544.419 ms
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/05/13/the_diseases_in_big_company/">我也来说说大公司的那些“病”</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-05-13T00:01:43+08:00" pubdate data-updated="true">May 13<span>th</span>, 2013</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>入职一年多，在大公司里面学到了不少东西，比如学习了模块的开发流程，了解了公司的许多业务系统、模块，也体会到了不少工作中的“狼性”。但是工作的这一年多，尤其是最近这段时间，也感受到了大公司的一些“病”，今天来吐槽一下。（可能并不一定就是病，也可能和自身的理解有关，我这里只是罗列一下，仅代表个人观点）</p>
-
-<h1>会议太多</h1>
-
-<p>周一到周五，几乎每隔一天就要开上一次会，会议时间有长有短，短的15分钟，长的要开上一下午。虽然大部分的会议时间并不算很长，但也严重打断了我们RD的思路。经常是问题想了一半，然后被拉过去开会，开完会再试图把上下文切换回来，结果花费很长时间，说不定中间再被一个事情打断，那整个下午（或者上午）就算是废了。</p>
-
-<p>大多数的会议，内容就是在过进度，PM这周做了哪些事，RD开发到什么进度了。这种事情大家每天写在一个公共的地方（比如日报、周报系统），让大家都能看到也就行了，不必每次都把所有相关人员聚到一个专门的会议室。大家来会议室，也都是带着自己的笔记本电脑，做自己的事情。做自己事情的效率、以及开会的效率都很低。</p>
-
-<h1>项目太多</h1>
-
-<p>公司大了，不管旧的项目维护，还是新的项目开发，都渐渐多了起来。这样一来，一个人所涉及到的项目也就多了起来。作为一个RD，经常需要维护A项目的升级、排查B项目的bug、再进行C项目的开发。你的C项目开发正进入状态的时候，让你再弄一下啊项目A和B，换做谁效率都高不了。对于QA，可能更悲剧，公司QA人手本来就少，结果项目、模块越来越多，QA经常一个项目接着一个项目进行测试，之前我甚至看到过一个QA的签名是“同时测10个模块……”，这么赶，测试case就不一定想得很周全了，线上出现问题的概率也会越来越大。</p>
-
-<h1>人员比例失调</h1>
-
-<p>不知为何，公司里面，PM（产品经理）：RD：QA差不多是3：2：1 这么个奇怪的比例，按我的理解，PM：RD：QA应该是1：2：2.5才比较合理，RD和QA，都算是开发，具体什么比例其实可以比较灵活；至于PM，应该保持少而精，1~2个人就能撑起一个规模不小的项目。对于目前公司PM的人数，我觉得是太多了。经常1个RD需要接口5~6个PM，别说是5、6个PM，就算是2、3个PM同一天有事联系你，也够RD同学喝一壶的，要是5、6个PM每周“均匀”地“骚扰”你，你也别干什么事了。</p>
-
-<p>而且，许多PM同学也都是新人，经验明显不足，本来PM应该是给项目规划好一个大的方向，协调各方、共同朝这个方面努力的。结果许多新的PM是在一边参与项目，一边学习，能不添乱就已经很好了。许多PM，连基本的处理数据的能力都欠缺。经常是，PM有一个数据的需求，RD在服务器上运算好了，PM不会登录服务器，需要RD线下或者邮件提供，有的甚至一定要Excel格式的才行。数据里面多了一列、多了个逗号啥的，PM就不会处理了，需要RD调整一下格式再提供……</p>
-
-<p>不过话说回来，还是有些PM是比较给力的，文档写得明确、数据也能自己处理，有的更给力的直接对RD说，“把mysql的账号密码告诉我，我自己跑sql”，对于RD来说，遇到这种PM真是件令人愉快的事情！</p>
-
-<h1>KPI</h1>
-
-<p>这个算是老生长谈了，每半年或者一年，大家都需要回顾一下过去，并对自己所做的事情打个分，还要展望一下未来，对于半年甚至一年之后的事情，做一下规划。回顾下过来也就算了，这是有必要的。对下一个半年进行规划，这就有点勉为其难的。比如项目刚刚开展实验，还不知道效果怎么样，如何确定半年里面对这个项目做规划，或者说半年里面，这个项目做不做还要打上一个问号呢。</p>
-
-<p>另外，不同职位上的同学对于KPI的理解和要求不一致，也会导致许多问题。比如对于一个商业产品，PM的KPI会是指这个产品给公司带来了多少收益、新增了多少客户；而对于我们RD同学，我们KPI的定义除了收益之外，还有这个产品中的系统的稳定性、能够承受的性能指标，还有比如采用了什么新的技术，使得系统扩展性更好、同时减少人力的投入等等这些。</p>
-
-<p>这样一来，双方为了达到各自的KPI，所采取的行为可能就是相悖的。比如对于一个新的商品产品，PM想到的往往是接几个大客户、大单子，这样一下子PM的KPI就很容易达标了。而如果是这样的话，对于RD来说，所需要做的工作可能就是：开发一个能够满足功能的系统、修改下配置、上线这几家客户。这对于RD来说，意义很小。</p>
-
-<p>RD的想法一般是接入许多中小客户，使得大规模的客户能在系统中运转起来，产生规模效应，RD在这个过程中就可以依据线上的效果，对系统进行迭代的升级，以提高这个产品的整体收益。不过整个过程肯定是要花上不短的时间的，PM可能对于这个时间就不能接受了，毕竟接大单子一下子就有不小的收益，还体现了PM的工作能力，PM何乐而不为呢。</p>
-
-<p>不过，KPI这种事，就像是高考一样，虽然有各种各样的弊端，不过对于一个有上万乃至十几万人的公司来说，可能已经算是最公平的方法了，谁让我们在一个大公司呢，呵呵。</p>
-
-<p>&mdash;EOF&mdash;&ndash;</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -1715,6 +2133,10 @@ intrusive_list: 544.419 ms
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/01/31/typelist-and-abstract-fatory/">Typelist && Abstract Fatory</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
       </li>
     
@@ -1728,10 +2150,6 @@ intrusive_list: 544.419 ms
     
       <li class="post">
         <a href="/blog/2013/11/22/presentation-based-development/">“基于演示的开发”</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/11/17/immigrate-from-wordpress/">从Wordpres迁移至Jekyll(@github.io)</a>
       </li>
     
   </ul>

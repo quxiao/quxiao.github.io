@@ -9,8 +9,7 @@
   <meta name="author" content="Xavier">
 
   
-  <meta name="description" content="从网上搜集到的一些资料，自己可以时常翻阅，作为参考。 /bin 基础系统所需要的那些命令位于此目录，也是最小系统所需要的命令，比如 ls、cp、mkdir等命令
-/sbin 大多是涉及系统管理的命令的存放，是超级权限用户root的可执行命令存放地（凡是目录sbin中包含的都是root权限才能执行的 &hellip;">
+  <meta name="description" content="后缀 .tar 解压命令: tar -xvf InFile.tar 压缩命令: tar -cvf OutFile.tar InFile (x——extract v——verbose c——create f——file) 后缀 .tar.gz 解压命令: tar -zxvf InFile.tar. &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -64,6 +63,102 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/06/27/linux-command-summary-compression/">Linux压缩命令小结</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-06-27T11:04:10+08:00" pubdate data-updated="true">Jun 27<span>th</span>, 2010</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><strong>后缀 .tar</strong></p>
+
+<p>解压命令: tar -xvf InFile.tar</p>
+
+<p>压缩命令: tar -cvf OutFile.tar InFile</p>
+
+<p>(x——extract v——verbose  c——create   f——file)</p>
+
+<p><strong>后缀 .tar.gz</strong></p>
+
+<p>解压命令: tar -zxvf InFile.tar.gz</p>
+
+<p>压缩命令: tar -zcvf OutFile.tar.gz InFile</p>
+
+<p>(z——gzip)</p>
+
+<p><strong>后缀 .tar.bz2</strong></p>
+
+<p>解压命令: tar -jxvf InFile.tar.bz2</p>
+
+<p>压缩命令: tar -jcvf OutFile.tar.bz2 InFile</p>
+
+<p>(j——bzip2)</p>
+
+<p><strong>后缀 .tar.Z</strong></p>
+
+<p>解压命令: tar Zxvf InFile.tar.Z</p>
+
+<p>压缩命令: tar Zcvf OutFile.tar.Z InFile</p>
+
+<p><strong>后缀 .gz</strong></p>
+
+<p>解压命令: gzip -d InFile.gz 或 gunzip InFile.gz</p>
+
+<p>压缩命令: gzip InFile</p>
+
+<p>(d——decompress)</p>
+
+<p><strong>后缀 .zip</strong></p>
+
+<p>解压命令: unzip InFile.zip</p>
+
+<p>压缩命令: zip OutFile.zip InFile</p>
+
+<p><strong>后缀 .bz2</strong></p>
+
+<p>解压命令: bzip2 -d InFile.bz2 或 bunzip2 InFile.bz2</p>
+
+<p>压缩命令: bzip2 -z InFile</p>
+
+<p><strong>后缀 .Z</strong></p>
+
+<p>解压命令: uncompress InFile.Z</p>
+
+<p>压缩命令: compress InFile</p>
+
+<p><strong>后缀 .rar</strong></p>
+
+<p>解压命令: rar x InFile.rar</p>
+
+<p>压缩命令: rar a InFile</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -377,6 +472,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/01/31/typelist-and-abstract-fatory/">Typelist && Abstract Fatory</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
       </li>
     
@@ -390,10 +489,6 @@
     
       <li class="post">
         <a href="/blog/2013/11/22/presentation-based-development/">“基于演示的开发”</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/11/17/immigrate-from-wordpress/">从Wordpres迁移至Jekyll(@github.io)</a>
       </li>
     
   </ul>
