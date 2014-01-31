@@ -154,4 +154,130 @@ AbstractSoftwareEngineerFactory;
 
 前两部分都比较容易提供，第三部分的实例函数怎么提供呢？怎么能够一一对应上呢？初步的想法是：AbstractSoftwareEngineerFactory中有Abstract Product（RD / QA / PM），实例Typelist中有Concrete Product（Junior RD / Junior QA / Junior PM），能够把这两种Typelist中的第一个类型（`TypeList::Head`）对应起来，并且实现了`doCreate`接口，接着再用递归的思想将剩下的Type依次实现即可！
 
+模板元编程中的递归思想，其表现形式我想到了两种：1）类继承；2）模板特化。另外还需考虑到的是，这种递归应该是一种**线性式**的，因为需要按顺序遍历Typelist。与之前提到过的ScatterHierarchy实现类似，还有一种技术能够生成一种线性式的类继承关系——**LinearHierarchy**
 
+``` cpp
+/*
+ * Linear Hierarchy
+ */
+
+template
+<
+    class Tlist,
+    template<class SingleType, class Base> class Unit,
+    class Root = NullType
+>
+class LinearHierarchy {};
+
+template
+<
+    class Head,
+    class Tail,
+    template<class, class> class Unit,
+    class Root
+>
+class LinearHierarchy<TypeList<Head, Tail>, Unit, Root>
+    : public Unit< Head, LinearHierarchy<Tail, Unit, Root> > {};    //Head被“提取”出来了
+
+template
+<
+    class T,
+    template<class, class> class Unit,
+    class Root
+>
+class LinearHierarchy<TypeList<T, NullType>, Unit, Root>
+    : public Unit<T, Root> {};
+
+```
+
+如果，我们将Tlist设置为Concrete Product的Typelist，Root中含有Abstract Product的Typelist，这样就不难找到对应关系了。别忘了，AbstractSoftwareEngineerFactory中就含有Abstract Product，Root用它就好了。
+
+那么对于`RD / QA / PM`的例子，生成的类之间的继承关系就会如下所示（最上面是基类）：
+
+       ASF
+        |
+    Unit<PM, ASF>
+        |
+    LinearHierarchy<TypeList(PM), ASF>
+        |
+    Unit<QA, LinearHierarchy<TypeList(PM), ASF>
+        |
+    LinearHierarchy<TypeList(QA, PM), ASF>
+        |
+    Unit<RD, LinearHierarchy<TypeList(QA, PM), ASF>
+        |
+    LinearHierarchy<TypeList(RD, QA, PM), ASF>
+        |
+    ConcreteFactory
+
+对于Unit，我们可以这样实现：
+
+``` cpp
+template<class ConcreteProduct, class Base>
+class OpNewUnit: public Base
+{
+private:
+    //AbstractSoftwareEngineerFactory中的TypeList
+    typedef typename Base::ProductList BaseProductList;
+
+protected:
+    //将Abstract Product中的Head“吃掉”，将Tail作为整个Typelist传至子类，精妙！
+    typedef typename BaseProductList::Tail ProductList;
+
+public:
+    typedef typename BaseProductList::Head AbstractProduct;
+
+    ConcreteProduct* doCreate(Type2Type<AbstractProduct>)
+    {
+        return new ConcreteProduct();
+    }
+};
+```
+
+最后，终于可以实例化一个工厂模板类了，只需继承一个含有以上三部分元素（抽象接口、具体TypeList、实例函数）的LinearHierarchy模板类就可以了：
+
+``` cpp
+template
+<
+    class AF,
+    class ConcreteProductTypeList,
+    template<class, class> class Creator = OpNewUnit
+>
+class ConcreteFactory: public LinearHierarchy<typename Reverse<ConcreteProductTypeList>::Result, Creator, AF>
+{
+public:
+    typedef typename AF::ProductList ProductList;
+    typedef ConcreteProductTypeList ConcreteProductList;
+};
+
+//使用方代码
+typedef ConcreteFactory
+<
+    AbstractSoftwareEngineerFactory,
+    TypeList<JuniorRD, TypeList<JuniorQA, TypeList<JuniorPM, NullType> > >
+>
+    JuniorFactory;
+
+typedef ConcreteFactory
+<
+    AbstractSoftwareEngineerFactory,
+    TypeList<SeniorRD, TypeList<SeniorQA, TypeList<SeniorPM, NullType> > >
+>
+    SeniorFactory;
+
+AbstractSoftwareEngineerFactory* junior_fact = new JuniorFactory;
+PM* pm = junior_fact->create<PM>(); //"junior PM"
+cout << pm->get_title() << endl;
+
+AbstractSoftwareEngineerFactory* senior_fact = new SeniorFactory;
+RD* rd = senior_fact->create<RD>(); //"seinor RD"
+cout << rd->get_title() << endl;
+```
+
+可能你会看到，上面的代码用到了`Reverse`，把使用方的ConcreteProductList给反转过来，这是为什么呢？可以再看下`OpNewUnit`的实现，它是将AbstractProductList中的Head去掉之后，将剩下的部分传递至**子类**，而根据`LinearHierarchy`的实现，在ConcreteProductList中越是头部的类，越是在子类中，所以需要将其中一个ProductList给反转过来，以便让`OpNewUnit`中的`BaseProductList::Head`和模板参数`ConcreteProduct`能够对应起来。关于`Reverse`的实现，可以查看上一篇文章的最后部分。
+
+# 参考资料
+
+* [《C++设计新思维》](http://book.douban.com/subject/1119904/) TypeList && AbstractFactory章节
+
+-- EOF --
