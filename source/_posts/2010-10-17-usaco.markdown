@@ -1,0 +1,19 @@
+---
+author: admin
+comments: true
+date: 2010-10-17 15:05:33+00:00
+layout: post
+slug: usaco
+title: USACO
+wordpress_id: 110
+categories:
+- Essay
+tags:
+- usaco
+---
+
+USACO，是美国计算机奥林匹克的简称，跟ACM/ICPC一样，都是一项让参赛者通过算法和编程解决问题的赛事。其实，关于USACO的比赛我不是很清楚，但觉得它的训练平台[USACO TRAINING PROGRAM GATEWAY](http://http://train.usaco.org/usacogate)真的很不错。这个平台跟许多国内外的Online Judge很像，但其优点就是，不但可以做题，还能边做边学，而且题目难度由易到难，使得整个过程循序渐进，使人感觉十分有成就感。每次提交，程序运行的结果显示的十分详细。每道题目做完之后，也会提供官方的思路和样例代码。想提高编程技巧和算法能力的朋友，可以到上面学习一番，应该会收获颇丰。
+
+ 
+
+[![usaco](http://www.qxavier.me/wp-content/uploads/2010/10/usaco_thumb.jpg)](http://www.qxavier.me/wp-content/uploads/2010/10/usaco.jpg)
