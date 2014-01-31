@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Essay | Xavier Blog]]></title>
+  <title><![CDATA[Category: Essay | Xavier's Blog]]></title>
   <link href="http://quxiao.github.io/blog/categories/essay/atom.xml" rel="self"/>
   <link href="http://quxiao.github.io/"/>
-  <updated>2014-01-31T13:12:24+08:00</updated>
+  <updated>2014-01-31T13:27:12+08:00</updated>
   <id>http://quxiao.github.io/</id>
   <author>
     <name><![CDATA[Xavier]]></name>
