@@ -9,7 +9,7 @@
   <meta name="author" content="Xavier">
 
   
-  <meta name="description" content="这些天一直试图用命令行运行Java程序，结果一直说找不到jar包中的类，改来改去，很是麻烦。在网上查找方法时，无意间在这里发现了一种途径，既然Java程序在Eclipse里面是可以正常运行的，那就看看Eclipse运行Java程序的命令到底是什么。 &hellip;">
+  <meta name="description" content="这两天在考虑如何在OJ中实现分布式判题，之前想到了JMS，但觉得不是很好入门。随后发现了ActiveMQ这个东西，其实就是在JMS上面有包装了一层，但是使用起来很方便。于是就做了一个样例模拟程序，以验证其可行性和效率。下图是样例程序大致思想： 只要开启ActiveMQ的服务， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -63,44 +63,6 @@
     <div id="content">
       <div class="blog-index">
   
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2010/12/29/view-eclipse-run-the-command-line-java-program/">查看Eclipse运行Java程序的命令行</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2010-12-29T14:45:48+08:00" pubdate data-updated="true">Dec 29<span>th</span>, 2010</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>这些天一直试图用命令行运行Java程序，结果一直说找不到jar包中的类，改来改去，很是麻烦。在网上查找方法时，无意间在<a href="http://http://pire-cao.spaces.live.com/blog/cns!C2130CDC4173DBDA!1584.entry">这里</a>发现了一种途径，既然Java程序在Eclipse里面是可以正常运行的，那就看看Eclipse运行Java程序的命令到底是什么。</p>
-
-<p>只要在Eclipse里面Debug相应Java程序，在Debug视图中查看主线程的Properties，就可以看到命令行了！</p>
-</div>
-  
-  
-
-
-    </article>
   
   
     <article>
@@ -879,6 +841,102 @@ Linux下C语言的API，还不错，可以满足基本需要</p>
 
     </article>
   
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/06/27/linux-command-summary-compression/">Linux压缩命令小结</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-06-27T11:04:10+08:00" pubdate data-updated="true">Jun 27<span>th</span>, 2010</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><strong>后缀 .tar</strong></p>
+
+<p>解压命令: tar -xvf InFile.tar</p>
+
+<p>压缩命令: tar -cvf OutFile.tar InFile</p>
+
+<p>(x——extract v——verbose  c——create   f——file)</p>
+
+<p><strong>后缀 .tar.gz</strong></p>
+
+<p>解压命令: tar -zxvf InFile.tar.gz</p>
+
+<p>压缩命令: tar -zcvf OutFile.tar.gz InFile</p>
+
+<p>(z——gzip)</p>
+
+<p><strong>后缀 .tar.bz2</strong></p>
+
+<p>解压命令: tar -jxvf InFile.tar.bz2</p>
+
+<p>压缩命令: tar -jcvf OutFile.tar.bz2 InFile</p>
+
+<p>(j——bzip2)</p>
+
+<p><strong>后缀 .tar.Z</strong></p>
+
+<p>解压命令: tar Zxvf InFile.tar.Z</p>
+
+<p>压缩命令: tar Zcvf OutFile.tar.Z InFile</p>
+
+<p><strong>后缀 .gz</strong></p>
+
+<p>解压命令: gzip -d InFile.gz 或 gunzip InFile.gz</p>
+
+<p>压缩命令: gzip InFile</p>
+
+<p>(d——decompress)</p>
+
+<p><strong>后缀 .zip</strong></p>
+
+<p>解压命令: unzip InFile.zip</p>
+
+<p>压缩命令: zip OutFile.zip InFile</p>
+
+<p><strong>后缀 .bz2</strong></p>
+
+<p>解压命令: bzip2 -d InFile.bz2 或 bunzip2 InFile.bz2</p>
+
+<p>压缩命令: bzip2 -z InFile</p>
+
+<p><strong>后缀 .Z</strong></p>
+
+<p>解压命令: uncompress InFile.Z</p>
+
+<p>压缩命令: compress InFile</p>
+
+<p><strong>后缀 .rar</strong></p>
+
+<p>解压命令: rar x InFile.rar</p>
+
+<p>压缩命令: rar a InFile</p>
+</div>
+  
+  
+
+
+    </article>
+  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/9/">&larr; Older</a>
@@ -896,10 +954,6 @@ Linux下C语言的API，还不错，可以满足基本需要</p>
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2014/01/31/test/">Test</a>
-      </li>
-    
-      <li class="post">
         <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
       </li>
     
@@ -913,6 +967,10 @@ Linux下C语言的API，还不错，可以满足基本需要</p>
     
       <li class="post">
         <a href="/blog/2013/11/22/presentation-based-development/">“基于演示的开发”</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/17/immigrate-from-wordpress/">从Wordpres迁移至Jekyll(@github.io)</a>
       </li>
     
   </ul>

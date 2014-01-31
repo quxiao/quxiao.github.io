@@ -9,7 +9,7 @@
   <meta name="author" content="Xavier">
 
   
-  <meta name="description" content="有这样一种集合，集合元素为长度N（1～31）的二进制串，并且每个二进制串中1的个数小于等于L，求这个集合中第I大的元素是多少？ 最开始很天真的想枚举每个数，计算其中1的个数，结果第8组测试数据开始就超时的不行了。 枚举不行，来试试构造可不可以，假设我们有一个长度为n，1个数&lt;= &hellip;">
+  <meta name="description" content="问你N阶乘的最低非零位上是什么数字。(0 &lt;= N &lt;= 4220) 从1一直乘到N，如果能整除10，就除以10，可以吗？不行，因为即使去掉低位的0，高位的非0位仍然很大，无法保存下来。 可以将N!这样表示： N! = 2K * 5L * V(N) = 2K-L * V(N) * &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -63,68 +63,6 @@
     <div id="content">
       <div class="blog-index">
   
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2011/02/16/usaco-section-3-2-stringsobits/">USACO Section 3.2 Stringsobits</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-02-16T13:06:10+08:00" pubdate data-updated="true">Feb 16<span>th</span>, 2011</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>有这样一种集合，集合元素为长度N（1～31）的二进制串，并且每个二进制串中1的个数小于等于L，求这个集合中第I大的元素是多少？</p>
-
-<p>最开始很天真的想枚举每个数，计算其中1的个数，结果第8组测试数据开始就超时的不行了。</p>
-
-<p>枚举不行，来试试构造可不可以，假设我们有一个长度为n，1个数&lt;=l的二进制串的集合，那么怎么把它们从大到小区分呢？我们一位一位来，根据第n位，可以将集合划为2部分：第n位是0的，第n为是1的。好了，递推式突然就变得很明显了。如何设num[N][L]为长度为N，1个数小于等于L的二进制串的个数，那么：</p>
-
-<p>num[N][L] = num[N-1][L] + num[N-1][L-1]   <br/>
-（第n位是0） （第n位是1）</p>
-
-<p>个数有了，那么第I个数是多少怎么求呢？说来也简单，就是用递归的思想，看I落在num[N-1][L]和num[N-1][L-1]的哪一部分，看下面的代码应该就明白了：</p>
-
-<pre><code>&lt;span style="color: #0000ff"&gt;void&lt;/span&gt; Print (&lt;span style="color: #0000ff"&gt;int&lt;/span&gt; len, &lt;span style="color: #0000ff"&gt;int&lt;/span&gt; num1, &lt;span style="color: #0000ff"&gt;long&lt;/span&gt; &lt;span style="color: #0000ff"&gt;long&lt;/span&gt; idx)
-{
-     &lt;span style="color: #0000ff"&gt;if&lt;/span&gt; ( len == 0 )
-          &lt;span style="color: #0000ff"&gt;return&lt;/span&gt;;
-     &lt;span style="color: #0000ff"&gt;if&lt;/span&gt; ( num[len-1][num1] &gt;= idx )
-     {
-          putchar('0');
-          Print(len-1, num1, idx);
-     }
-     &lt;span style="color: #0000ff"&gt;else&lt;/span&gt;
-     {
-          putchar('1');
-          Print(len-1, num1-1, idx-num[len-1][num1]);
-     }
-}
-</code></pre>
-</div>
-  
-  
-
-
-    </article>
   
   
     <article>
@@ -623,6 +561,44 @@ ab的距离 + a到本连通分量最远距离 + b到本连通分量最远距离<
 
     </article>
   
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/12/29/view-eclipse-run-the-command-line-java-program/">查看Eclipse运行Java程序的命令行</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-12-29T14:45:48+08:00" pubdate data-updated="true">Dec 29<span>th</span>, 2010</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>这些天一直试图用命令行运行Java程序，结果一直说找不到jar包中的类，改来改去，很是麻烦。在网上查找方法时，无意间在<a href="http://http://pire-cao.spaces.live.com/blog/cns!C2130CDC4173DBDA!1584.entry">这里</a>发现了一种途径，既然Java程序在Eclipse里面是可以正常运行的，那就看看Eclipse运行Java程序的命令到底是什么。</p>
+
+<p>只要在Eclipse里面Debug相应Java程序，在Debug视图中查看主线程的Properties，就可以看到命令行了！</p>
+</div>
+  
+  
+
+
+    </article>
+  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/8/">&larr; Older</a>
@@ -640,10 +616,6 @@ ab的距离 + a到本连通分量最远距离 + b到本连通分量最远距离<
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2014/01/31/test/">Test</a>
-      </li>
-    
-      <li class="post">
         <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
       </li>
     
@@ -657,6 +629,10 @@ ab的距离 + a到本连通分量最远距离 + b到本连通分量最远距离<
     
       <li class="post">
         <a href="/blog/2013/11/22/presentation-based-development/">“基于演示的开发”</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/17/immigrate-from-wordpress/">从Wordpres迁移至Jekyll(@github.io)</a>
       </li>
     
   </ul>
