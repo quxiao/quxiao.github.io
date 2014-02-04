@@ -1397,7 +1397,7 @@ LC_ALL=zh_CN.UTF-8</code></li>
 
 <p>这相当于就在代码层面对开发人员进行了规范，不像C++等其它语言，你多include一个.h文件，或者声明了一个变量但没有使用，这对你编译程序都不会有任何影响，挺多会打些编译warning。这样很容易造成程序编译了没有使用的库和变量，使程序变得臃肿。</p>
 
-<h1><strong>变量的可见性有变量名决定</strong></h1>
+<h1>变量的可见性有变量名决定</h1>
 
 <p>一个package中的变量名如果首字母是大写，则对于package外部是可见的，反之则不可见。Go里面没有public, private这样的关键字（至少我目前没看到），直接约定首字母大写的变量是public的，不是大写的是private的，简便并且规范。</p>
 
@@ -1409,71 +1409,133 @@ LC_ALL=zh_CN.UTF-8</code></li>
 
 <p>Go里面可以将语句前声明defer关键字，表示目前先不执行这条语句，等待函数return前再执行。这实在是太方便了！特别是对于一些需要管理资源的场景。</p>
 
-<pre><code>// Contents returns the file's contents as a string.
-func Contents(filename string) (string, error) {
-    f, err := os.Open(filename)
-    if err != nil {
-        return "", err
-    }
-    defer f.Close()  // f.Close will run when we're finished.
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='go'><span class='line'><span class="c1">// Contents returns the file&#39;s contents as a string.</span>
+</span><span class='line'><span class="kd">func</span> <span class="nx">Contents</span><span class="p">(</span><span class="nx">filename</span> <span class="kt">string</span><span class="p">)</span> <span class="p">(</span><span class="kt">string</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">f</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">os</span><span class="p">.</span><span class="nx">Open</span><span class="p">(</span><span class="nx">filename</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="nx">err</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">defer</span> <span class="nx">f</span><span class="p">.</span><span class="nx">Close</span><span class="p">()</span>  <span class="c1">// f.Close will run when we&#39;re finished.</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">var</span> <span class="nx">result</span> <span class="p">[]</span><span class="kt">byte</span>
+</span><span class='line'>    <span class="nx">buf</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">([]</span><span class="kt">byte</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">for</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nx">n</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">f</span><span class="p">.</span><span class="nx">Read</span><span class="p">(</span><span class="nx">buf</span><span class="p">[</span><span class="mi">0</span><span class="p">:])</span>
+</span><span class='line'>        <span class="nx">result</span> <span class="p">=</span> <span class="nb">append</span><span class="p">(</span><span class="nx">result</span><span class="p">,</span> <span class="nx">buf</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="nx">n</span><span class="p">]</span><span class="o">...</span><span class="p">)</span> <span class="c1">// append is discussed later.</span>
+</span><span class='line'>        <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span><span class='line'>            <span class="k">if</span> <span class="nx">err</span> <span class="o">==</span> <span class="nx">io</span><span class="p">.</span><span class="nx">EOF</span> <span class="p">{</span>
+</span><span class='line'>                <span class="k">break</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>            <span class="k">return</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="nx">err</span>  <span class="c1">// f will be closed if we return here.</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">return</span> <span class="nb">string</span><span class="p">(</span><span class="nx">result</span><span class="p">),</span> <span class="kc">nil</span> <span class="c1">// f will be closed if we return here.</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
 
-    var result []byte
-    buf := make([]byte, 100)
-    for {
-        n, err := f.Read(buf[0:])
-        result = append(result, buf[0:n]...) // append is discussed later.
-        if err != nil {
-            if err == io.EOF {
-                break
-            }
-            return "", err  // f will be closed if we return here.
-        }
-    }
-    return string(result), nil // f will be closed if we return here.
-}
-</code></pre>
 
 <p>试想一下，在C++中，如果想要在每个分支都能释放资源，就得采用1）<code>goto</code>或<code>do-while</code>，例如以下代码，或者 2）<code>scoped pointer</code>。</p>
 
-<pre><code>int f1(const char* fname) {
-    int ret = 0;
-    FILE* fp = fopen(fname, "r");
-    if ( NULL == fp ) {
-        return -1;
-    }
-    if (....) {
-        ret = 1;
-        goto FINISH;
-    } else if (....) {
-        ret = 2;
-        goto FINISH;
-    }
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="kt">int</span> <span class="n">f1</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">fname</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">ret</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">FILE</span><span class="o">*</span> <span class="n">fp</span> <span class="o">=</span> <span class="n">fopen</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s">&quot;r&quot;</span><span class="p">);</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span> <span class="nb">NULL</span> <span class="o">==</span> <span class="n">fp</span> <span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(....)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">ret</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">goto</span> <span class="n">FINISH</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(....)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">ret</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">goto</span> <span class="n">FINISH</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="nl">FINISH:</span>
+</span><span class='line'>    <span class="n">fclose</span><span class="p">(</span><span class="n">fp</span><span class="p">);</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="n">f2</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">fname</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">ret</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">FILE</span><span class="o">*</span> <span class="n">fp</span> <span class="o">=</span> <span class="n">fopen</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s">&quot;r&quot;</span><span class="p">);</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span> <span class="nb">NULL</span> <span class="o">==</span> <span class="n">fp</span> <span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">do</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(....)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="n">ret</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span><span class='line'>            <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>        <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(....)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="n">ret</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+</span><span class='line'>            <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span> <span class="k">while</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">fclose</span><span class="p">(</span><span class="n">fp</span><span class="p">);</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
 
-FINISH:
-    fclose(fp);
-    return ret;
-}
-
-int f2(const char* fname) {
-    int ret = 0;
-    FILE* fp = fopen(fname, "r");
-    if ( NULL == fp ) {
-        return -1;
-    }
-    do {
-        if (....) {
-            ret = 1;
-            break;
-        } else if (....) {
-            ret = 2;
-            break;
-        }
-    } while(0);
-
-    fclose(fp);
-    return ret;
-}
-</code></pre>
 
 <h1>new &amp; make</h1>
 
@@ -1484,16 +1546,26 @@ int f2(const char* fname) {
 
 <p>默认情况下，struct就可以直接打印出来，而且还会打印出每个字段的名称和值。这个对于开发人员排查问题，也是极其方便的。</p>
 
-<pre><code>type T struct {
-    a int
-    b float64
-    c string
-}
-t := &amp;T{ 7, -2.35, "abc\tdef" }
-fmt.Printf("%v\n", t)
-fmt.Printf("%+v\n", t)
-fmt.Printf("%#v\n", t)
-</code></pre>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='go'><span class='line'><span class="kd">type</span> <span class="nx">T</span> <span class="kd">struct</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">a</span> <span class="kt">int</span>
+</span><span class='line'>    <span class="nx">b</span> <span class="kt">float64</span>
+</span><span class='line'>    <span class="nx">c</span> <span class="kt">string</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="nx">t</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">T</span><span class="p">{</span> <span class="mi">7</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.35</span><span class="p">,</span> <span class="s">&quot;abc\tdef&quot;</span> <span class="p">}</span>
+</span><span class='line'><span class="nx">fmt</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">&quot;%v\n&quot;</span><span class="p">,</span> <span class="nx">t</span><span class="p">)</span>
+</span><span class='line'><span class="nx">fmt</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">&quot;%+v\n&quot;</span><span class="p">,</span> <span class="nx">t</span><span class="p">)</span>
+</span><span class='line'><span class="nx">fmt</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">&quot;%#v\n&quot;</span><span class="p">,</span> <span class="nx">t</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
 
 <p>会打印出</p>
 
@@ -1508,20 +1580,34 @@ fmt.Printf("%#v\n", t)
 
 <p>如果想使用某套接口，在C++中一般都是将满足这套接口的实例作为某个类的成员，再调用这个成员的接口。在Go中，可以在某个接口里面直接“嵌入”其它已经实现的接口，比如需要一个ReadWriter接口，里面有Read()和Write()，但是已经有一个接口Reader里面有Read()，一个接口Writer里面有Write()，就直接使用以下代码就可以了，这样Read()和Writer()就是ReadWriter接口的方法了。</p>
 
-<pre><code>type Reader interface {
-    Read(p []byte) (n int, err error)
-}
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='go'><span class='line'><span class="kd">type</span> <span class="nx">Reader</span> <span class="kd">interface</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">Read</span><span class="p">(</span><span class="nx">p</span> <span class="p">[]</span><span class="kt">byte</span><span class="p">)</span> <span class="p">(</span><span class="nx">n</span> <span class="kt">int</span><span class="p">,</span> <span class="nx">err</span> <span class="kt">error</span><span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">type</span> <span class="nx">Writer</span> <span class="kd">interface</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">Write</span><span class="p">(</span><span class="nx">p</span> <span class="p">[]</span><span class="kt">byte</span><span class="p">)</span> <span class="p">(</span><span class="nx">n</span> <span class="kt">int</span><span class="p">,</span> <span class="nx">err</span> <span class="kt">error</span><span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// ReadWriter is the interface that combines the Reader and Writer interfaces.</span>
+</span><span class='line'><span class="kd">type</span> <span class="nx">ReadWriter</span> <span class="kd">interface</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">Reader</span>
+</span><span class='line'>    <span class="nx">Writer</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
 
-type Writer interface {
-    Write(p []byte) (n int, err error)
-}
-
-// ReadWriter is the interface that combines the Reader and Writer interfaces.
-type ReadWriter interface {
-    Reader
-    Writer
-}
-</code></pre>
 
 <h1>goroutine &amp;&amp; channel</h1>
 
@@ -1533,9 +1619,12 @@ type ReadWriter interface {
 
 <p>参考资料：</p>
 
-<p><a href="http://golang.org/doc/effective_go.html">Effetive Go</a>
-<a href="http://talks.golang.org/2012/waza.slide">Concurrency is not Parallelism</a>
-<a href="http://play.golang.org/">Go Playground</a></p>
+<ul>
+<li><a href="http://golang.org/doc/effective_go.html">Effetive Go</a></li>
+<li><a href="http://talks.golang.org/2012/waza.slide">Concurrency is not Parallelism</a></li>
+<li><a href="http://play.golang.org/">Go Playground</a></li>
+</ul>
+
 
 <p>&mdash;EOF&mdash;</p>
 </div>

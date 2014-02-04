@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Note | Xavier's Blog]]></title>
   <link href="http://quxiao.github.io/blog/categories/note/atom.xml" rel="self"/>
   <link href="http://quxiao.github.io/"/>
-  <updated>2014-01-31T23:51:24+08:00</updated>
+  <updated>2014-02-04T23:49:53+08:00</updated>
   <id>http://quxiao.github.io/</id>
   <author>
     <name><![CDATA[Xavier]]></name>
@@ -125,7 +125,7 @@ LC_ALL=zh_CN.UTF-8</code></li>
 
 <p>这相当于就在代码层面对开发人员进行了规范，不像C++等其它语言，你多include一个.h文件，或者声明了一个变量但没有使用，这对你编译程序都不会有任何影响，挺多会打些编译warning。这样很容易造成程序编译了没有使用的库和变量，使程序变得臃肿。</p>
 
-<h1><strong>变量的可见性有变量名决定</strong></h1>
+<h1>变量的可见性有变量名决定</h1>
 
 <p>一个package中的变量名如果首字母是大写，则对于package外部是可见的，反之则不可见。Go里面没有public, private这样的关键字（至少我目前没看到），直接约定首字母大写的变量是public的，不是大写的是private的，简便并且规范。</p>
 
@@ -136,6 +136,8 @@ LC_ALL=zh_CN.UTF-8</code></li>
 <h1>关键字defer——return之前执行</h1>
 
 <p>Go里面可以将语句前声明defer关键字，表示目前先不执行这条语句，等待函数return前再执行。这实在是太方便了！特别是对于一些需要管理资源的场景。</p>
+
+<p>``` go</p>
 
 <pre><code>// Contents returns the file's contents as a string.
 func Contents(filename string) (string, error) {
@@ -161,7 +163,11 @@ func Contents(filename string) (string, error) {
 }
 </code></pre>
 
+<p>```</p>
+
 <p>试想一下，在C++中，如果想要在每个分支都能释放资源，就得采用1）<code>goto</code>或<code>do-while</code>，例如以下代码，或者 2）<code>scoped pointer</code>。</p>
+
+<p>``` cpp</p>
 
 <pre><code>int f1(const char* fname) {
     int ret = 0;
@@ -203,6 +209,8 @@ int f2(const char* fname) {
 }
 </code></pre>
 
+<p>```</p>
+
 <h1>new &amp; make</h1>
 
 <p>Go语言中的new和C++中的不太一样，它只负责分配一段全为<code>'\0'</code>的内存，不会进行任何其它初始化，需要你自己再做一些工作。
@@ -211,6 +219,8 @@ int f2(const char* fname) {
 <h1>结构体可以直接print</h1>
 
 <p>默认情况下，struct就可以直接打印出来，而且还会打印出每个字段的名称和值。这个对于开发人员排查问题，也是极其方便的。</p>
+
+<p>``` go</p>
 
 <pre><code>type T struct {
     a int
@@ -222,6 +232,8 @@ fmt.Printf("%v\n", t)
 fmt.Printf("%+v\n", t)
 fmt.Printf("%#v\n", t)
 </code></pre>
+
+<p>```</p>
 
 <p>会打印出</p>
 
@@ -235,6 +247,8 @@ fmt.Printf("%#v\n", t)
 <h1>接口“嵌入”</h1>
 
 <p>如果想使用某套接口，在C++中一般都是将满足这套接口的实例作为某个类的成员，再调用这个成员的接口。在Go中，可以在某个接口里面直接“嵌入”其它已经实现的接口，比如需要一个ReadWriter接口，里面有Read()和Write()，但是已经有一个接口Reader里面有Read()，一个接口Writer里面有Write()，就直接使用以下代码就可以了，这样Read()和Writer()就是ReadWriter接口的方法了。</p>
+
+<p>``` go</p>
 
 <pre><code>type Reader interface {
     Read(p []byte) (n int, err error)
@@ -251,6 +265,8 @@ type ReadWriter interface {
 }
 </code></pre>
 
+<p>```</p>
+
 <h1>goroutine &amp;&amp; channel</h1>
 
 <p>goroutine以及channel可以说是Go语言最重要的特性了。goroutine有一个简单的思想，它就是一个通其它goroutine运行在同一份内存空间的函数。而channel顾名思义，就是一个管道，任何数据可以通过管道进行传输，可以往channel里面放数据，可以从channel里面获取数据。goroutine和channel的配合使用，很好的解释了Go语言“<strong>Do not communicate by sharing memory; instead, share memory by communicating</strong>”的思想，还有一个很好的例子在<a href="http://talks.golang.org/2012/waza.slide#12">这里</a>，这里例子同时也讲解了并发（concurrency）和并行（parallelism）之间的关系和区别。</p>
@@ -261,9 +277,12 @@ type ReadWriter interface {
 
 <p>参考资料：</p>
 
-<p><a href="http://golang.org/doc/effective_go.html">Effetive Go</a>
-<a href="http://talks.golang.org/2012/waza.slide">Concurrency is not Parallelism</a>
-<a href="http://play.golang.org/">Go Playground</a></p>
+<ul>
+<li><a href="http://golang.org/doc/effective_go.html">Effetive Go</a></li>
+<li><a href="http://talks.golang.org/2012/waza.slide">Concurrency is not Parallelism</a></li>
+<li><a href="http://play.golang.org/">Go Playground</a></li>
+</ul>
+
 
 <p>&mdash;EOF&mdash;</p>
 ]]></content>
