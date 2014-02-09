@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Note | Xavier's Blog]]></title>
   <link href="http://quxiao.github.io/blog/categories/note/atom.xml" rel="self"/>
   <link href="http://quxiao.github.io/"/>
-  <updated>2014-02-07T15:45:01+08:00</updated>
+  <updated>2014-02-09T10:25:33+08:00</updated>
   <id>http://quxiao.github.io/</id>
   <author>
     <name><![CDATA[Xavier]]></name>
@@ -311,21 +311,20 @@ type ReadWriter interface {
 
 <p>检测文件和新建文件无法做到原子性，但是mkdir操作，却能做到原子地检测文件夹和创建文件夹，有点儿意思！所以，当脚本想对于竞争数据进行操作，就<code>mkdir</code>某个文件夹，根据返回码得知申请所是否成功，申请成功、完成操作之后再<code>rm -rf</code>就可以实现了。例如这样：</p>
 
-<p><div>
-  <pre><code class='bash'>&lt;/p&gt;
+<p>``` bash</p>
 
-&lt;pre&gt;&lt;code&gt;#!/bin/sh
+<pre><code>#!/bin/sh
 
 if [ $# -ne 2 ]
 then
     exit 1
 else
-    NUM=&quot;$1&quot;
-    SLEEP_TIME=&quot;$2&quot;
+    NUM="$1"
+    SLEEP_TIME="$2"
 fi
 
-OUT_FILE=&quot;test.out&quot;
-LOCK_FILE=&quot;lock.file&quot;
+OUT_FILE="test.out"
+LOCK_FILE="lock.file"
 
 while :
 do
@@ -334,85 +333,77 @@ do
     then
         continue
     fi
-    for ((i=0; i&amp;lt;10; i++))
+    for ((i=0; i&lt;10; i++))
     do
-        echo &quot;${NUM} is working in $i step!&quot; &amp;gt;&amp;gt; ${OUT_FILE}
+        echo "${NUM} is working in $i step!" &gt;&gt; ${OUT_FILE}
     done
     sleep ${SLEEP_TIME}
     rm -rf ${LOCK_FILE}
 done
-&lt;/code&gt;&lt;/pre&gt;
+</code></pre>
 
-&lt;p&gt;</code></pre>
-</div>
-</p>
+<p>```</p>
 
 <h1>lockfile命令</h1>
 
 <p>原来直接就有个专门用于文件锁的命令，这个命令比mkdir更强大，可以设置申请文件锁的等待时长、重拾次数、锁的过期时间。但是，在写测试代码的时候，却发现只会有一个脚本一直获取到文件锁，其它脚本都处于申请锁等待并超时的状态，难道我参数用的不对？</p>
 
-<p><div>
-  <pre><code class='bash'>&lt;/p&gt;
+<p>``` bash</p>
 
-&lt;pre&gt;&lt;code&gt;#!/bin/sh
+<pre><code>#!/bin/sh
 
 if [ $# -ne 2 ]
 then
     exit 1
 else
-    NUM=&quot;$1&quot;
-    SLEEP_TIME=&quot;$2&quot;
+    NUM="$1"
+    SLEEP_TIME="$2"
 fi
 
-OUT_FILE=&quot;test.out&quot;
-LOCK_FILE=&quot;lock.file&quot;
+OUT_FILE="test.out"
+LOCK_FILE="lock.file"
 
 while :
 do
-    echo &quot;${NUM} try to get lockfile&quot; &amp;gt;&amp;gt; ${OUT_FILE}
+    echo "${NUM} try to get lockfile" &gt;&gt; ${OUT_FILE}
     lockfile  ${LOCK_FILE}
     if [ $? -ne 0 ]
     then
-        echo &quot;${NUM} wait lock failed&quot; &amp;gt;&amp;gt; ${OUT_FILE}
+        echo "${NUM} wait lock failed" &gt;&gt; ${OUT_FILE}
         continue
     fi
-    echo &quot;${NUM} got lockfile&quot; &amp;gt;&amp;gt; ${OUT_FILE}
-    for ((i=0; i&amp;lt;10; i++))
+    echo "${NUM} got lockfile" &gt;&gt; ${OUT_FILE}
+    for ((i=0; i&lt;10; i++))
     do
-        echo &quot;${NUM} is working in $i step!&quot; &amp;gt;&amp;gt; ${OUT_FILE}
+        echo "${NUM} is working in $i step!" &gt;&gt; ${OUT_FILE}
     done
     sleep ${SLEEP_TIME}
-    echo &quot;${NUM} delete lockfile&quot; &amp;gt;&amp;gt; ${OUT_FILE}
+    echo "${NUM} delete lockfile" &gt;&gt; ${OUT_FILE}
     rm -rf ${LOCK_FILE}
 done
 
 exit 0
-&lt;/code&gt;&lt;/pre&gt;
+</code></pre>
 
-&lt;p&gt;</code></pre>
-</div>
-</p>
+<p>```</p>
 
 <h1>设置noclobber + 重定向文件</h1>
 
 <p>shell中有一个参数叫noclobber，设置了这个参数后，当脚本试图重定向文件时，如果发现改文件已经存在，重定向就会失败。这种方法自己没尝试过，下面是从网上抄来的code example：</p>
 
-<p><div>
-  <pre><code class='bash'>&lt;/p&gt;
+<p>``` bash</p>
 
-&lt;pre&gt;&lt;code&gt;if ( set -o noclobber; echo &quot;locked&quot; &amp;gt; &quot;$lockfile&quot;) 2&amp;gt; /dev/null; then
-  trap &#39;rm -f &quot;$lockfile&quot;; exit $?&#39; INT TERM EXIT
-  echo &quot;Locking succeeded&quot; &amp;gt;&amp;amp;2
-  rm -f &quot;$lockfile&quot;
+<pre><code>if ( set -o noclobber; echo "locked" &gt; "$lockfile") 2&gt; /dev/null; then
+  trap 'rm -f "$lockfile"; exit $?' INT TERM EXIT
+  echo "Locking succeeded" &gt;&amp;2
+  rm -f "$lockfile"
 else
-  echo &quot;Lock failed - exit&quot; &amp;gt;&amp;amp;2
+  echo "Lock failed - exit" &gt;&amp;2
   exit 1
 fi
-&lt;/code&gt;&lt;/pre&gt;
+</code></pre>
 
-&lt;p&gt;</code></pre>
-</div>
-</p>
+<p>```</p>
 
 <p>看来在脚本中使用文件锁，还是比较方便的。不过，在我看来在脚本中使用文件锁，有个致命弱点：操作系统不会禁止其它进程对作为锁的文件（或者文件夹）进行操作。相当于一个脚本已经申请到了文件锁并正在操作，但是其它进程完全可以不受限制的删除这个文件锁，这样就会使得期间其它脚本能够成功申请到文件锁。或者一些脚本使用文件锁对竞争资源进行操作，但其它脚本直接操作竞争资源，这种情况也是无法避免的。使用文件锁，完全靠自觉！</p>
 
