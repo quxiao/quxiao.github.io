@@ -30,7 +30,7 @@ google了一下，还是有几种满足条件的方案的。
 检测文件和新建文件无法做到原子性，但是mkdir操作，却能做到原子地检测文件夹和创建文件夹，有点儿意思！所以，当脚本想对于竞争数据进行操作，就`mkdir`某个文件夹，根据返回码得知申请所是否成功，申请成功、完成操作之后再`rm -rf`就可以实现了。例如这样：
 
     
-{% highlight bash linenos %}
+``` bash
     #!/bin/sh
     
     if [ $# -ne 2 ]
@@ -58,9 +58,7 @@ google了一下，还是有几种满足条件的方案的。
         sleep ${SLEEP_TIME}
         rm -rf ${LOCK_FILE}
     done
-{% endhighlight %}
-
-
+```
 
 
 # lockfile命令
@@ -69,7 +67,7 @@ google了一下，还是有几种满足条件的方案的。
 原来直接就有个专门用于文件锁的命令，这个命令比mkdir更强大，可以设置申请文件锁的等待时长、重拾次数、锁的过期时间。但是，在写测试代码的时候，却发现只会有一个脚本一直获取到文件锁，其它脚本都处于申请锁等待并超时的状态，难道我参数用的不对？
 
     
-{% highlight bash linenos %}
+``` bash
     #!/bin/sh
     
     if [ $# -ne 2 ]
@@ -103,7 +101,7 @@ google了一下，还是有几种满足条件的方案的。
     done
     
     exit 0
-{% endhighlight %}
+```
 
 
 
@@ -114,7 +112,7 @@ google了一下，还是有几种满足条件的方案的。
 shell中有一个参数叫noclobber，设置了这个参数后，当脚本试图重定向文件时，如果发现改文件已经存在，重定向就会失败。这种方法自己没尝试过，下面是从网上抄来的code example：
 
     
-{% highlight bash linenos %}
+``` bash
     if ( set -o noclobber; echo "locked" > "$lockfile") 2> /dev/null; then
       trap 'rm -f "$lockfile"; exit $?' INT TERM EXIT
       echo "Locking succeeded" >&2
@@ -123,7 +121,7 @@ shell中有一个参数叫noclobber，设置了这个参数后，当脚本试图
       echo "Lock failed - exit" >&2
       exit 1
     fi
-{% endhighlight %}
+```
 
 
 看来在脚本中使用文件锁，还是比较方便的。不过，在我看来在脚本中使用文件锁，有个致命弱点：操作系统不会禁止其它进程对作为锁的文件（或者文件夹）进行操作。相当于一个脚本已经申请到了文件锁并正在操作，但是其它进程完全可以不受限制的删除这个文件锁，这样就会使得期间其它脚本能够成功申请到文件锁。或者一些脚本使用文件锁对竞争资源进行操作，但其它脚本直接操作竞争资源，这种情况也是无法避免的。使用文件锁，完全靠自觉！
