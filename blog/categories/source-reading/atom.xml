@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Source Reading | Xavier's Blog]]></title>
   <link href="http://quxiao.github.io/blog/categories/source-reading/atom.xml" rel="self"/>
   <link href="http://quxiao.github.io/"/>
-  <updated>2014-02-09T22:21:04+08:00</updated>
+  <updated>2014-02-12T22:34:11+08:00</updated>
   <id>http://quxiao.github.io/</id>
   <author>
     <name><![CDATA[Xavier]]></name>
@@ -37,54 +37,48 @@
 
 <p>首先来看一下主线程和工作线程之间是怎么交互的吧：</p>
 
-<p>工作线程在初始化的时候，会建立一个pipe（管道），两端分别为：<code>notify_receive_fd</code>，<code>以及notify_send_fd</code>：</p>
+<p>工作线程在初始化的时候，会建立一个pipe（管道），两端分别为：<code>notify_receive_fd</code>，以及<code>notify_send_fd</code>：</p>
 
-<p><div>
-  <pre><code class='cpp'>&lt;/p&gt;
+<p>``` cpp</p>
 
-&lt;pre&gt;&lt;code&gt;for (i = 0; i &amp;lt; nthreads; i++) {
+<pre><code>for (i = 0; i &lt; nthreads; i++) {
     int fds[2];
     if (pipe(fds)) {
-        perror(&quot;Can&#39;t create notify pipe&quot;);
+        perror("Can't create notify pipe");
         exit(1);
     }
 
     threads[i].notify_receive_fd = fds[0];
     threads[i].notify_send_fd = fds[1];
 
-    setup_thread(&amp;amp;threads[i]);
+    setup_thread(&amp;threads[i]);
     /* Reserve three fds for the libevent base, and two for the pipe */
     stats.reserved_fds += 5;
 }
-&lt;/code&gt;&lt;/pre&gt;
+</code></pre>
 
-&lt;p&gt;</code></pre>
-</div>
-</p>
+<p>```</p>
 
 <p>也就是说当其他线程向<code>notify_send_fd</code>文件描述符写内容的时候，<code>notify_receive_fd</code>就可以接受到。</p>
 
 <p>接着，就用到了libevent的API：</p>
 
-<p><div>
-  <pre><code class='cpp'>&lt;/p&gt;
+<p>``` cpp</p>
 
-&lt;pre&gt;&lt;code&gt;me-&amp;gt;base = event_init();
+<pre><code>me-&gt;base = event_init();
 
 /* Listen for notifications from other threads */
-event_set(&amp;amp;me-&amp;gt;notify_event, me-&amp;gt;notify_receive_fd,
+event_set(&amp;me-&gt;notify_event, me-&gt;notify_receive_fd,
           EV_READ | EV_PERSIST, thread_libevent_process, me);
-event_base_set(me-&amp;gt;base, &amp;amp;me-&amp;gt;notify_event);
+event_base_set(me-&gt;base, &amp;me-&gt;notify_event);
 
-if (event_add(&amp;amp;me-&amp;gt;notify_event, 0) == -1) {
-    fprintf(stderr, &quot;Can&#39;t monitor libevent notify pipe\n&quot;);
+if (event_add(&amp;me-&gt;notify_event, 0) == -1) {
+    fprintf(stderr, "Can't monitor libevent notify pipe\n");
     exit(1);
 }
-&lt;/code&gt;&lt;/pre&gt;
+</code></pre>
 
-&lt;p&gt;</code></pre>
-</div>
-</p>
+<p>```</p>
 
 <p>每个工作线程都新建一个libevent实例(<code>me-&gt;base</code>)，并且将<code>notify_event</code>绑定在这个实例上。</p>
 
@@ -97,10 +91,9 @@ if (event_add(&amp;amp;me-&amp;gt;notify_event, 0) == -1) {
 <p>那在哪个地方会写<code>notify_send_fd</code>呢？
 在主线程将新建的连接分发给工作时，就会向某个线程的<code>notify_send_fd</code>写一个空的字符串用来唤醒这个线程。下面的代码一目了然：</p>
 
-<p><div>
-  <pre><code class='cpp'>&lt;/p&gt;
+<p>``` cpp</p>
 
-&lt;pre&gt;&lt;code&gt;void dispatch_conn_new(int sfd, enum conn_states init_state, int event_flags,
+<pre><code>void dispatch_conn_new(int sfd, enum conn_states init_state, int event_flags,
                        int read_buffer_size, enum network_transport transport) {
     CQ_ITEM *item = cqi_new();
     /*这就是所谓的round robin*/
@@ -110,30 +103,27 @@ if (event_add(&amp;amp;me-&amp;gt;notify_event, 0) == -1) {
 
     last_thread = tid;
 
-    item-&amp;gt;sfd = sfd;
+    item-&gt;sfd = sfd;
     /* ... */
 
-    cq_push(thread-&amp;gt;new_conn_queue, item);
+    cq_push(thread-&gt;new_conn_queue, item);
 
-    if (write(thread-&amp;gt;notify_send_fd, &quot;&quot;, 1) != 1) {
-        perror(&quot;Writing to thread notify pipe&quot;);
+    if (write(thread-&gt;notify_send_fd, "", 1) != 1) {
+        perror("Writing to thread notify pipe");
     }
 }
-&lt;/code&gt;&lt;/pre&gt;
+</code></pre>
 
-&lt;p&gt;</code></pre>
-</div>
-</p>
+<p>```</p>
 
 <p>首先来看看主线程，当他把其他工作线程、维护线程启起来之后，就开始侦听socket端口了（可以在memcached的源码中看出tcp和udp在处理逻辑上有很多不同的地方，但我不知道为什么不一样，就只看了处理tcp部分的代码，看来改补一补网络通信的知识了……），主要逻辑在<code>server_sockets</code>函数中：</p>
 
-<p><div>
-  <pre><code class='cpp'>&lt;/p&gt;
+<p>``` cpp</p>
 
-&lt;pre&gt;&lt;code&gt;if (IS_UDP(transport)) {
+<pre><code>if (IS_UDP(transport)) {
     int c;
 
-    for (c = 0; c &amp;lt; settings.num_threads_per_udp; c++) {
+    for (c = 0; c &lt; settings.num_threads_per_udp; c++) {
         /* this is guaranteed to hit all threads because we round-robin */
         dispatch_conn_new(sfd, conn_read, EV_READ | EV_PERSIST,
                           UDP_READ_BUFFER_SIZE, transport);
@@ -142,17 +132,15 @@ if (event_add(&amp;amp;me-&amp;gt;notify_event, 0) == -1) {
     if (!(listen_conn_add = conn_new(sfd, conn_listening,
                                      EV_READ | EV_PERSIST, 1,
                                      transport, main_base))) {
-        fprintf(stderr, &quot;failed to create listening connection\n&quot;);
+        fprintf(stderr, "failed to create listening connection\n");
         exit(EXIT_FAILURE);
     }
-    listen_conn_add-&amp;gt;next = listen_conn;
+    listen_conn_add-&gt;next = listen_conn;
     listen_conn = listen_conn_add;
 }
-&lt;/code&gt;&lt;/pre&gt;
+</code></pre>
 
-&lt;p&gt;</code></pre>
-</div>
-</p>
+<p>```</p>
 
 <p><code>conn_new</code>函数建立了连接之后，将socket文件描述符于<code>event_handler</code>函数绑定，当有socket请求过来的时候，就执行<code>event_handler</code>。在<code>event_handler</code>中，就是直接调用<code>drive_machine</code>这个大大的状态转移函数，一次连接的所有状态就都在这个函数里面处理了。</p>
 
@@ -187,16 +175,17 @@ if (event_add(&amp;amp;me-&amp;gt;notify_event, 0) == -1) {
 <ul>
 <li>struct item 本身大小</li>
 <li>key (<code>uint8_t</code>)</li>
-<li>suffix (<code>uint8_t</code>)，内容是" %d %d\r\n", flag, nbytes-2</li>
+<li>suffix (<code>uint8_t</code>)，内容是<code>" %d %d\r\n", flag, nbytes-2</code></li>
 <li>value</li>
-<li>CAS（optional, <code>uint64_t</code>）
-(参考<code>do_item_alloc</code> &amp;&amp; <code>item_make_header</code>)</li>
+<li>CAS（optional, <code>uint64_t</code>）</li>
 </ul>
 
 
+<p>(参考<code>do_item_alloc</code> &amp;&amp; <code>item_make_header</code>)</p>
+
 <p>与item相关的操作有以下几种</p>
 
-<h1>分配item</h1>
+<h2>分配item</h2>
 
 <p>流程如下：</p>
 
@@ -228,7 +217,7 @@ if (event_add(&amp;amp;me-&amp;gt;notify_event, 0) == -1) {
 </ol>
 
 
-<h1> free item</h1>
+<h2> free item</h2>
 
 <ol>
 <li>当一个item的引用计数为0时，就将这个item“释放”（其实没有真正的释放）</li>
@@ -238,7 +227,7 @@ if (event_add(&amp;amp;me-&amp;gt;notify_event, 0) == -1) {
 </ol>
 
 
-<h1>hashtable &amp;&amp; heads &amp;&amp; tails</h1>
+<h2>hashtable &amp;&amp; heads &amp;&amp; tails</h2>
 
 <p>当对item进行创建、删除等操作的时候，除了在slab上进行申请、释放空间之外，还需要更新以下数据：</p>
 
@@ -254,9 +243,11 @@ if (event_add(&amp;amp;me-&amp;gt;notify_event, 0) == -1) {
 
 <p>time就是当前创建时间，flag表示item目前的状态（TODO）</p>
 
-<p><code>primary_hashtable</code>是一个<code>item**</code>结构
-<code>primary_hashtable</code>的大小是2 ^ hashpower，hashpower默认大小为16
-item与<code>primary_hashtable</code>的对应关系为：</p>
+<p><code>primary_hashtable</code>是一个<code>item**</code>结构</p>
+
+<p><code>primary_hashtable</code>的大小是<code>2 ^ hashpower</code>，hashpower默认大小为16</p>
+
+<p>item与<code>primary_hashtable</code>的对应关系为：</p>
 
 <pre><code>hash_key(item) &amp; (2^hashporwer - 1)
 </code></pre>
@@ -272,9 +263,11 @@ item与<code>primary_hashtable</code>的对应关系为：</p>
     <link href="http://quxiao.github.io/blog/2013/02/03/memcached_source_code_study_slab_struct_and_operation/"/>
     <updated>2013-02-03T23:15:55+08:00</updated>
     <id>http://quxiao.github.io/blog/2013/02/03/memcached_source_code_study_slab_struct_and_operation</id>
-    <content type="html"><![CDATA[<p>memcached的内存结构中，内存被分为一个一个的页（slab），每一个slab会被分到不同的slab_class。不同的slab_class，申请的item大小就不一样。</p>
+    <content type="html"><![CDATA[<p>memcached的内存结构中，内存被分为一个一个的页（slab），每一个slab会被分到不同的<code>slab_class</code>。不同的<code>slab_class</code>，申请的item大小就不一样。</p>
 
-<p>slab_class所对应的数据结构如下：</p>
+<p><code>slab_class</code>所对应的数据结构如下：</p>
+
+<p>``` cpp</p>
 
 <pre><code>typedef struct {
 
@@ -304,6 +297,8 @@ item与<code>primary_hashtable</code>的对应关系为：</p>
 } slabclass_t;
 </code></pre>
 
+<p>```</p>
+
 <h1>slab初始化</h1>
 
 <p>memcached的slab初始化比较简单，主要是设定一些字段的大小，逻辑如下：</p>
@@ -311,30 +306,36 @@ item与<code>primary_hashtable</code>的对应关系为：</p>
 <p>下标i从0开始遍历每一个slab class：</p>
 
 <ul>
-<li><p>对齐当前slab class的size，使其是<code>CHUNK_ALIGN_BYTES</code>字节对齐的。</p></li>
-<li><p>设置slabclass[i] 为size</p></li>
-<li><p>设置当前slab class中，每一页能存放的iterm数据slabclass[i].perslab</p></li>
-<li><p>更新size为下一个slab class的size</p></li>
-<li><p>设置最大的一个slab class，其中<code>size = setting.item_size_max, perslab = 1</code></p></li>
+<li>对齐当前slab class的size，使其是<code>CHUNK_ALIGN_BYTES</code>字节对齐的。</li>
+<li>设置slabclass[i] 为size</li>
+<li>设置当前slab class中，每一页能存放的iterm数据<code>slabclass[i].perslab</code></li>
+<li>更新size为下一个slab class的size</li>
+<li>设置最大的一个slab class，其中<code>size = setting.item_size_max, perslab = 1</code></li>
 </ul>
 
 
 <h1> slab分配内存</h1>
 
-<p>如果是采用系统的malloc，就是直接申请；
-如果是预先申请了所有的内存的话，依次通过以下手段获取内存：</p>
+<ul>
+<li>如果是采用系统的malloc，就是直接申请；</li>
+<li>如果是预先申请了所有的内存的话，依次通过以下手段获取内存：
 
 <ul>
-<li><p>之前被“free”掉的item的地址会被标记在freelist中，如果freelist中有，则直接从freelist中拿；</p></li>
-<li><p>如果最近申请过的页中还有剩余空间，则从页的末尾申请item</p></li>
-<li><p>申请一个新的page</p></li>
+<li>之前被“free”掉的item的地址会被标记在freelist中，如果freelist中有，则直接从freelist中拿；</li>
+<li>如果最近申请过的页中还有剩余空间，则从页的末尾申请item</li>
+<li>申请一个新的page</li>
+</ul>
+</li>
 </ul>
 
 
 <h1>释放slab上的item空间</h1>
 
-<p>如果是系统分配，free指针，mem_malloc &ndash;= size；
-否则，将地址设置到free_list末尾，如果free_list满了，double一下长度</p>
+<ul>
+<li>如果是系统分配，free指针，mem_malloc &ndash;= size；</li>
+<li>否则，将地址设置到free_list末尾，如果free_list满了，double一下长度</li>
+</ul>
+
 ]]></content>
   </entry>
   

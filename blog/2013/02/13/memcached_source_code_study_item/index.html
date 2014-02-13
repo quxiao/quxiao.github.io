@@ -11,9 +11,9 @@
   
   <meta name="description" content="item是memcached操作的最小单位，一个item包括以下数据： struct item 本身大小
 key (uint8_t)
-suffix (uint8_t)，内容是&#8221; %d %d\r\n&#8221;, flag, nbytes-2
+suffix (uint8_t)，内容是" %d %d\r\n", flag, nbytes-2
 value
-CAS（optional, &hellip;">
+CAS（optional, uint64_t） ( &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -99,16 +99,17 @@ CAS（optional, &hellip;">
 <ul>
 <li>struct item 本身大小</li>
 <li>key (<code>uint8_t</code>)</li>
-<li>suffix (<code>uint8_t</code>)，内容是&#8221; %d %d\r\n&#8221;, flag, nbytes-2</li>
+<li>suffix (<code>uint8_t</code>)，内容是<code>" %d %d\r\n", flag, nbytes-2</code></li>
 <li>value</li>
-<li>CAS（optional, <code>uint64_t</code>）
-(参考<code>do_item_alloc</code> &amp;&amp; <code>item_make_header</code>)</li>
+<li>CAS（optional, <code>uint64_t</code>）</li>
 </ul>
 
 
+<p>(参考<code>do_item_alloc</code> &amp;&amp; <code>item_make_header</code>)</p>
+
 <p>与item相关的操作有以下几种</p>
 
-<h1>分配item</h1>
+<h2>分配item</h2>
 
 <p>流程如下：</p>
 
@@ -140,7 +141,7 @@ CAS（optional, &hellip;">
 </ol>
 
 
-<h1> free item</h1>
+<h2> free item</h2>
 
 <ol>
 <li>当一个item的引用计数为0时，就将这个item“释放”（其实没有真正的释放）</li>
@@ -150,7 +151,7 @@ CAS（optional, &hellip;">
 </ol>
 
 
-<h1>hashtable &amp;&amp; heads &amp;&amp; tails</h1>
+<h2>hashtable &amp;&amp; heads &amp;&amp; tails</h2>
 
 <p>当对item进行创建、删除等操作的时候，除了在slab上进行申请、释放空间之外，还需要更新以下数据：</p>
 
@@ -166,9 +167,11 @@ CAS（optional, &hellip;">
 
 <p>time就是当前创建时间，flag表示item目前的状态（TODO）</p>
 
-<p><code>primary_hashtable</code>是一个<code>item**</code>结构
-<code>primary_hashtable</code>的大小是2 ^ hashpower，hashpower默认大小为16
-item与<code>primary_hashtable</code>的对应关系为：</p>
+<p><code>primary_hashtable</code>是一个<code>item**</code>结构</p>
+
+<p><code>primary_hashtable</code>的大小是<code>2 ^ hashpower</code>，hashpower默认大小为16</p>
+
+<p>item与<code>primary_hashtable</code>的对应关系为：</p>
 
 <pre><code>hash_key(item) &amp; (2^hashporwer - 1)
 </code></pre>

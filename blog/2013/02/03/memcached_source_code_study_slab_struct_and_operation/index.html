@@ -9,7 +9,22 @@
   <meta name="author" content="Xavier">
 
   
-  <meta name="description" content="memcached的内存结构中，内存被分为一个一个的页（slab），每一个slab会被分到不同的slab_class。不同的slab_class，申请的item大小就不一样。 slab_class所对应的数据结构如下： typedef struct { // &hellip;">
+  <meta name="description" content="memcached的内存结构中，内存被分为一个一个的页（slab），每一个slab会被分到不同的slab_class。不同的slab_class，申请的item大小就不一样。 slab_class所对应的数据结构如下： 1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -90,37 +105,64 @@
   </header>
 
 
-<div class="entry-content"><p>memcached的内存结构中，内存被分为一个一个的页（slab），每一个slab会被分到不同的slab_class。不同的slab_class，申请的item大小就不一样。</p>
+<div class="entry-content"><p>memcached的内存结构中，内存被分为一个一个的页（slab），每一个slab会被分到不同的<code>slab_class</code>。不同的<code>slab_class</code>，申请的item大小就不一样。</p>
 
-<p>slab_class所对应的数据结构如下：</p>
+<p><code>slab_class</code>所对应的数据结构如下：</p>
 
-<pre><code>typedef struct {
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">//当前slab_class的最大item大小</span>
+</span><span class='line'>    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">size</span><span class="p">;</span>      <span class="cm">/* sizes of items */</span>
+</span><span class='line'>    <span class="c1">//当前slab_class每一个slab的item数</span>
+</span><span class='line'>    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">perslab</span><span class="p">;</span>   <span class="cm">/* how many items per slab */</span>
+</span><span class='line'>    <span class="c1">//被释放过的item的list</span>
+</span><span class='line'>    <span class="kt">void</span> <span class="o">**</span><span class="n">slots</span><span class="p">;</span>           <span class="cm">/* list of item ptrs */</span>
+</span><span class='line'>    <span class="c1">//free list大小</span>
+</span><span class='line'>    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">sl_total</span><span class="p">;</span>  <span class="cm">/* size of previous array */</span>
+</span><span class='line'>    <span class="c1">//free list下标 </span>
+</span><span class='line'>    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">sl_curr</span><span class="p">;</span>   <span class="cm">/* first free slot */</span>
+</span><span class='line'>    <span class="c1">//最近申请的page(slab)的指针</span>
+</span><span class='line'>    <span class="kt">void</span> <span class="o">*</span><span class="n">end_page_ptr</span><span class="p">;</span>         <span class="cm">/* pointer to next free item at end of page, or 0 */</span>
+</span><span class='line'>    <span class="c1">//最近申请的page(slab)所剩的item个数</span>
+</span><span class='line'>    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">end_page_free</span><span class="p">;</span> <span class="cm">/* number of items remaining at end of last alloced page */</span>
+</span><span class='line'>    <span class="c1">//当前slab_class申请了多少slab(page)</span>
+</span><span class='line'>    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">slabs</span><span class="p">;</span>     <span class="cm">/* how many slabs were allocated for this class */</span>
+</span><span class='line'>    <span class="c1">//申请的slab的指针数组</span>
+</span><span class='line'>    <span class="kt">void</span> <span class="o">**</span><span class="n">slab_list</span><span class="p">;</span>       <span class="cm">/* array of slab pointers */</span>
+</span><span class='line'>    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">list_size</span><span class="p">;</span> <span class="cm">/* size of prev array */</span>
+</span><span class='line'>    <span class="c1">//没用到？</span>
+</span><span class='line'>    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">killing</span><span class="p">;</span>  <span class="cm">/* index+1 of dying slab, or zero if none */</span>
+</span><span class='line'>    <span class="n">size_t</span> <span class="n">requested</span><span class="p">;</span> <span class="cm">/* The number of requested bytes */</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">}</span> <span class="n">slabclass_t</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
 
-    //当前slab_class的最大item大小
-    unsigned int size;      /* sizes of items */
-    //当前slab_class每一个slab的item数
-    unsigned int perslab;   /* how many items per slab */
-    //被释放过的item的list
-    void **slots;           /* list of item ptrs */
-    //free list大小
-    unsigned int sl_total;  /* size of previous array */
-    //free list下标 
-    unsigned int sl_curr;   /* first free slot */
-    //最近申请的page(slab)的指针
-    void *end_page_ptr;         /* pointer to next free item at end of page, or 0 */
-    //最近申请的page(slab)所剩的item个数
-    unsigned int end_page_free; /* number of items remaining at end of last alloced page */
-    //当前slab_class申请了多少slab(page)
-    unsigned int slabs;     /* how many slabs were allocated for this class */
-    //申请的slab的指针数组
-    void **slab_list;       /* array of slab pointers */
-    unsigned int list_size; /* size of prev array */
-    //没用到？
-    unsigned int killing;  /* index+1 of dying slab, or zero if none */
-    size_t requested; /* The number of requested bytes */
-
-} slabclass_t;
-</code></pre>
 
 <h1>slab初始化</h1>
 
@@ -129,30 +171,36 @@
 <p>下标i从0开始遍历每一个slab class：</p>
 
 <ul>
-<li><p>对齐当前slab class的size，使其是<code>CHUNK_ALIGN_BYTES</code>字节对齐的。</p></li>
-<li><p>设置slabclass[i] 为size</p></li>
-<li><p>设置当前slab class中，每一页能存放的iterm数据slabclass[i].perslab</p></li>
-<li><p>更新size为下一个slab class的size</p></li>
-<li><p>设置最大的一个slab class，其中<code>size = setting.item_size_max, perslab = 1</code></p></li>
+<li>对齐当前slab class的size，使其是<code>CHUNK_ALIGN_BYTES</code>字节对齐的。</li>
+<li>设置slabclass[i] 为size</li>
+<li>设置当前slab class中，每一页能存放的iterm数据<code>slabclass[i].perslab</code></li>
+<li>更新size为下一个slab class的size</li>
+<li>设置最大的一个slab class，其中<code>size = setting.item_size_max, perslab = 1</code></li>
 </ul>
 
 
 <h1> slab分配内存</h1>
 
-<p>如果是采用系统的malloc，就是直接申请；
-如果是预先申请了所有的内存的话，依次通过以下手段获取内存：</p>
+<ul>
+<li>如果是采用系统的malloc，就是直接申请；</li>
+<li>如果是预先申请了所有的内存的话，依次通过以下手段获取内存：
 
 <ul>
-<li><p>之前被“free”掉的item的地址会被标记在freelist中，如果freelist中有，则直接从freelist中拿；</p></li>
-<li><p>如果最近申请过的页中还有剩余空间，则从页的末尾申请item</p></li>
-<li><p>申请一个新的page</p></li>
+<li>之前被“free”掉的item的地址会被标记在freelist中，如果freelist中有，则直接从freelist中拿；</li>
+<li>如果最近申请过的页中还有剩余空间，则从页的末尾申请item</li>
+<li>申请一个新的page</li>
+</ul>
+</li>
 </ul>
 
 
 <h1>释放slab上的item空间</h1>
 
-<p>如果是系统分配，free指针，mem_malloc &ndash;= size；
-否则，将地址设置到free_list末尾，如果free_list满了，double一下长度</p>
+<ul>
+<li>如果是系统分配，free指针，mem_malloc &ndash;= size；</li>
+<li>否则，将地址设置到free_list末尾，如果free_list满了，double一下长度</li>
+</ul>
+
 </div>
 
 

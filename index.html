@@ -2149,43 +2149,66 @@ intrusive_list: 544.419 ms
 
 <p>首先来看一下主线程和工作线程之间是怎么交互的吧：</p>
 
-<p>工作线程在初始化的时候，会建立一个pipe（管道），两端分别为：<code>notify_receive_fd</code>，<code>以及notify_send_fd</code>：</p>
+<p>工作线程在初始化的时候，会建立一个pipe（管道），两端分别为：<code>notify_receive_fd</code>，以及<code>notify_send_fd</code>：</p>
 
-<div>
-  <pre><code class='cpp'>for (i = 0; i &lt; nthreads; i++) {
-        int fds[2];
-        if (pipe(fds)) {
-            perror(&quot;Can&#39;t create notify pipe&quot;);
-            exit(1);
-        }
-
-        threads[i].notify_receive_fd = fds[0];
-        threads[i].notify_send_fd = fds[1];
-
-        setup_thread(&amp;threads[i]);
-        /* Reserve three fds for the libevent base, and two for the pipe */
-        stats.reserved_fds += 5;
-    }</code></pre>
-</div>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nthreads</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">fds</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">pipe</span><span class="p">(</span><span class="n">fds</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">perror</span><span class="p">(</span><span class="s">&quot;Can&#39;t create notify pipe&quot;</span><span class="p">);</span>
+</span><span class='line'>        <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">threads</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">notify_receive_fd</span> <span class="o">=</span> <span class="n">fds</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+</span><span class='line'>    <span class="n">threads</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">notify_send_fd</span> <span class="o">=</span> <span class="n">fds</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">setup_thread</span><span class="p">(</span><span class="o">&amp;</span><span class="n">threads</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+</span><span class='line'>    <span class="cm">/* Reserve three fds for the libevent base, and two for the pipe */</span>
+</span><span class='line'>    <span class="n">stats</span><span class="p">.</span><span class="n">reserved_fds</span> <span class="o">+=</span> <span class="mi">5</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>也就是说当其他线程向<code>notify_send_fd</code>文件描述符写内容的时候，<code>notify_receive_fd</code>就可以接受到。</p>
 
 <p>接着，就用到了libevent的API：</p>
 
-<div>
-  <pre><code class='cpp'>me-&gt;base = event_init();
-
-    /* Listen for notifications from other threads */
-    event_set(&amp;me-&gt;notify_event, me-&gt;notify_receive_fd,
-              EV_READ | EV_PERSIST, thread_libevent_process, me);
-    event_base_set(me-&gt;base, &amp;me-&gt;notify_event);
-
-    if (event_add(&amp;me-&gt;notify_event, 0) == -1) {
-        fprintf(stderr, &quot;Can&#39;t monitor libevent notify pipe\n&quot;);
-        exit(1);
-    }</code></pre>
-</div>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">me</span><span class="o">-&gt;</span><span class="n">base</span> <span class="o">=</span> <span class="n">event_init</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">/* Listen for notifications from other threads */</span>
+</span><span class='line'><span class="n">event_set</span><span class="p">(</span><span class="o">&amp;</span><span class="n">me</span><span class="o">-&gt;</span><span class="n">notify_event</span><span class="p">,</span> <span class="n">me</span><span class="o">-&gt;</span><span class="n">notify_receive_fd</span><span class="p">,</span>
+</span><span class='line'>          <span class="n">EV_READ</span> <span class="o">|</span> <span class="n">EV_PERSIST</span><span class="p">,</span> <span class="n">thread_libevent_process</span><span class="p">,</span> <span class="n">me</span><span class="p">);</span>
+</span><span class='line'><span class="n">event_base_set</span><span class="p">(</span><span class="n">me</span><span class="o">-&gt;</span><span class="n">base</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">me</span><span class="o">-&gt;</span><span class="n">notify_event</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">if</span> <span class="p">(</span><span class="n">event_add</span><span class="p">(</span><span class="o">&amp;</span><span class="n">me</span><span class="o">-&gt;</span><span class="n">notify_event</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;Can&#39;t monitor libevent notify pipe</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+</span><span class='line'>    <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>每个工作线程都新建一个libevent实例(<code>me-&gt;base</code>)，并且将<code>notify_event</code>绑定在这个实例上。</p>
@@ -2199,51 +2222,86 @@ intrusive_list: 544.419 ms
 <p>那在哪个地方会写<code>notify_send_fd</code>呢？
 在主线程将新建的连接分发给工作时，就会向某个线程的<code>notify_send_fd</code>写一个空的字符串用来唤醒这个线程。下面的代码一目了然：</p>
 
-<div>
-  <pre><code class='cpp'>void dispatch_conn_new(int sfd, enum conn_states init_state, int event_flags,
-                           int read_buffer_size, enum network_transport transport) {
-        CQ_ITEM *item = cqi_new();
-        /*这就是所谓的round robin*/
-        int tid = (last_thread + 1) % settings.num_threads;
-    
-        LIBEVENT_THREAD *thread = threads + tid;
-    
-        last_thread = tid;
-    
-        item-&gt;sfd = sfd;
-        /* ... */
-    
-        cq_push(thread-&gt;new_conn_queue, item);
-    
-        if (write(thread-&gt;notify_send_fd, &quot;&quot;, 1) != 1) {
-            perror(&quot;Writing to thread notify pipe&quot;);
-        }
-    }</code></pre>
-</div>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="kt">void</span> <span class="n">dispatch_conn_new</span><span class="p">(</span><span class="kt">int</span> <span class="n">sfd</span><span class="p">,</span> <span class="k">enum</span> <span class="n">conn_states</span> <span class="n">init_state</span><span class="p">,</span> <span class="kt">int</span> <span class="n">event_flags</span><span class="p">,</span>
+</span><span class='line'>                       <span class="kt">int</span> <span class="n">read_buffer_size</span><span class="p">,</span> <span class="k">enum</span> <span class="n">network_transport</span> <span class="n">transport</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">CQ_ITEM</span> <span class="o">*</span><span class="n">item</span> <span class="o">=</span> <span class="n">cqi_new</span><span class="p">();</span>
+</span><span class='line'>    <span class="cm">/*这就是所谓的round robin*/</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">tid</span> <span class="o">=</span> <span class="p">(</span><span class="n">last_thread</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">settings</span><span class="p">.</span><span class="n">num_threads</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">LIBEVENT_THREAD</span> <span class="o">*</span><span class="kr">thread</span> <span class="o">=</span> <span class="n">threads</span> <span class="o">+</span> <span class="n">tid</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">last_thread</span> <span class="o">=</span> <span class="n">tid</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">item</span><span class="o">-&gt;</span><span class="n">sfd</span> <span class="o">=</span> <span class="n">sfd</span><span class="p">;</span>
+</span><span class='line'>    <span class="cm">/* ... */</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">cq_push</span><span class="p">(</span><span class="kr">thread</span><span class="o">-&gt;</span><span class="n">new_conn_queue</span><span class="p">,</span> <span class="n">item</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">write</span><span class="p">(</span><span class="kr">thread</span><span class="o">-&gt;</span><span class="n">notify_send_fd</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">perror</span><span class="p">(</span><span class="s">&quot;Writing to thread notify pipe&quot;</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>首先来看看主线程，当他把其他工作线程、维护线程启起来之后，就开始侦听socket端口了（可以在memcached的源码中看出tcp和udp在处理逻辑上有很多不同的地方，但我不知道为什么不一样，就只看了处理tcp部分的代码，看来改补一补网络通信的知识了……），主要逻辑在<code>server_sockets</code>函数中：</p>
 
-<div>
-  <pre><code class='cpp'>if (IS_UDP(transport)) {
-        int c;
-
-        for (c = 0; c &lt; settings.num_threads_per_udp; c++) {
-            /* this is guaranteed to hit all threads because we round-robin */
-            dispatch_conn_new(sfd, conn_read, EV_READ | EV_PERSIST,
-                              UDP_READ_BUFFER_SIZE, transport);
-        }
-    } else {
-        if (!(listen_conn_add = conn_new(sfd, conn_listening,
-                                         EV_READ | EV_PERSIST, 1,
-                                         transport, main_base))) {
-            fprintf(stderr, &quot;failed to create listening connection\n&quot;);
-            exit(EXIT_FAILURE);
-        }
-        listen_conn_add-&gt;next = listen_conn;
-        listen_conn = listen_conn_add;
-    }</code></pre>
-</div>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">if</span> <span class="p">(</span><span class="n">IS_UDP</span><span class="p">(</span><span class="n">transport</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">c</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">for</span> <span class="p">(</span><span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">c</span> <span class="o">&lt;</span> <span class="n">settings</span><span class="p">.</span><span class="n">num_threads_per_udp</span><span class="p">;</span> <span class="n">c</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="cm">/* this is guaranteed to hit all threads because we round-robin */</span>
+</span><span class='line'>        <span class="n">dispatch_conn_new</span><span class="p">(</span><span class="n">sfd</span><span class="p">,</span> <span class="n">conn_read</span><span class="p">,</span> <span class="n">EV_READ</span> <span class="o">|</span> <span class="n">EV_PERSIST</span><span class="p">,</span>
+</span><span class='line'>                          <span class="n">UDP_READ_BUFFER_SIZE</span><span class="p">,</span> <span class="n">transport</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">listen_conn_add</span> <span class="o">=</span> <span class="n">conn_new</span><span class="p">(</span><span class="n">sfd</span><span class="p">,</span> <span class="n">conn_listening</span><span class="p">,</span>
+</span><span class='line'>                                     <span class="n">EV_READ</span> <span class="o">|</span> <span class="n">EV_PERSIST</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span>
+</span><span class='line'>                                     <span class="n">transport</span><span class="p">,</span> <span class="n">main_base</span><span class="p">)))</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;failed to create listening connection</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+</span><span class='line'>        <span class="n">exit</span><span class="p">(</span><span class="n">EXIT_FAILURE</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="n">listen_conn_add</span><span class="o">-&gt;</span><span class="n">next</span> <span class="o">=</span> <span class="n">listen_conn</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">listen_conn</span> <span class="o">=</span> <span class="n">listen_conn_add</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p><code>conn_new</code>函数建立了连接之后，将socket文件描述符于<code>event_handler</code>函数绑定，当有socket请求过来的时候，就执行<code>event_handler</code>。在<code>event_handler</code>中，就是直接调用<code>drive_machine</code>这个大大的状态转移函数，一次连接的所有状态就都在这个函数里面处理了。</p>
