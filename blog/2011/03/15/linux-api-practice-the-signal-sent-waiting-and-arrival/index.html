@@ -97,8 +97,8 @@
 <p>进程可以对到达的信号进行阻止（block），如果被阻止的信号到达进程，该信号的状态就会一直保持等待，直到</p>
 
 <ul>
-<li><p>进程解除对该信号的阻止，或者</p></li>
-<li><p>进程忽略（ignore）到该信号</p></li>
+<li>进程解除对该信号的阻止，或者</li>
+<li>进程忽略（ignore）到该信号</li>
 </ul>
 
 
@@ -106,171 +106,264 @@
 
 <p>程序1简单的向自身发出了多次SIGUSR1信号，并且在信号处理函数中记录了发生的次数：</p>
 
-<pre><code>#include &lt;stdio.h&gt;
-#include &lt;signal.h&gt;
-#include &lt;stdlib.h&gt;
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="cp">#include &lt;stdio.h&gt;</span>
+</span><span class='line'><span class="cp">#include &lt;signal.h&gt;</span>
+</span><span class='line'><span class="cp">#include &lt;stdlib.h&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">static</span> <span class="kt">void</span> <span class="n">sigusr1_handler</span><span class="p">(</span><span class="kt">int</span> <span class="n">signo</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="n">main</span> <span class="p">()</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="n">sigset_t</span> <span class="n">oldmask</span><span class="p">,</span> <span class="n">newmask</span><span class="p">,</span> <span class="n">pendmask</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">if</span> <span class="p">(</span> <span class="n">signal</span><span class="p">(</span><span class="n">SIGUSR1</span><span class="p">,</span> <span class="n">sigusr1_handler</span><span class="p">)</span> <span class="o">==</span> <span class="n">SIG_ERR</span> <span class="p">)</span>
+</span><span class='line'>  <span class="p">{</span>
+</span><span class='line'>      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;signal error</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+</span><span class='line'>      <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">i</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">;</span> <span class="n">i</span> <span class="o">++</span><span class="p">)</span>
+</span><span class='line'>  <span class="p">{</span>
+</span><span class='line'>      <span class="n">raise</span><span class="p">(</span><span class="n">SIGUSR1</span><span class="p">);</span>
+</span><span class='line'>      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;send SIGUSR1</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;sleep started</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;sleep finished</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">static</span> <span class="kt">void</span> <span class="n">sigusr1_handler</span><span class="p">(</span><span class="kt">int</span> <span class="n">signo</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="k">static</span> <span class="kt">int</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;receive user1 signal %d times</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">n</span> <span class="o">++</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">if</span> <span class="p">(</span> <span class="n">signal</span><span class="p">(</span><span class="n">SIGUSR1</span><span class="p">,</span> <span class="n">sigusr1_handler</span><span class="p">)</span> <span class="o">==</span> <span class="n">SIG_ERR</span> <span class="p">)</span>
+</span><span class='line'>  <span class="p">{</span>
+</span><span class='line'>      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;can&#39;t reset SIGUSR1&quot;</span><span class="p">);</span>
+</span><span class='line'>      <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
 
-static void sigusr1_handler(int signo);
-
-int main ()
-{
-    sigset_t oldmask, newmask, pendmask;
-
-    if ( signal(SIGUSR1, sigusr1_handler) == SIG_ERR )
-    {
-        printf("signal error\n");
-        exit(1);
-    }
-
-    int i;
-    for (i = 0; i &lt; 5; i ++)
-    {
-        raise(SIGUSR1);
-        printf("send SIGUSR1\n");
-    }
-
-    printf("sleep started\n");
-    sleep(5);
-    printf("sleep finished\n");
-
-    exit(0);
-}
-
-static void sigusr1_handler(int signo)
-{
-    static int n = 1;
-    printf("receive user1 signal %d times\n", n ++);
-    if ( signal(SIGUSR1, sigusr1_handler) == SIG_ERR )
-    {
-        printf("can't reset SIGUSR1");
-        exit(1);
-    }
-}
-</code></pre>
 
 <p>程序的结果应该很明显：</p>
 
-<blockquote><p>receive user1 signal 1 times</p></blockquote>
-
-<p>send SIGUSR1</p>
-
-<p>receive user1 signal 2 times</p>
-
-<p>send SIGUSR1</p>
-
-<p>receive user1 signal 3 times</p>
-
-<p>send SIGUSR1</p>
-
-<p>receive user1 signal 4 times</p>
-
-<p>send SIGUSR1</p>
-
-<p>receive user1 signal 5 times</p>
-
-<p>send SIGUSR1</p>
-
-<p>sleep started</p>
-
-<p>sleep finished</p>
+<pre><code>receive user1 signal 1 times
+send SIGUSR1
+receive user1 signal 2 times
+send SIGUSR1
+receive user1 signal 3 times
+send SIGUSR1
+receive user1 signal 4 times
+send SIGUSR1
+receive user1 signal 5 times
+send SIGUSR1
+sleep started
+sleep finished
+</code></pre>
 
 <p>程序2在程序1的基础上，增加了发出信号之前阻止了该信号，以及之后再解除阻止的操作：</p>
 
-<pre><code>#include &lt;stdio.h&gt;
-#include &lt;signal.h&gt;
-#include &lt;stdlib.h&gt;
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="cp">#include &lt;stdio.h&gt;</span>
+</span><span class='line'><span class="cp">#include &lt;signal.h&gt;</span>
+</span><span class='line'><span class="cp">#include &lt;stdlib.h&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">static</span> <span class="kt">void</span> <span class="n">sigusr1_handler</span><span class="p">(</span><span class="kt">int</span> <span class="n">signo</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="n">main</span> <span class="p">()</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="n">sigset_t</span> <span class="n">oldmask</span><span class="p">,</span> <span class="n">newmask</span><span class="p">,</span> <span class="n">pendmask</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">//加入SIGUSR1信号处理函数</span>
+</span><span class='line'>  <span class="k">if</span> <span class="p">(</span> <span class="n">signal</span><span class="p">(</span><span class="n">SIGUSR1</span><span class="p">,</span> <span class="n">sigusr1_handler</span><span class="p">)</span> <span class="o">==</span> <span class="n">SIG_ERR</span> <span class="p">)</span>
+</span><span class='line'>  <span class="p">{</span>
+</span><span class='line'>      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;signal error</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+</span><span class='line'>      <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">//阻止SIGUSR1信号</span>
+</span><span class='line'>  <span class="n">sigemptyset</span><span class="p">(</span><span class="o">&amp;</span><span class="n">newmask</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">sigaddset</span><span class="p">(</span><span class="o">&amp;</span><span class="n">newmask</span><span class="p">,</span> <span class="n">SIGUSR1</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">if</span> <span class="p">(</span> <span class="n">sigprocmask</span><span class="p">(</span><span class="n">SIG_BLOCK</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">newmask</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">oldmask</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="p">)</span>
+</span><span class='line'>  <span class="p">{</span>
+</span><span class='line'>      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;sigprocmask block error</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+</span><span class='line'>      <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;SIGUSR1 is blocked</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">//发出信号</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">i</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">;</span> <span class="n">i</span> <span class="o">++</span><span class="p">)</span>
+</span><span class='line'>  <span class="p">{</span>
+</span><span class='line'>      <span class="n">raise</span><span class="p">(</span><span class="n">SIGUSR1</span><span class="p">);</span>
+</span><span class='line'>      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;send SIGUSR1</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;sleep started</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;sleep finished</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">if</span> <span class="p">(</span> <span class="n">sigpending</span><span class="p">(</span><span class="o">&amp;</span><span class="n">pendmask</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="p">)</span>
+</span><span class='line'>  <span class="p">{</span>
+</span><span class='line'>      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;sigpending error</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+</span><span class='line'>      <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="k">if</span> <span class="p">(</span> <span class="n">sigismember</span><span class="p">(</span><span class="o">&amp;</span><span class="n">pendmask</span><span class="p">,</span> <span class="n">SIGUSR1</span><span class="p">)</span> <span class="p">)</span>
+</span><span class='line'>  <span class="p">{</span>
+</span><span class='line'>      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;SIGUSR1 was pending</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">//恢复之前的信号掩码</span>
+</span><span class='line'>  <span class="k">if</span> <span class="p">(</span> <span class="n">sigprocmask</span><span class="p">(</span><span class="n">SIG_SETMASK</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">oldmask</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="p">)</span>
+</span><span class='line'>  <span class="p">{</span>
+</span><span class='line'>      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;sigprocmask setmask error</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+</span><span class='line'>      <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;restore old signal mask</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">static</span> <span class="kt">void</span> <span class="n">sigusr1_handler</span><span class="p">(</span><span class="kt">int</span> <span class="n">signo</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="k">static</span> <span class="kt">int</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;receive user1 signal %d times</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">n</span> <span class="o">++</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">if</span> <span class="p">(</span> <span class="n">signal</span><span class="p">(</span><span class="n">SIGUSR1</span><span class="p">,</span> <span class="n">sigusr1_handler</span><span class="p">)</span> <span class="o">==</span> <span class="n">SIG_ERR</span> <span class="p">)</span>
+</span><span class='line'>  <span class="p">{</span>
+</span><span class='line'>      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;can&#39;t reset SIGUSR1&quot;</span><span class="p">);</span>
+</span><span class='line'>      <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
 
-static void sigusr1_handler(int signo);
-
-int main ()
-{
-    sigset_t oldmask, newmask, pendmask;
-
-    //加入SIGUSR1信号处理函数
-    if ( signal(SIGUSR1, sigusr1_handler) == SIG_ERR )
-    {
-        printf("signal error\n");
-        exit(1);
-    }
-
-    //阻止SIGUSR1信号
-    sigemptyset(&amp;newmask);
-    sigaddset(&amp;newmask, SIGUSR1);
-    if ( sigprocmask(SIG_BLOCK, &amp;newmask, &amp;oldmask) &lt; 0 )
-    {
-        printf("sigprocmask block error\n");
-        exit(1);
-    }
-    printf("SIGUSR1 is blocked\n");
-
-    //发出信号
-    int i;
-    for (i = 0; i &lt; 5; i ++)
-    {
-        raise(SIGUSR1);
-        printf("send SIGUSR1\n");
-    }
-
-    printf("sleep started\n");
-    sleep(5);
-    printf("sleep finished\n");
-
-    if ( sigpending(&amp;pendmask) &lt; 0 )
-    {
-        printf("sigpending error\n");
-        exit(1);
-    }
-    if ( sigismember(&amp;pendmask, SIGUSR1) )
-    {
-        printf("SIGUSR1 was pending\n");
-    }
-
-    //恢复之前的信号掩码
-    if ( sigprocmask(SIG_SETMASK, &amp;oldmask, NULL) &lt; 0 )
-    {
-        printf("sigprocmask setmask error\n");
-        exit(1);
-    }
-    printf("restore old signal mask\n");
-
-    exit(0);
-}
-
-static void sigusr1_handler(int signo)
-{
-    static int n = 1;
-    printf("receive user1 signal %d times\n", n ++);
-    if ( signal(SIGUSR1, sigusr1_handler) == SIG_ERR )
-    {
-        printf("can't reset SIGUSR1");
-        exit(1);
-    }
-}
-</code></pre>
 
 <p>再来看运行的结果：</p>
 
-<blockquote><p>SIGUSR1 is blocked</p></blockquote>
-
-<p>send SIGUSR1</p>
-
-<p>send SIGUSR1</p>
-
-<p>send SIGUSR1</p>
-
-<p>send SIGUSR1</p>
-
-<p>send SIGUSR1</p>
-
-<p>sleep started</p>
-
-<p>sleep finished</p>
-
-<p>SIGUSR1 was pending</p>
-
-<p>receive user1 signal 1 times</p>
-
-<p>restore old signal mask</p>
+<pre><code>SIGUSR1 is blocked
+send SIGUSR1
+send SIGUSR1
+send SIGUSR1
+send SIGUSR1
+send SIGUSR1
+sleep started
+sleep finished
+SIGUSR1 was pending
+receive user1 signal 1 times
+restore old signal mask
+</code></pre>
 
 <p>虽然发出了多次信号，但由于之前的阻止设置使其发出后处于等待状态，多个同种信号pending，信号处理函数果然只接受到了1次，跟书中讲的是一致的。</p>
 </div>
