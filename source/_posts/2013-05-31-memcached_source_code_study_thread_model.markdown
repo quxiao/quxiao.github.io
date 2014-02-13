@@ -29,9 +29,9 @@ Memcached处理请求时，采用的是单进程多线程的Master-Worker模型�
 
 首先来看一下主线程和工作线程之间是怎么交互的吧：
 
-工作线程在初始化的时候，会建立一个pipe（管道），两端分别为：`notify_receive_fd`，`以及notify_send_fd`：
+工作线程在初始化的时候，会建立一个pipe（管道），两端分别为：`notify_receive_fd`，以及`notify_send_fd`：
 
-{% highlight cpp linenos %} 
+``` cpp
     for (i = 0; i < nthreads; i++) {
         int fds[2];
         if (pipe(fds)) {
@@ -46,13 +46,13 @@ Memcached处理请求时，采用的是单进程多线程的Master-Worker模型�
         /* Reserve three fds for the libevent base, and two for the pipe */
         stats.reserved_fds += 5;
     }
-{% endhighlight %}
+```
 
 也就是说当其他线程向`notify_send_fd`文件描述符写内容的时候，`notify_receive_fd`就可以接受到。
 
 接着，就用到了libevent的API：
 
-{% highlight cpp linenos %} 
+``` cpp
     me->base = event_init();
 
     /* Listen for notifications from other threads */
@@ -64,7 +64,7 @@ Memcached处理请求时，采用的是单进程多线程的Master-Worker模型�
         fprintf(stderr, "Can't monitor libevent notify pipe\n");
         exit(1);
     }
-{% endhighlight %}
+```
 
 
 每个工作线程都新建一个libevent实例(`me->base`)，并且将`notify_event`绑定在这个实例上。
@@ -78,7 +78,7 @@ Memcached处理请求时，采用的是单进程多线程的Master-Worker模型�
 那在哪个地方会写`notify_send_fd`呢？
 在主线程将新建的连接分发给工作时，就会向某个线程的`notify_send_fd`写一个空的字符串用来唤醒这个线程。下面的代码一目了然：
 
-{% highlight cpp linenos %} 
+``` cpp
     void dispatch_conn_new(int sfd, enum conn_states init_state, int event_flags,
                            int read_buffer_size, enum network_transport transport) {
         CQ_ITEM *item = cqi_new();
@@ -98,12 +98,12 @@ Memcached处理请求时，采用的是单进程多线程的Master-Worker模型�
             perror("Writing to thread notify pipe");
         }
     }
-{% endhighlight %}
+```
 
 
 首先来看看主线程，当他把其他工作线程、维护线程启起来之后，就开始侦听socket端口了（可以在memcached的源码中看出tcp和udp在处理逻辑上有很多不同的地方，但我不知道为什么不一样，就只看了处理tcp部分的代码，看来改补一补网络通信的知识了……），主要逻辑在`server_sockets`函数中：
 
-{% highlight cpp linenos %} 
+``` cpp
     if (IS_UDP(transport)) {
         int c;
 
@@ -122,7 +122,7 @@ Memcached处理请求时，采用的是单进程多线程的Master-Worker模型�
         listen_conn_add->next = listen_conn;
         listen_conn = listen_conn_add;
     }
-{% endhighlight %}
+```
 
 
 `conn_new`函数建立了连接之后，将socket文件描述符于`event_handler`函数绑定，当有socket请求过来的时候，就执行`event_handler`。在`event_handler`中，就是直接调用`drive_machine`这个大大的状态转移函数，一次连接的所有状态就都在这个函数里面处理了。

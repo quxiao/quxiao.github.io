@@ -17,19 +17,19 @@ item是memcached操作的最小单位，一个item包括以下数据：
 	
   * struct item 本身大小
   * key (`uint8_t`)
-  * suffix (`uint8_t`)，内容是" %d %d\r\n", flag, nbytes-2
+  * suffix (`uint8_t`)，内容是`" %d %d\r\n", flag, nbytes-2`
   * value
   * CAS（optional, `uint64_t`）
+
 (参考`do_item_alloc` && `item_make_header`)
 
 与item相关的操作有以下几种
 
 
-# 分配item
+## 分配item
 
 
 流程如下：
-
 	
 1. 确定item大小——ntotal
 2. 找到合适的slab
@@ -45,7 +45,7 @@ item是memcached操作的最小单位，一个item包括以下数据：
 4. 初始化item各个字段
 
 
-#  free item
+##  free item
 	
 1. 当一个item的引用计数为0时，就将这个item“释放”（其实没有真正的释放）
 2. 计算item的大小ntotal
@@ -53,8 +53,7 @@ item是memcached操作的最小单位，一个item包括以下数据：
 4. 在该`slab_class`上，释放ntotal大小的空间（之前的slab上释放空间的操作）
 
 
-# hashtable && heads && tails
-
+## hashtable && heads && tails
 
 当对item进行创建、删除等操作的时候，除了在slab上进行申请、释放空间之外，还需要更新以下数据：
 	
@@ -69,22 +68,15 @@ item是memcached操作的最小单位，一个item包括以下数据：
 time就是当前创建时间，flag表示item目前的状态（TODO）
 
 `primary_hashtable`是一个`item**`结构
-`primary_hashtable`的大小是2 ^ hashpower，hashpower默认大小为16
+
+`primary_hashtable`的大小是`2 ^ hashpower`，hashpower默认大小为16
+
 item与`primary_hashtable`的对应关系为：
+
     hash_key(item) & (2^hashporwer - 1)
 
 heads和tails数组用于记录每一个`slab_class`的`item*`的链表，用于进行LRU淘汰，所以说，memcached的LRU算法是每个`slab_class`独立的。
 
 
 --EOF--
-
-
-
-
-
-
-
-
-
-
 
