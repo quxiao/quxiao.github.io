@@ -2,6 +2,7 @@
 layout: post
 title: "模板元编程中的Typelist"
 description: ""
+comments: true
 category: ""
 tags: ["typelist", "template metaprogramming"]
 ---

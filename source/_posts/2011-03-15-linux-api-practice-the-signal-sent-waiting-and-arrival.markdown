@@ -20,7 +20,6 @@ tags:
 
 进程可以对到达的信号进行阻止（block），如果被阻止的信号到达进程，该信号的状态就会一直保持等待，直到
 
-	
   * 进程解除对该信号的阻止，或者
   * 进程忽略（ignore）到该信号
 
@@ -29,7 +28,7 @@ tags:
 
 程序1简单的向自身发出了多次SIGUSR1信号，并且在信号处理函数中记录了发生的次数：
 
-    ``` cpp
+```cpp
     #include <stdio.h>
     #include <signal.h>
     #include <stdlib.h>
@@ -70,7 +69,7 @@ tags:
     		exit(1);
     	}
     }
-    ```
+```
 
 
 程序的结果应该很明显：
@@ -91,8 +90,7 @@ tags:
 
 程序2在程序1的基础上，增加了发出信号之前阻止了该信号，以及之后再解除阻止的操作：
 
-    
-    ``` cpp
+``` cpp
     #include <stdio.h>
     #include <signal.h>
     #include <stdlib.h>
@@ -163,7 +161,7 @@ tags:
     		exit(1);
     	}
     }
-    ```
+```
 
 
 再来看运行的结果：
