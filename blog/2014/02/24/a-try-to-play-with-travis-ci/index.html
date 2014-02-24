@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>我经常访问的网站（资讯篇） - Xavier's Blog</title>
+  <title>小试Travis-Ci - Xavier's Blog</title>
   <meta name="author" content="Xavier">
 
   
-  <meta name="description" content="南方周末 覆盖生活各个方面，比较有深度的文章 爱枣报 每天10条新闻，大多反映社会问题 煎蛋 来自网络的各种有趣新闻 掘图志 有趣的图片和视频 锵锵三人行 凤凰台著名谈话类节目 褪墨 一个有关时间管理的个人博客 飞鱼秀 一档广播节目，比较适合年轻人的口味 Solidot 奇客的资讯，重要的东西 &hellip;">
+  <meta name="description" content="前段时间，好友小新给我看了一个工具（或者说是一种服务）——travis-ci，它提供了对于Github的项目上的持续集成服务（私有项目是要收费的）。正好最近把一个大学时写的小程序从Google Code迁移到Github上，就拿他来做个实验吧！ .travis.yml 查看travis- &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://quxiao.github.io/blog/2010/08/14/i-often-visit-the-site-information">
+  <link rel="canonical" href="http://quxiao.github.io/blog/2014/02/24/a-try-to-play-with-travis-ci">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Xavier's Blog" type="application/atom+xml">
@@ -67,7 +67,7 @@
   
   <header>
     
-      <h1 class="entry-title">我经常访问的网站（资讯篇）</h1>
+      <h1 class="entry-title">小试Travis-Ci</h1>
     
     
       <p class="meta">
@@ -83,7 +83,7 @@
   
 
 
-<time datetime="2010-08-14T11:21:18+08:00" pubdate data-updated="true">Aug 14<span>th</span>, 2010</time>
+<time datetime="2014-02-24T07:36:20+08:00" pubdate data-updated="true">Feb 24<span>th</span>, 2014</time>
         
            | <a href="#disqus_thread"
              data-disqus-identifier="http://quxiao.github.io">Comments</a>
@@ -93,35 +93,55 @@
   </header>
 
 
-<div class="entry-content"><p><a href="http://www.nbweekly.com">南方周末</a>    <br/>
-覆盖生活各个方面，比较有深度的文章</p>
+<div class="entry-content"><p>前段时间，好友小新给我看了一个工具（或者说是一种服务）——<strong>travis-ci</strong>，它提供了对于Github的项目上的持续集成服务（私有项目是要收费的）。正好最近把一个大学时写的小程序从Google Code迁移到Github上，就拿他来做个实验吧！</p>
 
-<p><a href="http://www.izaobao.us">爱枣报</a>    <br/>
-每天10条新闻，大多反映社会问题</p>
+<h2>.travis.yml</h2>
 
-<p><a href="http://jandan.net/">煎蛋</a>    <br/>
-来自网络的各种有趣新闻</p>
+<p>查看travis-ci的官方文档，其实十分简单。如果需要在项目中使用travis-ci提供的服务，只需要在Repository中添加<code>.travis.yml</code>配置文件。进行持续集成嘛，配置文件里面无非就是这么几项吧：</p>
 
-<p><a href="http://juetuzhi.net">掘图志</a>    <br/>
-有趣的图片和视频</p>
+<ul>
+<li>使用的编程语言</li>
+<li>编译器及其版本</li>
+<li>编译命令</li>
+<li>跑测试用例的命令</li>
+<li>etc.</li>
+</ul>
 
-<p><a href="http://tv.openv.com/col_263.html">锵锵三人行</a>    <br/>
-凤凰台著名谈话类节目</p>
 
-<p><a href="http://www.mifengtd.cn">褪墨</a>    <br/>
-一个有关时间管理的个人博客</p>
+<p>是的，不过travis-ci提供更细粒度的操作。当你每次push时，它进行如下操作：</p>
 
-<p><a href="http://english.cri.cn/easyfm/08program_morning.htm">飞鱼秀</a>    <br/>
-一档广播节目，比较适合年轻人的口味</p>
+<ol>
+<li><code>clone</code>你的repository并<code>cd</code>进去</li>
+<li>执行<code>before_install</code>操作</li>
+<li>执行<code>install</code>操作</li>
+<li>执行<code>before_script</code>操作</li>
+<li>执行<code>script</code>操作</li>
+<li>根据是否成功，执行<code>after_success</code>和<code>after_failure</code>操作</li>
+<li>执行<code>after_script</code>操作</li>
+</ol>
 
-<p><a href="http://solidot.org/">Solidot</a>    <br/>
-奇客的资讯，重要的东西</p>
 
-<p><a href="http://www.programmer.com.cn">技术管理者大本营</a>    <br/>
-《程序员》杂志官方网站，里面有许多与软件业相关的技术与管理类文章</p>
+<p>其中除了步骤1，其它操作的命令都需要在<code>.travis.yml</code>中进行配置，具体可以看<a href="http://docs.travis-ci.com/user/build-configuration/">doc</a> 。其实一般比较简单、独立的项目，并不会用到里面的每一个操作，有时候只需配置<code>script</code>就行了。比如我的简单程序，我只需要看是否能编译通过以及跑过测试用例，我就把这些操作写在<code>build_and_test.sh</code>里面，然后这么写：</p>
 
-<p><a href="http://www.cnetnews.com.cn/">CNET</a>    <br/>
-科技资讯</p>
+<pre><code>language: cpp
+
+script: 
+    - ./build_and_test.sh
+</code></pre>
+
+<h2>开启服务</h2>
+
+<p>配置文件编写好之后，你还需要登录<a href="http://travis-ci.org">http://travis-ci.org</a>来开启对于某个Repository的持续集成服务。</p>
+
+<p><img class="center" src="/images/2014-02-24/20140224-2.png"></p>
+
+<h2>Push</h2>
+
+<p>万事俱备，就差你push来触发服务了！每次你进行push操作，都会在travis-ci的虚拟环境下进行build操作（除非你的comment里面写着<code>[ci skip]</code>）。你可以自己看到每次build的结果。</p>
+
+<p><img class="center" src="/images/2014-02-24/20140224-1.png"></p>
+
+<p>BTW，travis-ci还会为最近一次的build结果生成图片链接（点击上面的<code>build xxx</code>小图标即可），你可以把它放到Repository中的README中，这样在Github上面就能随时看到build的结果了。</p>
 </div>
 
 
@@ -130,7 +150,7 @@
       
   
 
-<span class="byline author vcard">Posted by <span class="fn">admin</span></span>
+<span class="byline author vcard">Posted by <span class="fn">Xavier</span></span>
 
       
 
@@ -144,14 +164,8 @@
   
 
 
-<time datetime="2010-08-14T11:21:18+08:00" pubdate data-updated="true">Aug 14<span>th</span>, 2010</time>
+<time datetime="2014-02-24T07:36:20+08:00" pubdate data-updated="true">Feb 24<span>th</span>, 2014</time>
       
-
-<span class="categories">
-  
-    <a class='category' href='/blog/categories/essay/'>Essay</a>
-  
-</span>
 
 
     </p>
@@ -165,10 +179,8 @@
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2010/08/13/i-often-visit-the-site-learning-articles/" title="Previous Post: 我经常访问的网站（学习篇）">&laquo; 我经常访问的网站（学习篇）</a>
+        <a class="basic-alignment left" href="/blog/2014/01/31/typelist-and-abstract-fatory/" title="Previous Post: typelist && abstract fatory">&laquo; typelist && abstract fatory</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2010/09/30/decided-to-use-zotero-it/" title="Next Post: 决定用Zotero了！">决定用Zotero了！ &raquo;</a>
       
     </p>
   </footer>
@@ -263,8 +275,8 @@
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://quxiao.github.io/blog/2010/08/14/i-often-visit-the-site-information/';
-        var disqus_url = 'http://quxiao.github.io/blog/2010/08/14/i-often-visit-the-site-information/';
+        var disqus_identifier = 'http://quxiao.github.io/blog/2014/02/24/a-try-to-play-with-travis-ci/';
+        var disqus_url = 'http://quxiao.github.io/blog/2014/02/24/a-try-to-play-with-travis-ci/';
         var disqus_script = 'embed.js';
       
     (function () {

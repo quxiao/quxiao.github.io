@@ -4,7 +4,7 @@
   <title><![CDATA[Xavier's Blog]]></title>
   <link href="http://quxiao.github.io/atom.xml" rel="self"/>
   <link href="http://quxiao.github.io/"/>
-  <updated>2014-02-14T10:06:41+08:00</updated>
+  <updated>2014-02-24T08:43:56+08:00</updated>
   <id>http://quxiao.github.io/</id>
   <author>
     <name><![CDATA[Xavier]]></name>
@@ -12,6 +12,63 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[小试Travis-Ci]]></title>
+    <link href="http://quxiao.github.io/blog/2014/02/24/a-try-to-play-with-travis-ci/"/>
+    <updated>2014-02-24T07:36:20+08:00</updated>
+    <id>http://quxiao.github.io/blog/2014/02/24/a-try-to-play-with-travis-ci</id>
+    <content type="html"><![CDATA[<p>前段时间，好友小新给我看了一个工具（或者说是一种服务）——<strong>travis-ci</strong>，它提供了对于Github的项目上的持续集成服务（私有项目是要收费的）。正好最近把一个大学时写的小程序从Google Code迁移到Github上，就拿他来做个实验吧！</p>
+
+<h2>.travis.yml</h2>
+
+<p>查看travis-ci的官方文档，其实十分简单。如果需要在项目中使用travis-ci提供的服务，只需要在Repository中添加<code>.travis.yml</code>配置文件。进行持续集成嘛，配置文件里面无非就是这么几项吧：</p>
+
+<ul>
+<li>使用的编程语言</li>
+<li>编译器及其版本</li>
+<li>编译命令</li>
+<li>跑测试用例的命令</li>
+<li>etc.</li>
+</ul>
+
+
+<p>是的，不过travis-ci提供更细粒度的操作。当你每次push时，它进行如下操作：</p>
+
+<ol>
+<li><code>clone</code>你的repository并<code>cd</code>进去</li>
+<li>执行<code>before_install</code>操作</li>
+<li>执行<code>install</code>操作</li>
+<li>执行<code>before_script</code>操作</li>
+<li>执行<code>script</code>操作</li>
+<li>根据是否成功，执行<code>after_success</code>和<code>after_failure</code>操作</li>
+<li>执行<code>after_script</code>操作</li>
+</ol>
+
+
+<p>其中除了步骤1，其它操作的命令都需要在<code>.travis.yml</code>中进行配置，具体可以看<a href="http://docs.travis-ci.com/user/build-configuration/">doc</a> 。其实一般比较简单、独立的项目，并不会用到里面的每一个操作，有时候只需配置<code>script</code>就行了。比如我的简单程序，我只需要看是否能编译通过以及跑过测试用例，我就把这些操作写在<code>build_and_test.sh</code>里面，然后这么写：</p>
+
+<pre><code>language: cpp
+
+script: 
+    - ./build_and_test.sh
+</code></pre>
+
+<h2>开启服务</h2>
+
+<p>配置文件编写好之后，你还需要登录<a href="http://travis-ci.org">http://travis-ci.org</a>来开启对于某个Repository的持续集成服务。</p>
+
+<p><img class="center" src="http://quxiao.github.io/images/2014-02-24/20140224-2.png"></p>
+
+<h2>Push</h2>
+
+<p>万事俱备，就差你push来触发服务了！每次你进行push操作，都会在travis-ci的虚拟环境下进行build操作（除非你的comment里面写着<code>[ci skip]</code>）。你可以自己看到每次build的结果。</p>
+
+<p><img class="center" src="http://quxiao.github.io/images/2014-02-24/20140224-1.png"></p>
+
+<p>BTW，travis-ci还会为最近一次的build结果生成图片链接（点击上面的<code>build xxx</code>小图标即可），你可以把它放到Repository中的README中，这样在Github上面就能随时看到build的结果了。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Typelist && Abstract Fatory]]></title>
@@ -2781,53 +2838,6 @@ class D: public B1, public B2 {
 <blockquote><p>“如果我有10万种书，哪怕一次仅卖掉一本，10年后加起来它们的销售就会超过最新出版的《哈利·波特》。”</p></blockquote>
 
 <p>但这长尾理论有个前提，那就是成本足够低。就好像出版书籍的成本足够低了，我才可以接受一本书只卖出去几本，因为就算只卖出去几本，我也是赚钱的。怪不得电子书现在这么火，一旦谁占领了市场，大概就是稳赚不赔了，我比较看好Amazon。</p>
-
-<p>&mdash;EOF&mdash;</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[博客搬家了]]></title>
-    <link href="http://quxiao.github.io/blog/2012/09/19/blog-has-moved/"/>
-    <updated>2012-09-19T21:44:25+08:00</updated>
-    <id>http://quxiao.github.io/blog/2012/09/19/blog-has-moved</id>
-    <content type="html"><![CDATA[<p>博客搬家了，从原来<a href="http://hugege.com/">胡戈戈</a>的虚拟主机搬到了<a href="http://hellohostnet.com">Hello,Host!</a>的VPS上面，域名也从qxavier.info换成了<a href="http://qxavier.me">qxavier.me</a>了。给博客搬家不是因为主机的质量或者服务问题，对于胡戈戈的服务态度以及虚拟主机的质量，我感到很满意。每次我有问题，他都能及时的响应，给我满意的答复。博客搬家的主要原因是自己想“折腾”、或者说是虚拟主机的限制有些多，除了写博客，其他事情基本做不了，就算在上面搭一个很简单的PHP程序，也很费劲。于是自己就将眼光投向了自由度更大、费用也还算合理的VPS。</p>
-
-<p>自由度大了，但你也要因此而付出代价，那就是在博客搬家途中会踩到各种各样的“坑”。在这也整理一下，给大家提供些参考。</p>
-
-<h1>域名解析</h1>
-
-<p>.me等“非主流”域名，需要第三方解析服务，例如dnspod.cn，可以参考<a href="http://hellohostnet.com/wiki/doku.php?id=dnspod_%E8%AE%BE%E7%BD%AE%E6%95%99%E7%A8%8B">这里</a>。这也是防止域名或者DNS服务器被墙的一个措施。</p>
-
-<h1>FTP服务安装</h1>
-
-<p>wordpress在安装插件或者上传图片时，需要FTP服务。因为操作系统用的是ubuntu，所以安装软件apt-get install一下就可以了，安装的是vsftpd。安装过程很简单，但关键是修改配置。除了以下配置：</p>
-
-<pre><code># Uncomment this to allow local users to log in.
-local_enable=YES
-#
-# Uncomment this to enable any form of FTP write command.
-write_enable=YES
-</code></pre>
-
-<p>还需要特别注意掩码的设置，之前就是因为忘了设置，结果在上面耗了几乎两天的时间！</p>
-
-<pre><code># Default umask for local users is 077. You may wish to change this to 022,
-# if your users expect that (022 is used by most other ftpd's)
-local_umask=022
-</code></pre>
-
-<h1>用户权限设置</h1>
-
-<p>一般VPS直接就给我们root帐号用了，但是如果没有其他帐号，vsftpd是无法使用的，因为它不支持root登录，所以之前还得创建一个用户。另外，如果是将wordpress文件夹放在该用户下，还需要将里面所有文件的所有者和所有组从root改为这个用户。</p>
-
-<h1>Apache开启rewrite_mod模块</h1>
-
-<p>wordpress的文章url是虚拟的，依赖于apache的rewrite_mod模块，所以必须开启该模块。</p>
-
-<h1>数据库导入</h1>
-
-<p>之前以为很困难，其实比较简单。因为换了域名，所以数据库中的出现域名的地方需要替换成新的域名，只要dump处理，替换一下，然后导入到新的数据库就行了。</p>
 
 <p>&mdash;EOF&mdash;</p>
 ]]></content>

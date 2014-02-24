@@ -9,7 +9,7 @@
   <meta name="author" content="Xavier">
 
   
-  <meta name="description" content="上一篇博客讲到了模板元编程中的Typelist，这种技术能够让编译器帮你生成许多结构类似的代码，省去了程序员自己编写代码的时间以及一些运行时的效率损失。设计模式中的Abstract Factory，其Template MetaProgramming版本也依赖于TypeList技术。 普通实现 &hellip;">
+  <meta name="description" content="前段时间，好友小新给我看了一个工具（或者说是一种服务）——travis-ci，它提供了对于Github的项目上的持续集成服务（私有项目是要收费的）。正好最近把一个大学时写的小程序从Google Code迁移到Github上，就拿他来做个实验吧！ .travis.yml 查看travis- &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -64,6 +64,93 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/02/24/a-try-to-play-with-travis-ci/">小试Travis-Ci</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-02-24T07:36:20+08:00" pubdate data-updated="true">Feb 24<span>th</span>, 2014</time>
+        
+           | <a href="/blog/2014/02/24/a-try-to-play-with-travis-ci/#disqus_thread"
+             data-disqus-identifier="http://quxiao.github.io/blog/2014/02/24/a-try-to-play-with-travis-ci/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>前段时间，好友小新给我看了一个工具（或者说是一种服务）——<strong>travis-ci</strong>，它提供了对于Github的项目上的持续集成服务（私有项目是要收费的）。正好最近把一个大学时写的小程序从Google Code迁移到Github上，就拿他来做个实验吧！</p>
+
+<h2>.travis.yml</h2>
+
+<p>查看travis-ci的官方文档，其实十分简单。如果需要在项目中使用travis-ci提供的服务，只需要在Repository中添加<code>.travis.yml</code>配置文件。进行持续集成嘛，配置文件里面无非就是这么几项吧：</p>
+
+<ul>
+<li>使用的编程语言</li>
+<li>编译器及其版本</li>
+<li>编译命令</li>
+<li>跑测试用例的命令</li>
+<li>etc.</li>
+</ul>
+
+
+<p>是的，不过travis-ci提供更细粒度的操作。当你每次push时，它进行如下操作：</p>
+
+<ol>
+<li><code>clone</code>你的repository并<code>cd</code>进去</li>
+<li>执行<code>before_install</code>操作</li>
+<li>执行<code>install</code>操作</li>
+<li>执行<code>before_script</code>操作</li>
+<li>执行<code>script</code>操作</li>
+<li>根据是否成功，执行<code>after_success</code>和<code>after_failure</code>操作</li>
+<li>执行<code>after_script</code>操作</li>
+</ol>
+
+
+<p>其中除了步骤1，其它操作的命令都需要在<code>.travis.yml</code>中进行配置，具体可以看<a href="http://docs.travis-ci.com/user/build-configuration/">doc</a> 。其实一般比较简单、独立的项目，并不会用到里面的每一个操作，有时候只需配置<code>script</code>就行了。比如我的简单程序，我只需要看是否能编译通过以及跑过测试用例，我就把这些操作写在<code>build_and_test.sh</code>里面，然后这么写：</p>
+
+<pre><code>language: cpp
+
+script: 
+    - ./build_and_test.sh
+</code></pre>
+
+<h2>开启服务</h2>
+
+<p>配置文件编写好之后，你还需要登录<a href="http://travis-ci.org">http://travis-ci.org</a>来开启对于某个Repository的持续集成服务。</p>
+
+<p><img class="center" src="/images/2014-02-24/20140224-2.png"></p>
+
+<h2>Push</h2>
+
+<p>万事俱备，就差你push来触发服务了！每次你进行push操作，都会在travis-ci的虚拟环境下进行build操作（除非你的comment里面写着<code>[ci skip]</code>）。你可以自己看到每次build的结果。</p>
+
+<p><img class="center" src="/images/2014-02-24/20140224-1.png"></p>
+
+<p>BTW，travis-ci还会为最近一次的build结果生成图片链接（点击上面的<code>build xxx</code>小图标即可），你可以把它放到Repository中的README中，这样在Github上面就能随时看到build的结果了。</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -2129,238 +2216,6 @@ intrusive_list: 544.419 ms
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/05/31/memcached_source_code_study_thread_model/">Memcached源码学习——线程模型</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-05-31T09:30:39+08:00" pubdate data-updated="true">May 31<span>st</span>, 2013</time>
-        
-           | <a href="/blog/2013/05/31/memcached_source_code_study_thread_model/#disqus_thread"
-             data-disqus-identifier="http://quxiao.github.io/blog/2013/05/31/memcached_source_code_study_thread_model/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Memcached中有以下几类线程：</p>
-
-<ul>
-<li>主线程</li>
-<li>工作线程</li>
-<li>维护线程</li>
-</ul>
-
-
-<p>主线程，又可以叫分发线程，除了完成程序的各种参数、以及其他线程的初始化以外，还会listen端口，新建连接，并且将该连接分发到其他的工作线程。</p>
-
-<p>工作线程，大部分实际的工作都是他们干的，包括读取请求的协议内容、解析、进行具体存、取、更新、删除kv的操作，最后返回结果。</p>
-
-<p>另外，还有一个维护线程，它的工作就是在需要的时候（存放的item大于总量的2/3）对hash表进行扩展。</p>
-
-<p>Memcached处理请求时，采用的是单进程多线程的Master-Worker模型，通过libevent这个事件响应库来实现的。</p>
-
-<p>首先来看一下主线程和工作线程之间是怎么交互的吧：</p>
-
-<p>工作线程在初始化的时候，会建立一个pipe（管道），两端分别为：<code>notify_receive_fd</code>，以及<code>notify_send_fd</code>：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nthreads</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="kt">int</span> <span class="n">fds</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
-</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">pipe</span><span class="p">(</span><span class="n">fds</span><span class="p">))</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">perror</span><span class="p">(</span><span class="s">&quot;Can&#39;t create notify pipe&quot;</span><span class="p">);</span>
-</span><span class='line'>        <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">threads</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">notify_receive_fd</span> <span class="o">=</span> <span class="n">fds</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
-</span><span class='line'>    <span class="n">threads</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">notify_send_fd</span> <span class="o">=</span> <span class="n">fds</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">setup_thread</span><span class="p">(</span><span class="o">&amp;</span><span class="n">threads</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
-</span><span class='line'>    <span class="cm">/* Reserve three fds for the libevent base, and two for the pipe */</span>
-</span><span class='line'>    <span class="n">stats</span><span class="p">.</span><span class="n">reserved_fds</span> <span class="o">+=</span> <span class="mi">5</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>也就是说当其他线程向<code>notify_send_fd</code>文件描述符写内容的时候，<code>notify_receive_fd</code>就可以接受到。</p>
-
-<p>接着，就用到了libevent的API：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="n">me</span><span class="o">-&gt;</span><span class="n">base</span> <span class="o">=</span> <span class="n">event_init</span><span class="p">();</span>
-</span><span class='line'>
-</span><span class='line'><span class="cm">/* Listen for notifications from other threads */</span>
-</span><span class='line'><span class="n">event_set</span><span class="p">(</span><span class="o">&amp;</span><span class="n">me</span><span class="o">-&gt;</span><span class="n">notify_event</span><span class="p">,</span> <span class="n">me</span><span class="o">-&gt;</span><span class="n">notify_receive_fd</span><span class="p">,</span>
-</span><span class='line'>          <span class="n">EV_READ</span> <span class="o">|</span> <span class="n">EV_PERSIST</span><span class="p">,</span> <span class="n">thread_libevent_process</span><span class="p">,</span> <span class="n">me</span><span class="p">);</span>
-</span><span class='line'><span class="n">event_base_set</span><span class="p">(</span><span class="n">me</span><span class="o">-&gt;</span><span class="n">base</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">me</span><span class="o">-&gt;</span><span class="n">notify_event</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">if</span> <span class="p">(</span><span class="n">event_add</span><span class="p">(</span><span class="o">&amp;</span><span class="n">me</span><span class="o">-&gt;</span><span class="n">notify_event</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;Can&#39;t monitor libevent notify pipe</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
-</span><span class='line'>    <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>每个工作线程都新建一个libevent实例(<code>me-&gt;base</code>)，并且将<code>notify_event</code>绑定在这个实例上。</p>
-
-<p><code>notify_event</code>什么时候触发？
-当<code>notify_receive_fd</code>有内容的时候被触发。</p>
-
-<p>触发了执行什么函数？
-执行<code>thread_libevent_process (me)</code>函数。</p>
-
-<p>那在哪个地方会写<code>notify_send_fd</code>呢？
-在主线程将新建的连接分发给工作时，就会向某个线程的<code>notify_send_fd</code>写一个空的字符串用来唤醒这个线程。下面的代码一目了然：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="kt">void</span> <span class="n">dispatch_conn_new</span><span class="p">(</span><span class="kt">int</span> <span class="n">sfd</span><span class="p">,</span> <span class="k">enum</span> <span class="n">conn_states</span> <span class="n">init_state</span><span class="p">,</span> <span class="kt">int</span> <span class="n">event_flags</span><span class="p">,</span>
-</span><span class='line'>                       <span class="kt">int</span> <span class="n">read_buffer_size</span><span class="p">,</span> <span class="k">enum</span> <span class="n">network_transport</span> <span class="n">transport</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="n">CQ_ITEM</span> <span class="o">*</span><span class="n">item</span> <span class="o">=</span> <span class="n">cqi_new</span><span class="p">();</span>
-</span><span class='line'>    <span class="cm">/*这就是所谓的round robin*/</span>
-</span><span class='line'>    <span class="kt">int</span> <span class="n">tid</span> <span class="o">=</span> <span class="p">(</span><span class="n">last_thread</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">settings</span><span class="p">.</span><span class="n">num_threads</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">LIBEVENT_THREAD</span> <span class="o">*</span><span class="kr">thread</span> <span class="o">=</span> <span class="n">threads</span> <span class="o">+</span> <span class="n">tid</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">last_thread</span> <span class="o">=</span> <span class="n">tid</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">item</span><span class="o">-&gt;</span><span class="n">sfd</span> <span class="o">=</span> <span class="n">sfd</span><span class="p">;</span>
-</span><span class='line'>    <span class="cm">/* ... */</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">cq_push</span><span class="p">(</span><span class="kr">thread</span><span class="o">-&gt;</span><span class="n">new_conn_queue</span><span class="p">,</span> <span class="n">item</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">write</span><span class="p">(</span><span class="kr">thread</span><span class="o">-&gt;</span><span class="n">notify_send_fd</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">perror</span><span class="p">(</span><span class="s">&quot;Writing to thread notify pipe&quot;</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>首先来看看主线程，当他把其他工作线程、维护线程启起来之后，就开始侦听socket端口了（可以在memcached的源码中看出tcp和udp在处理逻辑上有很多不同的地方，但我不知道为什么不一样，就只看了处理tcp部分的代码，看来改补一补网络通信的知识了……），主要逻辑在<code>server_sockets</code>函数中：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-</pre></td><td class='code'><pre><code class='cpp'><span class='line'><span class="k">if</span> <span class="p">(</span><span class="n">IS_UDP</span><span class="p">(</span><span class="n">transport</span><span class="p">))</span> <span class="p">{</span>
-</span><span class='line'>    <span class="kt">int</span> <span class="n">c</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">for</span> <span class="p">(</span><span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">c</span> <span class="o">&lt;</span> <span class="n">settings</span><span class="p">.</span><span class="n">num_threads_per_udp</span><span class="p">;</span> <span class="n">c</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="cm">/* this is guaranteed to hit all threads because we round-robin */</span>
-</span><span class='line'>        <span class="n">dispatch_conn_new</span><span class="p">(</span><span class="n">sfd</span><span class="p">,</span> <span class="n">conn_read</span><span class="p">,</span> <span class="n">EV_READ</span> <span class="o">|</span> <span class="n">EV_PERSIST</span><span class="p">,</span>
-</span><span class='line'>                          <span class="n">UDP_READ_BUFFER_SIZE</span><span class="p">,</span> <span class="n">transport</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">listen_conn_add</span> <span class="o">=</span> <span class="n">conn_new</span><span class="p">(</span><span class="n">sfd</span><span class="p">,</span> <span class="n">conn_listening</span><span class="p">,</span>
-</span><span class='line'>                                     <span class="n">EV_READ</span> <span class="o">|</span> <span class="n">EV_PERSIST</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span>
-</span><span class='line'>                                     <span class="n">transport</span><span class="p">,</span> <span class="n">main_base</span><span class="p">)))</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;failed to create listening connection</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
-</span><span class='line'>        <span class="n">exit</span><span class="p">(</span><span class="n">EXIT_FAILURE</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="n">listen_conn_add</span><span class="o">-&gt;</span><span class="n">next</span> <span class="o">=</span> <span class="n">listen_conn</span><span class="p">;</span>
-</span><span class='line'>    <span class="n">listen_conn</span> <span class="o">=</span> <span class="n">listen_conn_add</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>conn_new</code>函数建立了连接之后，将socket文件描述符于<code>event_handler</code>函数绑定，当有socket请求过来的时候，就执行<code>event_handler</code>。在<code>event_handler</code>中，就是直接调用<code>drive_machine</code>这个大大的状态转移函数，一次连接的所有状态就都在这个函数里面处理了。</p>
-
-<p>主线程首先达到<code>drive_machine</code>中的<code>conn_listenning</code>状态，然后通过<code>dispatch_conn_new</code>将这次的连接分配给某个工作线程，工作线程再经历其他的状态，完成一次请求。</p>
-
-<p><code>drive_machine</code>的具体逻辑比较复杂，这里就不讲了。</p>
-
-<p>好，最后简单回顾下这个工作流程：</p>
-
-<ol>
-<li> 主线程接受到memcached客户端的请求（是在哪儿一直接收请求的？）</li>
-<li> 主线程通过round robin找到一个工作线程</li>
-<li> 主线程将创建的连接push到工作线程的连接队列中，然后唤醒这个工作线程</li>
-<li> 工作线程被唤醒后，从自己的线程队列中取出一个连接</li>
-<li> 解析请求、对hash表进行相应的操作，写入返回</li>
-</ol>
-
-
-<p>整体看下来，感觉memcached的源码并没有什么高深的算法，用的都是很朴素的链表、底层的网络通信、线程间互斥、字符串解析等等，感觉除了网络通信比较繁琐以外，其他的地方都是一个刚毕业的计算机专业的学生可以也应该掌握的。通过对一些简单、实用的东西进行有效的组合，就可以获取一个功能更强大的合成体。</p>
-
-<p>&mdash;EOF&mdash;</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -2376,6 +2231,10 @@ intrusive_list: 544.419 ms
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/02/24/a-try-to-play-with-travis-ci/">小试Travis-Ci</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/01/31/typelist-and-abstract-fatory/">Typelist && Abstract Fatory</a>
       </li>
     
@@ -2389,10 +2248,6 @@ intrusive_list: 544.419 ms
     
       <li class="post">
         <a href="/blog/2013/11/30/information_retrievial_in_practice_note_architecture/">《Information Retrieval in Practice》笔记——整体架构</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/11/22/presentation-based-development/">“基于演示的开发”</a>
       </li>
     
   </ul>
