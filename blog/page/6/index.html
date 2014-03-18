@@ -9,7 +9,7 @@
   <meta name="author" content="Xavier">
 
   
-  <meta name="description" content="在eclipse中部署好工程，然后再通过jetty启动server，工程的功能相当简单，就是将表单中的字符串提交后显示。通过运行和调试，初步了解了webx的运行流程。 首先看一下WEB-INF中的配置文件 web.xml是J2EE工程必须的配置文件，webx. &hellip;">
+  <meta name="description" content="AOP，即面向方面的编程（面向“切片”的编程应该更合适）。按我的理解，就是对业务逻辑中的某一阶段进行抽取，以达到逻辑模块之前低耦合的编程方法。举个例子，一个系统有许多资源，只有当用户登录系统之后才能访问。那么，验证用户登录就可以抽象成一个“切片”，插在了用户和系统资源之间， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -64,6 +64,171 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/04/03/aop-and-dynamic-proxy-mode/">AOP以及动态代理模式</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-04-03T14:00:53+08:00" pubdate data-updated="true">Apr 3<span>rd</span>, 2011</time>
+        
+           | <a href="/blog/2011/04/03/aop-and-dynamic-proxy-mode/#disqus_thread"
+             data-disqus-identifier="http://quxiao.github.io/blog/2011/04/03/aop-and-dynamic-proxy-mode/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>AOP，即面向方面的编程（面向“切片”的编程应该更合适）。按我的理解，就是对业务逻辑中的某一阶段进行抽取，以达到逻辑模块之前低耦合的编程方法。举个例子，一个系统有许多资源，只有当用户登录系统之后才能访问。那么，验证用户登录就可以抽象成一个“切片”，插在了用户和系统资源之间，编写各个业务模块的人就不用去关心验证用户登录的工作了，验证登录的工作会进行统一配置。</p>
+
+<p>Spring采用的是动态AOP，即通过动态代理模式，在目标对象调用方法前后进行相应处理。</p>
+
+<p>Spring中的动态AOP是基于以下两种方式实现的：</p>
+
+<ul>
+<li><p>Java Dynamic Proxy</p></li>
+<li><p>CGLIB（code generation library）</p></li>
+</ul>
+
+
+<p>Java Dynamic Proxy是面向接口的，而CGLIB是面向类的。两者的关系可以参考这张图：
+<a href="http://www.qxavier.me/wp-content/uploads/2011/04/image4.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/04/image_thumb4.png" alt="image" /></a></p>
+
+<p>UserDAOImp是我们需要代理的类，Java动态代理类需要实现了UserDAOImp所实现的接口，（这也要求UserDAOImp必须实现某个接口），而CGLIB则是扩展了UserDAOImp类。</p>
+
+<p>我们先来利用Java Dynamic Proxy实现代理功能。比如目前有一个类RealObject，它实现了接口Interface</p>
+
+<p>Interface</p>
+
+<pre><code>public interface Interface {
+    void funcA ();
+    void funcB (String str);
+    void saveXXX ();
+}
+</code></pre>
+
+<p>RealObject</p>
+
+<pre><code>public class RealObject implements Interface {
+
+    @Override
+    public void funcA() {
+        // TODO Auto-generated method stub
+        System.out.println("funcA() in RealObject");
+    }
+
+    @Override
+    public void funcB(String str) {
+        // TODO Auto-generated method stub
+        System.out.println("funcB() in RealObject : " + str);
+    }
+
+    @Override
+    public void saveXXX() {
+        // TODO Auto-generated method stub
+        System.out.println("saveXXX() in RealObject");
+    }
+}
+</code></pre>
+
+<p>假设我们需要代理RealObject，在调用方法前后进行相应处理（输出信息），那么我们就需要一个实现了InvacationHandler接口的类，比如说是ProxyInvacationHandler</p>
+
+<p>ProxyInvacationHandler</p>
+
+<pre><code>public class ProxyInvocationHandler implements InvocationHandler {
+
+    private Object proxied;
+
+    public ProxyInvocationHandler (Object proxied)
+    {
+        this.proxied = proxied;
+    }
+
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args)
+            throws Throwable {
+        // TODO Auto-generated method stub
+        Object result = null;
+
+        System.out.print("n*******************n");
+        System.out.println(proxy.getClass());   //invoke中第一个参数proxy意义何在？
+        //模拟增加事务处理功能
+        if ( method.getName().startsWith("save") )
+        {
+            System.out.println("transaction begins");
+        }
+        System.out.println("before " + method);
+        //被代理的类调用实际的方法
+        result = method.invoke(proxied, args);
+
+        System.out.println("after " + method);
+        if ( method.getName().startsWith("save") )
+        {
+            System.out.println("transaction ends");
+        }
+        System.out.print("*******************n");
+        return result;
+    }
+
+}
+</code></pre>
+
+<p>其中的invoke方法就表示当被代理的类调用方法的前后，我们可以做的操作。甚至可以根据方法的不同，选择不同的操作。</p>
+
+<p>最后，再通过Proxy的newProxyInstance静态方法动态生成代理类，因为代理类也是实现Interface接口的，所以操作代理类就像操作被代理类一样。</p>
+
+<p>以下是运行结果：</p>
+
+<pre><code>funcA() in RealObject
+funcB() in RealObject : 123
+saveXXX() in RealObject
+
+*******************
+class $Proxy0
+before public abstract void org.quxiao.Interface.funcA()
+funcA() in RealObject
+after public abstract void org.quxiao.Interface.funcA()
+*******************
+
+*******************
+class $Proxy0
+before public abstract void org.quxiao.Interface.funcB(java.lang.String)
+funcB() in RealObject : 123
+after public abstract void org.quxiao.Interface.funcB(java.lang.String)
+*******************
+
+*******************
+class $Proxy0
+transaction begins
+before public abstract void org.quxiao.Interface.saveXXX()
+saveXXX() in RealObject
+after public abstract void org.quxiao.Interface.saveXXX()
+transaction ends
+*******************
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1493,202 +1658,6 @@ child process time: 0 ms
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2011/02/18/linux-api-practice-access-to-the-process-of-resource-constraints/">Linux API 实践：获取进程资源限制</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-02-18T21:55:40+08:00" pubdate data-updated="true">Feb 18<span>th</span>, 2011</time>
-        
-           | <a href="/blog/2011/02/18/linux-api-practice-access-to-the-process-of-resource-constraints/#disqus_thread"
-             data-disqus-identifier="http://quxiao.github.io/blog/2011/02/18/linux-api-practice-access-to-the-process-of-resource-constraints/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>进程在运行时，会占用计算机的各种资源，比如CPU时间、内存、文件等等。但是，进程是不可以占用无限多的资源的，操作系统会给进程设定所使用资源的上限。想获取这些资源的上限值，是需要调用getrlimit()即可。</p>
-
-<pre><code>int getrlimit(int resource, struct rlimit *rlptr);
-</code></pre>
-
-<p>第一个参数是资源，有哪些资源呢？</p>
-
-<p>资源</p>
-
-<p>粗略含义</p>
-
-<p>RLIMIT_AS</p>
-
-<p>进程可使用的内存的最大值</p>
-
-<p>RLIMIT_CORE</p>
-
-<p>核心文件(core file)的最大值</p>
-
-<p>RLIMIT_CPU</p>
-
-<p>CPU时间最大值</p>
-
-<p>RLIMIT_DATA</p>
-
-<p>数据段（已初始化数据+未初始化数据+堆）的最大值</p>
-
-<p>RLIMIT_FSIZE</p>
-
-<p>新建文件的最大字节数</p>
-
-<p>RLIMIT_LOCKS</p>
-
-<p>持有的锁的最大数</p>
-
-<p>RLIMIT_MEMLOCK</p>
-
-<p>锁定内存的最大字节数</p>
-
-<p>RLIMIT_NOFILE</p>
-
-<p>打开文件的最大数目</p>
-
-<p>RLIMIT_NPROC</p>
-
-<p>每个实际用户(real user)的最大子进程数目</p>
-
-<p>RLIMIT_RSS</p>
-
-<p>RSS(Resident Set Size)的最大字节数</p>
-
-<p>RLIMIT_SBSIZE</p>
-
-<p>socket buffer的最大字节数</p>
-
-<p>RLIMIT_STACK</p>
-
-<p>进程栈的最大字节数</p>
-
-<p>RLIMIT_VMEM</p>
-
-<p>与RLIMIT_AS含义一致</p>
-
-<p>第二个参数是rlimit，rlimit结构是这样的：</p>
-
-<pre><code>struct rlimit
-
-{
-
-rlim_t rlim_cur; /* soft limit: current limit */
-
-rlim_t rlim_max; /* hard limit: maximum value for rlim_cur */
-
-};
-</code></pre>
-
-<p>其中含有软限制和硬限制。超级用户可以增加硬限制；一般用户可以降低硬限制，但不能增加硬限制，一般用户还可修改软限制，但修改的软限制不能超过硬限制。</p>
-
-<p>实际运行的效果如何呢？实践一下吧！</p>
-
-<pre><code>#include &lt;stdio.h&gt;
-#include &lt;sys/resource.h&gt;
-
-#define doit(name) pr_limit(#name, name)
-
-void pr_limit(char* name, int resource);
-
-int main ()
-{
-    printf("resource name  soft\thard \n");
-#ifdef  RLIMIT_AS
-    doit(RLIMIT_AS);
-#endif
-    doit(RLIMIT_CORE);
-    doit(RLIMIT_CPU);
-    doit(RLIMIT_DATA);
-    doit(RLIMIT_FSIZE);
-#ifdef  RLIMIT_LOCKS
-    doit(RLIMIT_LOCKS);
-#endif
-#ifdef  RLIMIT_MEMLOCK
-    doit(RLIMIT_MEMLOCK);
-#endif
-    doit(RLIMIT_NOFILE);
-#ifdef  RLIMIT_NPROC
-    doit(RLIMIT_NPROC);
-#endif
-#ifdef  RLIMIT_RSS
-    doit(RLIMIT_RSS);
-#endif
-#ifdef  RLIMIT_SBSIZE
-    doit(RLIMIT_SBSIZE);
-#endif
-    doit(RLIMIT_STACK);
-#ifdef  RLIMIT_VMEM
-    doit(RLIMIT_VMEM);
-#endif
-
-    return 0;
-}
-
-void pr_limit(char* name, int resource)
-{
-    struct rlimit limit;
-    if ( getrlimit(resource, &amp;limit) &lt; 0 )
-    {
-        printf("getrlimit error!\n");
-        return;
-    }
-    printf("%-14s ", name);
-    if ( limit.rlim_cur == RLIM_INFINITY )
-        printf("infinite ");
-    else
-        printf("%8ld ", limit.rlim_cur);
-
-    if ( limit.rlim_max == RLIM_INFINITY )
-        printf("infinite ");
-    else
-        printf("%8ld ", limit.rlim_max);
-    putchar('\n');
-}
-</code></pre>
-
-<p>运行的结果：</p>
-
-<pre><code>resource name  soft hard
-RLIMIT_AS      infinite infinite
-RLIMIT_CORE           0 infinite
-RLIMIT_CPU     infinite infinite
-RLIMIT_DATA    infinite infinite
-RLIMIT_FSIZE   infinite infinite
-RLIMIT_LOCKS   infinite infinite
-RLIMIT_MEMLOCK    65536    65536
-RLIMIT_NOFILE      1024     1024
-RLIMIT_NPROC   infinite infinite
-RLIMIT_RSS     infinite infinite
-RLIMIT_STACK    8388608 infinite
-</code></pre>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/7/">&larr; Older</a>
@@ -1706,6 +1675,10 @@ RLIMIT_STACK    8388608 infinite
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/03/18/log-practice/">日志实践</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/02/24/a-try-to-play-with-travis-ci/">小试Travis-Ci</a>
       </li>
     
@@ -1719,10 +1692,6 @@ RLIMIT_STACK    8388608 infinite
     
       <li class="post">
         <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/11/30/information_retrievial_in_practice_note_architecture/">《Information Retrieval in Practice》笔记——整体架构</a>
       </li>
     
   </ul>

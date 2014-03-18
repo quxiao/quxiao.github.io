@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Development | Xavier's Blog]]></title>
   <link href="http://quxiao.github.io/blog/categories/development/atom.xml" rel="self"/>
   <link href="http://quxiao.github.io/"/>
-  <updated>2014-02-24T08:43:56+08:00</updated>
+  <updated>2014-03-18T23:41:49+08:00</updated>
   <id>http://quxiao.github.io/</id>
   <author>
     <name><![CDATA[Xavier]]></name>
@@ -12,6 +12,75 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[日志实践]]></title>
+    <link href="http://quxiao.github.io/blog/2014/03/18/log-practice/"/>
+    <updated>2014-03-18T21:54:26+08:00</updated>
+    <id>http://quxiao.github.io/blog/2014/03/18/log-practice</id>
+    <content type="html"><![CDATA[<h1>问题</h1>
+
+<p>这两天在整理现有模块的日志格式规范，以便于自己团队和其它团队更好的分析目前的产品。看了下，遗留的问题还真不少，问题主要集中在以下几点：</p>
+
+<h4>日志级别不正确</h4>
+
+<p>不是请求粒度的日志打成了<code>NOTICE</code>，用于排查的日志打成了<code>WARNING</code>、甚至打成了<code>FATAL</code>。这对于线上模块监控很不利，一方面很难从众多的<code>WARNING</code>和<code>FATAL</code>日志中找到有价值的信息，另一方面这些日志多了，难免让人产生“狼来了”的麻痹心理。</p>
+
+<h4>字段命名不统一</h4>
+
+<p>同样一个参数，比如说是请求ID，在不同的请求日志中，有<code>logid</code>、<code>log_id</code>、<code>logId</code>各种不同风格的写法，有的参数是用<code>[]</code>括起来的，有的则没有。这些问题会给日志解析程序带来很大的负担。</p>
+
+<h4>字段含义不一致</h4>
+
+<p>不同请求日志中的参数A，在一种请求中表示一种含义（比如触发出的商品数），在其它请求中则表示另一种含义（比如一页展现的商品数）。</p>
+
+<h4>日志被公共Lib污染</h4>
+
+<p>自己的模块依赖了其它公共lib，但是公共lib中的日志级别比较随意，结果污染了自身模块日志。</p>
+
+<h4>日志信息不足</h4>
+
+<p>许多<code>NOTICE</code>日志只打印出了给上游的返回数据，请求数据却不全。一些<code>WARNING</code>日志只能看出只在代码的哪一行出了问题，请求参数是什么、甚至请求ID，都没有。线上出现了问题，很难根据这条日志找到线索。</p>
+
+<h1>规范</h1>
+
+<p>因此，我们需要对现在的日志格式进行<strong>专项整治</strong>，总结出一些合理的、改动尽量小的日志规范。这两天和同事讨论了下，整理出了一些：</p>
+
+<h4>统一字段命名</h4>
+
+<p>对于不同请求中的同一含义的字段，只能有一个名字。</p>
+
+<h4>统一字段风格</h4>
+
+<p>字段一律使用<code>xxx_yyy</code>的下划线命名风格。</p>
+
+<h4>统一日志层级风格</h4>
+
+<p>日志中的信息均通过<code>k=v</code>形式表达，<code>kv</code>之间以<code>,</code>分割，表示第一层级；如果<code>v</code>还有第二层级，则用<code>_</code>分割；第三层级用<code>|</code>分割。ex: <code>k1=v111|v112_v21_v22,k2=v2</code></p>
+
+<h4>统一字段顺序</h4>
+
+<p>统一使用<code>请求ID/服务名/请求参数/响应数据/响应时间</code>作为日志字段顺序。（当然，一般公司都有自己的日志工具，会将日志级别、时间、线程ID、函数、行号这些打印在最前面。）</p>
+
+<h4>日志必须有请求ID</h4>
+
+<p>请求粒度的日志中，必须包含请求ID；工具类的lib中，对于功能较小的函数，无需打日志；功能点较多的函数，需将请求ID通过参数传递进去。</p>
+
+<h4>只有请求粒度的日志，才能是NOTICE级别</h4>
+
+<p>其它公共lib中的代码，需要打到单独的日志文件中，不和本身模块的日志混淆。</p>
+
+<hr />
+
+<p>日志实在是太重要了，一方面反映了用户的行为，另一方面也反映了模块的指标（召回率、响应时间等），怎么规范它估计都不为过。我们整理的这些规范也智能算是个迷你版本。</p>
+
+<p>其实，我们制定的这些规范（以及其它规范），并没有谁一开始就能全部想到，正如TA一开始也想不到会有再上面的问题一样。每个人都很自信的认为其他人会和TA是一样的代码或者日志风格，如果所有关于打印日志的代码，都是由一个人来写的话，风格想必都是统一的，因为TA知道过去的代码是什么样的，为什么需要改成现在这样，哪些字段是后来因为什么原因而加上的。如果TA另外也负责对日志进行解析和统计的话，那么日志风格就会完全统一了。 :P</p>
+
+<p>规范的制定，从某种意义上讲，也是一种被逼的结果，因为总会有人最终无法忍受由于种种问题而导致的心智负担，然后说道，“受不了了，我们还是搞个规范吧！”</p>
+
+<p>&mdash; EOF &mdash;</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[日常工作中用到的Shell/Python命令——文本篇]]></title>
@@ -515,55 +584,6 @@ if __name__ == '__main__':
 <li><p><a href="http://en.wikipedia.org/wiki/Decorator_pattern">Decorator pattern</a></p></li>
 </ul>
 
-
-<p>&mdash;EOF&mdash;</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Hadoop中的一些概念]]></title>
-    <link href="http://quxiao.github.io/blog/2011/11/14/some_concepts_in_hadoop/"/>
-    <updated>2011-11-14T15:09:09+08:00</updated>
-    <id>http://quxiao.github.io/blog/2011/11/14/some_concepts_in_hadoop</id>
-    <content type="html"><![CDATA[<p>Hadoop，在不同的上下文的环境下，会表示不同范围的概念。有人可能把Hadoop单单理解为一个分布式文件系统，我感觉欠妥，因为也有很多其他的分布式文件系统。Hadoop之所以称为Hadoop，其核心在于它的MapReduce框架。所以，Hadoop的最精简的理解应该是HDFS （Hadoop Distributed File System）+ MapReduce。除了核心，也可以算上它的许多子项目，例如Hbase、Pig、Hive等等，可以通过下图来了解下Hadoop的Big Picture:</p>
-
-<p><a href="http://www.qxavier.me/wp-content/uploads/2011/11/hadoop_ecosys.jpg"><img src="http://www.qxavier.me/wp-content/uploads/2011/11/hadoop_ecosys_thumb.jpg" alt="hadoop_ecosys" /></a></p>
-
-<p>既然HDFS以及MapReduce是Hadoop的核心，对于它们的一些概念就要有所掌握。好，下面来讲解一下。</p>
-
-<h3>HDFS中的重要概念：</h3>
-
-<p><strong>NameNode
-</strong>它是整个HDFS的核心，里面包含了整个文件系统中的所有文件的路径，并且监控存有文件的服务器，NameNode本身并不存储文件。NameNode就相当于一个接口，当用户想要对HDFS中的文件进行读/写/添加/删除时，首先要询问NameNode，然后NameNode再给你一个存储着文件的服务器（DataNode）的列表。
-注意：HDFS中只有一个NameNode （除非使用ZooKeeper），也就是意味着如果NameNode失效了，整个HDFS也就失效了。</p>
-
-<p><strong>DataNode
-</strong>存放HDFS数据的节点，一般来说，HDFS都有多个DataNode，一个数据会在不同的DataNode上存储多份，以防止部分节点失效后数据丢失。DataNode启动后，会一直试图通知NameNode，以便让NameNode知道它的存在。</p>
-
-<p><strong>SecondaryNameNode
-</strong>为了弥补NameNode单点失效的缺点，可以在一台单独机器上配置SecondaryNameNode。不过，SecondaryNameNode只是保存一些记录点（check point），并不会对数据进行冗余保存。</p>
-
-<h3>MapReduce计算模型中的重要概念：</h3>
-
-<p><strong>TaskTracker
-</strong>集群中真正执行计算的节点，它的操作包括：Map、Reduce以及Shuffle。每个TaskTracker都设置了一系列的slot，表示这个TaskTracker可以同时接受任务的数量。</p>
-
-<p><strong>JobTracker
-</strong>分发MapReduce任务的节点。这个（活动的）JobTracker在一个MapReduce服务中只有一个，因此JobTracker也是单点失效的，如果JobTracker失效了，所有TaskTracker中的任务都会停止。</p>
-
-<p>JobTracker和TaskTracker的交互过程：</p>
-
-<ul>
-<li><p>用户提交一个MapReduce任务（Job）给JobTracker</p></li>
-<li><p>JobTracker与NameNode通信，以确定数据的位置</p></li>
-<li><p>根据数据的位置，定位那些1）在数据节点或者在数据节点附近 2）有可用slot的TaskTracker</p></li>
-<li><p>JobTracker向TaskTracker提交对应的任务</p></li>
-<li><p>JobTracker开始监控TaskTracker，如果监控不到TaskTracker的心跳，或者TaskTracker上面执行的任务失败，就将任务提交到其他TaskTracker</p></li>
-<li><p>当TaskTracker上的任务完成后，JobTracker会更新它的状态</p></li>
-</ul>
-
-
-<p>嗯，差不多就这么多吧，有时间再深入研究研究！</p>
 
 <p>&mdash;EOF&mdash;</p>
 ]]></content>

@@ -9,7 +9,7 @@
   <meta name="author" content="Xavier">
 
   
-  <meta name="description" content="一开始是想，给定某一盏灯的最终状态，就可知道相关按钮拨动次数的奇偶。比如，state[1] = 0，我就可以知道B1+B2+B4为偶数。因此，对于给出的部分灯的最终状态，就可得到一系列的关于按钮的约束条件（可能有重复），再枚举B1～B4的情况，使其既满足B1+B2+B3+B4 = C， &hellip;">
+  <meta name="description" content="给定一字符串集合Pn, 1&lt;=n&lt;=200, 1&lt;=strlen(Pn)&lt;=10，再给定一个字符串S，1&lt;=strlen(s)&lt;=200000。问能用字符串集合组成的S的最长前缀的长度。 之前想的是用KMP将每一个集合中的Pn与S匹配，找出Pn能构成S子串的位置 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -64,6 +64,53 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/01/06/usaco-section-2-3-longest-prefix/">USACO Section 2.3 Longest Prefix</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-01-06T22:30:52+08:00" pubdate data-updated="true">Jan 6<span>th</span>, 2011</time>
+        
+           | <a href="/blog/2011/01/06/usaco-section-2-3-longest-prefix/#disqus_thread"
+             data-disqus-identifier="http://quxiao.github.io/blog/2011/01/06/usaco-section-2-3-longest-prefix/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>给定一字符串集合Pn, 1&lt;=n&lt;=200, 1&lt;=strlen(Pn)&lt;=10，再给定一个字符串S，1&lt;=strlen(s)&lt;=200000。问能用字符串集合组成的S的最长前缀的长度。</p>
+
+<p>之前想的是用KMP将每一个集合中的Pn与S匹配，找出Pn能构成S子串的位置，组成200×200000的矩阵，再在这个矩阵上进行搜索。可是发现时间和内存的限制都无法满足</p>
+
+<p>题目有这样的特点：S的长度很长(200000)，而Pn的长度却很短(10)，而且组成的字符只有A-Z二十六个。那么，Pn中有许多字符串的前缀是重合的，可否利用这一特点避免许多重复的搜索。</p>
+
+<p>例如：Pn={A, AB}，S=“ABA”，用P0=A对S[0]=A查找完之后，再查找S[1]=B时，能否直接转到P1=AB的B呢？</p>
+
+<p>后来发现，用Trie可以存下所有Pn的信息，而且Pn中的重复前缀会放在一起，这样就避免了重复查找。（以前听过Tire，感觉很神秘，原来就是字典树啊，之前也用过啊）</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -862,73 +909,6 @@ Zotero可以按文件夹进行树形的管理，Evernote中只有按tag分类的
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2010/08/14/i-often-visit-the-site-information/">我经常访问的网站（资讯篇）</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2010-08-14T11:21:18+08:00" pubdate data-updated="true">Aug 14<span>th</span>, 2010</time>
-        
-           | <a href="/blog/2010/08/14/i-often-visit-the-site-information/#disqus_thread"
-             data-disqus-identifier="http://quxiao.github.io/blog/2010/08/14/i-often-visit-the-site-information/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><a href="http://www.nbweekly.com">南方周末</a>    <br/>
-覆盖生活各个方面，比较有深度的文章</p>
-
-<p><a href="http://www.izaobao.us">爱枣报</a>    <br/>
-每天10条新闻，大多反映社会问题</p>
-
-<p><a href="http://jandan.net/">煎蛋</a>    <br/>
-来自网络的各种有趣新闻</p>
-
-<p><a href="http://juetuzhi.net">掘图志</a>    <br/>
-有趣的图片和视频</p>
-
-<p><a href="http://tv.openv.com/col_263.html">锵锵三人行</a>    <br/>
-凤凰台著名谈话类节目</p>
-
-<p><a href="http://www.mifengtd.cn">褪墨</a>    <br/>
-一个有关时间管理的个人博客</p>
-
-<p><a href="http://english.cri.cn/easyfm/08program_morning.htm">飞鱼秀</a>    <br/>
-一档广播节目，比较适合年轻人的口味</p>
-
-<p><a href="http://solidot.org/">Solidot</a>    <br/>
-奇客的资讯，重要的东西</p>
-
-<p><a href="http://www.programmer.com.cn">技术管理者大本营</a>    <br/>
-《程序员》杂志官方网站，里面有许多与软件业相关的技术与管理类文章</p>
-
-<p><a href="http://www.cnetnews.com.cn/">CNET</a>    <br/>
-科技资讯</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/9/">&larr; Older</a>
@@ -946,6 +926,10 @@ Zotero可以按文件夹进行树形的管理，Evernote中只有按tag分类的
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/03/18/log-practice/">日志实践</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/02/24/a-try-to-play-with-travis-ci/">小试Travis-Ci</a>
       </li>
     
@@ -959,10 +943,6 @@ Zotero可以按文件夹进行树形的管理，Evernote中只有按tag分类的
     
       <li class="post">
         <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/11/30/information_retrievial_in_practice_note_architecture/">《Information Retrieval in Practice》笔记——整体架构</a>
       </li>
     
   </ul>

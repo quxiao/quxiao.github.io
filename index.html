@@ -9,7 +9,7 @@
   <meta name="author" content="Xavier">
 
   
-  <meta name="description" content="前段时间，好友小新给我看了一个工具（或者说是一种服务）——travis-ci，它提供了对于Github的项目上的持续集成服务（私有项目是要收费的）。正好最近把一个大学时写的小程序从Google Code迁移到Github上，就拿他来做个实验吧！ .travis.yml 查看travis- &hellip;">
+  <meta name="description" content="问题 这两天在整理现有模块的日志格式规范，以便于自己团队和其它团队更好的分析目前的产品。看了下，遗留的问题还真不少，问题主要集中在以下几点： 日志级别不正确 不是请求粒度的日志打成了NOTICE，用于排查的日志打成了WARNING、甚至打成了FATAL。这对于线上模块监控很不利， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -64,6 +64,105 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/03/18/log-practice/">日志实践</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-03-18T21:54:26+08:00" pubdate data-updated="true">Mar 18<span>th</span>, 2014</time>
+        
+           | <a href="/blog/2014/03/18/log-practice/#disqus_thread"
+             data-disqus-identifier="http://quxiao.github.io/blog/2014/03/18/log-practice/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>问题</h1>
+
+<p>这两天在整理现有模块的日志格式规范，以便于自己团队和其它团队更好的分析目前的产品。看了下，遗留的问题还真不少，问题主要集中在以下几点：</p>
+
+<h4>日志级别不正确</h4>
+
+<p>不是请求粒度的日志打成了<code>NOTICE</code>，用于排查的日志打成了<code>WARNING</code>、甚至打成了<code>FATAL</code>。这对于线上模块监控很不利，一方面很难从众多的<code>WARNING</code>和<code>FATAL</code>日志中找到有价值的信息，另一方面这些日志多了，难免让人产生“狼来了”的麻痹心理。</p>
+
+<h4>字段命名不统一</h4>
+
+<p>同样一个参数，比如说是请求ID，在不同的请求日志中，有<code>logid</code>、<code>log_id</code>、<code>logId</code>各种不同风格的写法，有的参数是用<code>[]</code>括起来的，有的则没有。这些问题会给日志解析程序带来很大的负担。</p>
+
+<h4>字段含义不一致</h4>
+
+<p>不同请求日志中的参数A，在一种请求中表示一种含义（比如触发出的商品数），在其它请求中则表示另一种含义（比如一页展现的商品数）。</p>
+
+<h4>日志被公共Lib污染</h4>
+
+<p>自己的模块依赖了其它公共lib，但是公共lib中的日志级别比较随意，结果污染了自身模块日志。</p>
+
+<h4>日志信息不足</h4>
+
+<p>许多<code>NOTICE</code>日志只打印出了给上游的返回数据，请求数据却不全。一些<code>WARNING</code>日志只能看出只在代码的哪一行出了问题，请求参数是什么、甚至请求ID，都没有。线上出现了问题，很难根据这条日志找到线索。</p>
+
+<h1>规范</h1>
+
+<p>因此，我们需要对现在的日志格式进行<strong>专项整治</strong>，总结出一些合理的、改动尽量小的日志规范。这两天和同事讨论了下，整理出了一些：</p>
+
+<h4>统一字段命名</h4>
+
+<p>对于不同请求中的同一含义的字段，只能有一个名字。</p>
+
+<h4>统一字段风格</h4>
+
+<p>字段一律使用<code>xxx_yyy</code>的下划线命名风格。</p>
+
+<h4>统一日志层级风格</h4>
+
+<p>日志中的信息均通过<code>k=v</code>形式表达，<code>kv</code>之间以<code>,</code>分割，表示第一层级；如果<code>v</code>还有第二层级，则用<code>_</code>分割；第三层级用<code>|</code>分割。ex: <code>k1=v111|v112_v21_v22,k2=v2</code></p>
+
+<h4>统一字段顺序</h4>
+
+<p>统一使用<code>请求ID/服务名/请求参数/响应数据/响应时间</code>作为日志字段顺序。（当然，一般公司都有自己的日志工具，会将日志级别、时间、线程ID、函数、行号这些打印在最前面。）</p>
+
+<h4>日志必须有请求ID</h4>
+
+<p>请求粒度的日志中，必须包含请求ID；工具类的lib中，对于功能较小的函数，无需打日志；功能点较多的函数，需将请求ID通过参数传递进去。</p>
+
+<h4>只有请求粒度的日志，才能是NOTICE级别</h4>
+
+<p>其它公共lib中的代码，需要打到单独的日志文件中，不和本身模块的日志混淆。</p>
+
+<hr />
+
+<p>日志实在是太重要了，一方面反映了用户的行为，另一方面也反映了模块的指标（召回率、响应时间等），怎么规范它估计都不为过。我们整理的这些规范也智能算是个迷你版本。</p>
+
+<p>其实，我们制定的这些规范（以及其它规范），并没有谁一开始就能全部想到，正如TA一开始也想不到会有再上面的问题一样。每个人都很自信的认为其他人会和TA是一样的代码或者日志风格，如果所有关于打印日志的代码，都是由一个人来写的话，风格想必都是统一的，因为TA知道过去的代码是什么样的，为什么需要改成现在这样，哪些字段是后来因为什么原因而加上的。如果TA另外也负责对日志进行解析和统计的话，那么日志风格就会完全统一了。 :P</p>
+
+<p>规范的制定，从某种意义上讲，也是一种被逼的结果，因为总会有人最终无法忍受由于种种问题而导致的心智负担，然后说道，“受不了了，我们还是搞个规范吧！”</p>
+
+<p>&mdash; EOF &mdash;</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1963,259 +2062,6 @@ LC_ALL=zh_CN.UTF-8</code></li>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/07/06/intrusive-list/">Intrusive List</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-07-06T20:47:21+08:00" pubdate data-updated="true">Jul 6<span>th</span>, 2013</time>
-        
-           | <a href="/blog/2013/07/06/intrusive-list/#disqus_thread"
-             data-disqus-identifier="http://quxiao.github.io/blog/2013/07/06/intrusive-list/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>链表，应该是每一个学编程的人都会接触到的经典数据结构，大部分计算机专业的同学至少在上学期间也实现过单向、双向链表。在我的印象里，链表一般都是这么表示的：</p>
-
-<pre><code>struct LinkNode
-{
-    LinkNode* prev;
-    LinkNode* next;
-    int my_data1;
-    double my_data2;
-    //...
-};
-
-class LinkList
-{
-    LinkNode root;
-    //...
-};
-</code></pre>
-
-<p>或者，我们就干脆直接是用<code>std::list&lt;T&gt;</code>。无论是哪一种，它都是将使用的数据“嵌入”到链表的节点中，或者说是节点包在数据之外。这种实现也是教科书里面讲到的那个实现，也是我之前知道的唯一的实现方式。</p>
-
-<p>前段时间看网上的几篇博客（<a href="http://rdc.taobao.com/blog/cs/?p=1675">Tips of Linux C programming</a>，<a href="http://www.codeofhonor.com/blog/avoiding-game-crashes-related-to-linked-lists">Avoiding game crashes related to linked lists</a>），发现原来还有另外一种更优雅的链表实现——intrusive list。Linux kernel，以及许多底层软件（另外还有游戏星际争霸）的开发中，都是使用intrusive list进行链表操作的。</p>
-
-<p>所谓intrusive list，就是指不像上面说的那样将链表节点包在数据外面，而是将链表节点包在数据里面。例如下面这样：</p>
-
-<pre><code>struct list_node_t
-{
-    list_node_t* prev;
-    list_node_t* next;
-};
-
-struct MyClass
-{
-    int data;
-    list_node_t node;
-};
-</code></pre>
-
-<p>这样做，是为了让节点和数据在一个数据结构中。因为许多场景下，链表包含的数据是指针（考虑到数据拷贝构造的代价，以及一份数据被多个链表共享的情况），例如<code>std::list&lt;MyClass*&gt;</code>。使用intrusive list实现，就可以省去了&#8221;节点 &ndash;> 数据指针 &ndash;> 数据&#8221;的二次查找。找到intrusive list中的一个节点后，就可以立即找到这个节点对应的数据，即我知道一个<code>list_node_t</code>的地址，我改如何找到这个<code>list_node_t</code>对应的<code>MyClass</code>的<code>data</code>呢？这里用到了一段很优美的宏：</p>
-
-<pre><code>#define GET_ENTRY(ptr, type, member)\
-    ((type *)((char *)(ptr)-(unsigned long)(&amp;((type *)0)-&gt;member)))
-</code></pre>
-
-<p>第一眼肯定觉得晕，不急，我们一步一步来。首先看参数：</p>
-
-<ul>
-<li><p>ptr: <code>list_node_t</code>的地址</p></li>
-<li><p>type: 包含这个<code>list_node_t</code>的类型，对应上面的例子，就是<code>Myclass</code></p></li>
-<li><p>member：这个<code>list_node_t</code>类型变量在MyClass中的变量名，需要这个得到改变量的offset</p></li>
-</ul>
-
-
-<p>首先看</p>
-
-<pre><code>(&amp;((type *)0)-&gt;member)
-</code></pre>
-
-<p>这个的意思是：如果有个type类型的变量，它的地址是0，那type类型中的member变量的地址是多少，其实就是这个member变量距离所属的type类型变量的偏移量。</p>
-
-<p>然后是</p>
-
-<pre><code>((char *)(ptr)-(unsigned long)(&amp;((type *)0)-&gt;member))
-</code></pre>
-
-<p>这就很清楚了，知道了偏移量，我又知道了真正的member变量的地址（ptr），用ptr的地址减去ptr的偏移量，就得到了ptr所在的type变量的地址了，然后就可以获取type变量上的数据了。</p>
-
-<p>自己简单实现了intrusive list，再和<code>std::list</code>做一个简单的性能测试，对一个int数据的链表插入，结果是：<code>std::list push_back</code>的操作操作时间基本上都在intrusive list的2倍以上！这么看来，intrusive list的优势还是挺明显的。</p>
-
-<pre><code>QuXiaos-MacBook-Pro:intrusive_list quxiao$ ./a.out 1000
-std_list: 0.129 ms
-intrusive_list: 0.059 ms
-QuXiaos-MacBook-Pro:intrusive_list quxiao$ ./a.out 10000
-std_list: 1.297 ms
-intrusive_list: 0.550 ms
-QuXiaos-MacBook-Pro:intrusive_list quxiao$ ./a.out 100000
-std_list: 11.961 ms
-intrusive_list: 4.901 ms
-QuXiaos-MacBook-Pro:intrusive_list quxiao$ ./a.out 1000000
-std_list: 116.855 ms
-intrusive_list: 53.086 ms
-QuXiaos-MacBook-Pro:intrusive_list quxiao$ ./a.out 10000000
-std_list: 1061.955 ms
-intrusive_list: 544.419 ms
-</code></pre>
-
-<p>intrusive list的实现以及测试的代码如下：</p>
-
-<div>
-  <pre><code class='cpp'>#include &lt;stdlib.h&gt;
-    #include &lt;stdio.h&gt;
-    #include &lt;time.h&gt;
-    #include &lt;list&gt;
-    
-    struct list_node_t
-    {
-        list_node_t* prev;
-        list_node_t* next;
-    };
-    
-    struct MyClass
-    {
-        int data;
-        list_node_t node;
-    };
-    
-    void _list_add(list_node_t* cur, list_node_t* prev, list_node_t* next)
-    {
-        prev-&gt;next = cur;
-        next-&gt;prev = cur;
-        cur-&gt;prev = prev;
-        cur-&gt;next = next;
-    }
-    
-    void list_add_head(list_node_t* cur, list_node_t* head)
-    {
-        _list_add(cur, head, head-&gt;next);
-    }
-    
-    void list_add_tail(list_node_t* cur, list_node_t* head)
-    {
-        _list_add(cur, head-&gt;prev, head);
-    }
-    
-    void list_del(list_node_t* cur)
-    {
-        cur-&gt;prev-&gt;next = cur-&gt;next;
-        cur-&gt;next-&gt;prev = cur-&gt;prev;
-        cur-&gt;prev = cur-&gt;next = NULL;
-    }
-    
-    #define GET_ENTRY(ptr, type, member)\
-        ((type *)((char *)(ptr)-(unsigned long)(&amp;((type *)0)-&gt;member)))
-    
-    #define INIT_NODE(ptr)\
-        (ptr)-&gt;next = (ptr)-&gt;prev = ptr;
-    
-    #define list_for_each(pos, head) \
-            for (pos = (head)-&gt;next; pos != (head); \
-                            pos = pos-&gt;next)
-    
-    #define list_for_each_safe(pos, n, head) \
-            for (pos = (head)-&gt;next, n = pos-&gt;next; pos != (head); \
-                        pos = n, n = pos-&gt;next)
-    
-    void test_std_list(int run_num)
-    {
-        int t1 = clock();
-        std::list&lt;int&gt; std_list;
-        for (int i = 0; i &lt; run_num; i ++)
-        {
-            std_list.push_back(i);
-        }
-    
-        printf(&quot;std_list: %.3lf ms\n&quot;, double(clock() - t1) / CLOCKS_PER_SEC * 1000);
-    }
-    
-    void test_intrusive_list(int run_num)
-    {
-        int t1 = clock();
-        list_node_t list_head;
-        INIT_NODE(&amp;list_head);
-    
-        for (int i = 0; i &lt; run_num; i ++)
-        {
-            MyClass* c = (MyClass*) malloc(sizeof(MyClass));
-            c-&gt;data = i;
-            list_add_tail(&amp;c-&gt;node, &amp;list_head);
-        }
-        printf(&quot;intrusive_list: %.3lf ms\n&quot;, double(clock() - t1) / CLOCKS_PER_SEC * 1000);
-    }
-    
-    int main(int argc, char** argv)
-    {
-        if ( argc != 2 )
-        {
-            fprintf(stderr, &quot;argc is not 2&quot;);
-            return -1;
-        }
-        int run_num = atoi(argv[1]);
-        if ( 0 == run_num )
-        {
-            fprintf(stderr, &quot;argv[%s] is not num&quot;, argv[1]);
-            return -1;
-        }
-    
-        test_std_list(run_num);
-        test_intrusive_list(run_num);
-    
-        return 0;
-    }</code></pre>
-</div>
-
-
-<p>另外，intrusive list还有几个特点，比如：</p>
-
-<ul>
-<li><p>移植性好，不像数据包在链表里面的实现，要么每种链表类型都写重复的代码，要么就使用template，但只能在C++中使用</p></li>
-<li><p>容易使用，你需要使用哪种类型的列表，就在这种类型中添加节点即可</p></li>
-<li><p>可以方便实现一份数据被多个链表共享的情况，有几个链表，就在类型下添加几个节点变量即可，多个链表直接不会互相干扰</p></li>
-</ul>
-
-
-<p>要不是看了那几篇博客，我对链表的认识还停留在教科书上，好歹也看了几本数据结构的书，其中不乏经典书籍，但从没有听说过intrusive list这种实现，看来很多知识，并不是光靠看书就能获取的。</p>
-
-<p>参考材料：</p>
-
-<ul>
-<li><p><a href="http://highscalability.com/blog/2013/5/22/strategy-stop-using-linked-lists.html">Strategy: Stop Using Linked-Lists</a></p></li>
-<li><p><a href="http://www.codeofhonor.com/blog/avoiding-game-crashes-related-to-linked-lists">Avoiding game crashes related to linked lists</a></p></li>
-<li><p><a href="http://rdc.taobao.com/blog/cs/?p=1675">Tips of Linux C programming</a></p></li>
-<li><p><a href="http://isis.poly.edu/kulesh/stuff/src/klist/">Linux Kernel Linked List Explained</a></p></li>
-</ul>
-
-
-<p>&mdash;EOF&mdash;</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -2231,6 +2077,10 @@ intrusive_list: 544.419 ms
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/03/18/log-practice/">日志实践</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/02/24/a-try-to-play-with-travis-ci/">小试Travis-Ci</a>
       </li>
     
@@ -2244,10 +2094,6 @@ intrusive_list: 544.419 ms
     
       <li class="post">
         <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/11/30/information_retrievial_in_practice_note_architecture/">《Information Retrieval in Practice》笔记——整体架构</a>
       </li>
     
   </ul>

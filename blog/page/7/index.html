@@ -9,7 +9,7 @@
   <meta name="author" content="Xavier">
 
   
-  <meta name="description" content="在shell中对程序进行重定向很简单，用&lt;和>符号就可以了，但在自己的程序中怎么实现输入输出重定向呢？ 先来看看Linux内核中，文件（还是设备）是通过哪些数据结构保存的： 每个进程都保存一份文件描述符的表格，每一行又指向file table，然后file table再指向v-node &hellip;">
+  <meta name="description" content="进程在运行时，会占用计算机的各种资源，比如CPU时间、内存、文件等等。但是，进程是不可以占用无限多的资源的，操作系统会给进程设定所使用资源的上限。想获取这些资源的上限值，是需要调用getrlimit()即可。 int getrlimit(int resource, struct rlimit * &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -64,6 +64,202 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/02/18/linux-api-practice-access-to-the-process-of-resource-constraints/">Linux API 实践：获取进程资源限制</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-02-18T21:55:40+08:00" pubdate data-updated="true">Feb 18<span>th</span>, 2011</time>
+        
+           | <a href="/blog/2011/02/18/linux-api-practice-access-to-the-process-of-resource-constraints/#disqus_thread"
+             data-disqus-identifier="http://quxiao.github.io/blog/2011/02/18/linux-api-practice-access-to-the-process-of-resource-constraints/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>进程在运行时，会占用计算机的各种资源，比如CPU时间、内存、文件等等。但是，进程是不可以占用无限多的资源的，操作系统会给进程设定所使用资源的上限。想获取这些资源的上限值，是需要调用getrlimit()即可。</p>
+
+<pre><code>int getrlimit(int resource, struct rlimit *rlptr);
+</code></pre>
+
+<p>第一个参数是资源，有哪些资源呢？</p>
+
+<p>资源</p>
+
+<p>粗略含义</p>
+
+<p>RLIMIT_AS</p>
+
+<p>进程可使用的内存的最大值</p>
+
+<p>RLIMIT_CORE</p>
+
+<p>核心文件(core file)的最大值</p>
+
+<p>RLIMIT_CPU</p>
+
+<p>CPU时间最大值</p>
+
+<p>RLIMIT_DATA</p>
+
+<p>数据段（已初始化数据+未初始化数据+堆）的最大值</p>
+
+<p>RLIMIT_FSIZE</p>
+
+<p>新建文件的最大字节数</p>
+
+<p>RLIMIT_LOCKS</p>
+
+<p>持有的锁的最大数</p>
+
+<p>RLIMIT_MEMLOCK</p>
+
+<p>锁定内存的最大字节数</p>
+
+<p>RLIMIT_NOFILE</p>
+
+<p>打开文件的最大数目</p>
+
+<p>RLIMIT_NPROC</p>
+
+<p>每个实际用户(real user)的最大子进程数目</p>
+
+<p>RLIMIT_RSS</p>
+
+<p>RSS(Resident Set Size)的最大字节数</p>
+
+<p>RLIMIT_SBSIZE</p>
+
+<p>socket buffer的最大字节数</p>
+
+<p>RLIMIT_STACK</p>
+
+<p>进程栈的最大字节数</p>
+
+<p>RLIMIT_VMEM</p>
+
+<p>与RLIMIT_AS含义一致</p>
+
+<p>第二个参数是rlimit，rlimit结构是这样的：</p>
+
+<pre><code>struct rlimit
+
+{
+
+rlim_t rlim_cur; /* soft limit: current limit */
+
+rlim_t rlim_max; /* hard limit: maximum value for rlim_cur */
+
+};
+</code></pre>
+
+<p>其中含有软限制和硬限制。超级用户可以增加硬限制；一般用户可以降低硬限制，但不能增加硬限制，一般用户还可修改软限制，但修改的软限制不能超过硬限制。</p>
+
+<p>实际运行的效果如何呢？实践一下吧！</p>
+
+<pre><code>#include &lt;stdio.h&gt;
+#include &lt;sys/resource.h&gt;
+
+#define doit(name) pr_limit(#name, name)
+
+void pr_limit(char* name, int resource);
+
+int main ()
+{
+    printf("resource name  soft\thard \n");
+#ifdef  RLIMIT_AS
+    doit(RLIMIT_AS);
+#endif
+    doit(RLIMIT_CORE);
+    doit(RLIMIT_CPU);
+    doit(RLIMIT_DATA);
+    doit(RLIMIT_FSIZE);
+#ifdef  RLIMIT_LOCKS
+    doit(RLIMIT_LOCKS);
+#endif
+#ifdef  RLIMIT_MEMLOCK
+    doit(RLIMIT_MEMLOCK);
+#endif
+    doit(RLIMIT_NOFILE);
+#ifdef  RLIMIT_NPROC
+    doit(RLIMIT_NPROC);
+#endif
+#ifdef  RLIMIT_RSS
+    doit(RLIMIT_RSS);
+#endif
+#ifdef  RLIMIT_SBSIZE
+    doit(RLIMIT_SBSIZE);
+#endif
+    doit(RLIMIT_STACK);
+#ifdef  RLIMIT_VMEM
+    doit(RLIMIT_VMEM);
+#endif
+
+    return 0;
+}
+
+void pr_limit(char* name, int resource)
+{
+    struct rlimit limit;
+    if ( getrlimit(resource, &amp;limit) &lt; 0 )
+    {
+        printf("getrlimit error!\n");
+        return;
+    }
+    printf("%-14s ", name);
+    if ( limit.rlim_cur == RLIM_INFINITY )
+        printf("infinite ");
+    else
+        printf("%8ld ", limit.rlim_cur);
+
+    if ( limit.rlim_max == RLIM_INFINITY )
+        printf("infinite ");
+    else
+        printf("%8ld ", limit.rlim_max);
+    putchar('\n');
+}
+</code></pre>
+
+<p>运行的结果：</p>
+
+<pre><code>resource name  soft hard
+RLIMIT_AS      infinite infinite
+RLIMIT_CORE           0 infinite
+RLIMIT_CPU     infinite infinite
+RLIMIT_DATA    infinite infinite
+RLIMIT_FSIZE   infinite infinite
+RLIMIT_LOCKS   infinite infinite
+RLIMIT_MEMLOCK    65536    65536
+RLIMIT_NOFILE      1024     1024
+RLIMIT_NPROC   infinite infinite
+RLIMIT_RSS     infinite infinite
+RLIMIT_STACK    8388608 infinite
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -617,53 +813,6 @@ ab的距离 + a到本连通分量最远距离 + b到本连通分量最远距离<
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2011/01/06/usaco-section-2-3-longest-prefix/">USACO Section 2.3 Longest Prefix</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-01-06T22:30:52+08:00" pubdate data-updated="true">Jan 6<span>th</span>, 2011</time>
-        
-           | <a href="/blog/2011/01/06/usaco-section-2-3-longest-prefix/#disqus_thread"
-             data-disqus-identifier="http://quxiao.github.io/blog/2011/01/06/usaco-section-2-3-longest-prefix/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>给定一字符串集合Pn, 1&lt;=n&lt;=200, 1&lt;=strlen(Pn)&lt;=10，再给定一个字符串S，1&lt;=strlen(s)&lt;=200000。问能用字符串集合组成的S的最长前缀的长度。</p>
-
-<p>之前想的是用KMP将每一个集合中的Pn与S匹配，找出Pn能构成S子串的位置，组成200×200000的矩阵，再在这个矩阵上进行搜索。可是发现时间和内存的限制都无法满足</p>
-
-<p>题目有这样的特点：S的长度很长(200000)，而Pn的长度却很短(10)，而且组成的字符只有A-Z二十六个。那么，Pn中有许多字符串的前缀是重合的，可否利用这一特点避免许多重复的搜索。</p>
-
-<p>例如：Pn={A, AB}，S=“ABA”，用P0=A对S[0]=A查找完之后，再查找S[1]=B时，能否直接转到P1=AB的B呢？</p>
-
-<p>后来发现，用Trie可以存下所有Pn的信息，而且Pn中的重复前缀会放在一起，这样就避免了重复查找。（以前听过Tire，感觉很神秘，原来就是字典树啊，之前也用过啊）</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/8/">&larr; Older</a>
@@ -681,6 +830,10 @@ ab的距离 + a到本连通分量最远距离 + b到本连通分量最远距离<
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/03/18/log-practice/">日志实践</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/02/24/a-try-to-play-with-travis-ci/">小试Travis-Ci</a>
       </li>
     
@@ -694,10 +847,6 @@ ab的距离 + a到本连通分量最远距离 + b到本连通分量最远距离<
     
       <li class="post">
         <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/11/30/information_retrievial_in_practice_note_architecture/">《Information Retrieval in Practice》笔记——整体架构</a>
       </li>
     
   </ul>

@@ -9,8 +9,7 @@
   <meta name="author" content="Xavier">
 
   
-  <meta name="description" content="题目大意：有N(&lt;=20)首歌，打算放在M(&lt;=20)张CD中，每张CD可存储T(&lt;=20)分钟的音乐，给定每首歌的时长，问如何将歌曲按照日期（也就是输入）的顺序，存在这M张CD中，并且每首歌不可以分开存在多张CD上，使得存储的歌曲的数目最多。 来看给的样例： 4 5 2
-4 3 &hellip;">
+  <meta name="description" content="题目大意：有n（&lt;=10）个整数a1, a2, …, an（&lt;=256），问是否存在无法用a1～an的线性表达式（k1a1 + k2a2 + … + knan）组成的数，如果有，其中最大的数是多少？（这个数的上限为2,000,000,000！） 思路：本想可以用简单的DP来实现， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -65,6 +64,103 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/06/23/usaco-section-4-1-beef-mcnuggets/">USACO Section 4.1 Beef McNuggets</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-06-23T14:58:11+08:00" pubdate data-updated="true">Jun 23<span>rd</span>, 2011</time>
+        
+           | <a href="/blog/2011/06/23/usaco-section-4-1-beef-mcnuggets/#disqus_thread"
+             data-disqus-identifier="http://quxiao.github.io/blog/2011/06/23/usaco-section-4-1-beef-mcnuggets/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>题目大意：有n（&lt;=10）个整数a1, a2, …, an（&lt;=256），问是否存在无法用a1～an的线性表达式（k1a1 + k2a2 + … + knan）组成的数，如果有，其中最大的数是多少？（这个数的上限为2,000,000,000！）</p>
+
+<p>思路：本想可以用简单的DP来实现，但一看到2,000,000,000的上限，放弃了DP的想法，结果好几天都没有思路。如果这个上限可以下降的足够小，那该多好！上网查了下资料以及问了下周围同学，得到一个结论：a1~an所无法组成的最大数的上限可以为其中最大两个数的最小公倍数！这样的话，题目的上限就可以一下子缩小到256×256了！DP就变得可行了。</p>
+
+<p>其实，完整的证明我也暂时不能完全理解，这里先给出只有两个数的情况。</p>
+
+<p>当有两个数a1和a2，a1和a2互质，可以证明无法用他们表达的数的上限为a1×a2，即大于a1×a2的数都可以表示成k1×a1+k2×a2。</p>
+
+<p>即，对于任意正整数x，有：</p>
+
+<pre><code>a1*a2 + x = k1*a1 + k2*a2
+
+=&gt;  (a2 - k1)*a1 + x = k2*a1
+</code></pre>
+
+<p>因为k1任意，所以a2-k1也任意，将(a2-k1)<em>a1对a2取模，因为a1和a2互质，所以余数必然在0～a2-1的范围内，设为x’。另外，因为x也是任意的，所以我们将x表示成k</em>a2-x’。这样，等式左半边就可以被a2整数，等式得证。</p>
+
+<p>再一次意识到，数学对于计算机科学来说是多么的重要！</p>
+
+<p>好！上限确定下来之后，剩下的就是简单的DP了，以下是关键代码：</p>
+
+<pre><code>void Solve ()
+{
+     int i, j, bound, gcdNum;
+
+     gcdNum = box[0];
+     for (i = 1; i &lt; n; i ++)
+          gcdNum = gcd(gcdNum, box[i]);
+     if ( gcdNum != 1 )
+     {
+          printf("0\n");
+          return;
+     }
+
+     canMake[0] = 1;
+     sort(box, box+n);
+     bound = box[n-1] * box[n-1];
+     for (i = 0; i &lt; bound; i ++)
+     {
+          if ( ! canMake[i] )
+               continue;
+          for (j = 0; j &lt; n; j ++)
+          {
+               if ( i + box[j] &lt; bound )
+                    canMake[i+box[j]] = 1;
+          }
+     }
+
+     for (i = bound-1; i &gt;= 0; i --)
+     {
+          if ( !canMake[i] )
+          {
+               printf("%d\n", i);
+               return;
+          }
+     }
+     printf("0\n");
+}
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1027,171 +1123,6 @@ end transaction
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2011/04/03/aop-and-dynamic-proxy-mode/">AOP以及动态代理模式</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-04-03T14:00:53+08:00" pubdate data-updated="true">Apr 3<span>rd</span>, 2011</time>
-        
-           | <a href="/blog/2011/04/03/aop-and-dynamic-proxy-mode/#disqus_thread"
-             data-disqus-identifier="http://quxiao.github.io/blog/2011/04/03/aop-and-dynamic-proxy-mode/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>AOP，即面向方面的编程（面向“切片”的编程应该更合适）。按我的理解，就是对业务逻辑中的某一阶段进行抽取，以达到逻辑模块之前低耦合的编程方法。举个例子，一个系统有许多资源，只有当用户登录系统之后才能访问。那么，验证用户登录就可以抽象成一个“切片”，插在了用户和系统资源之间，编写各个业务模块的人就不用去关心验证用户登录的工作了，验证登录的工作会进行统一配置。</p>
-
-<p>Spring采用的是动态AOP，即通过动态代理模式，在目标对象调用方法前后进行相应处理。</p>
-
-<p>Spring中的动态AOP是基于以下两种方式实现的：</p>
-
-<ul>
-<li><p>Java Dynamic Proxy</p></li>
-<li><p>CGLIB（code generation library）</p></li>
-</ul>
-
-
-<p>Java Dynamic Proxy是面向接口的，而CGLIB是面向类的。两者的关系可以参考这张图：
-<a href="http://www.qxavier.me/wp-content/uploads/2011/04/image4.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/04/image_thumb4.png" alt="image" /></a></p>
-
-<p>UserDAOImp是我们需要代理的类，Java动态代理类需要实现了UserDAOImp所实现的接口，（这也要求UserDAOImp必须实现某个接口），而CGLIB则是扩展了UserDAOImp类。</p>
-
-<p>我们先来利用Java Dynamic Proxy实现代理功能。比如目前有一个类RealObject，它实现了接口Interface</p>
-
-<p>Interface</p>
-
-<pre><code>public interface Interface {
-    void funcA ();
-    void funcB (String str);
-    void saveXXX ();
-}
-</code></pre>
-
-<p>RealObject</p>
-
-<pre><code>public class RealObject implements Interface {
-
-    @Override
-    public void funcA() {
-        // TODO Auto-generated method stub
-        System.out.println("funcA() in RealObject");
-    }
-
-    @Override
-    public void funcB(String str) {
-        // TODO Auto-generated method stub
-        System.out.println("funcB() in RealObject : " + str);
-    }
-
-    @Override
-    public void saveXXX() {
-        // TODO Auto-generated method stub
-        System.out.println("saveXXX() in RealObject");
-    }
-}
-</code></pre>
-
-<p>假设我们需要代理RealObject，在调用方法前后进行相应处理（输出信息），那么我们就需要一个实现了InvacationHandler接口的类，比如说是ProxyInvacationHandler</p>
-
-<p>ProxyInvacationHandler</p>
-
-<pre><code>public class ProxyInvocationHandler implements InvocationHandler {
-
-    private Object proxied;
-
-    public ProxyInvocationHandler (Object proxied)
-    {
-        this.proxied = proxied;
-    }
-
-    @Override
-    public Object invoke(Object proxy, Method method, Object[] args)
-            throws Throwable {
-        // TODO Auto-generated method stub
-        Object result = null;
-
-        System.out.print("n*******************n");
-        System.out.println(proxy.getClass());   //invoke中第一个参数proxy意义何在？
-        //模拟增加事务处理功能
-        if ( method.getName().startsWith("save") )
-        {
-            System.out.println("transaction begins");
-        }
-        System.out.println("before " + method);
-        //被代理的类调用实际的方法
-        result = method.invoke(proxied, args);
-
-        System.out.println("after " + method);
-        if ( method.getName().startsWith("save") )
-        {
-            System.out.println("transaction ends");
-        }
-        System.out.print("*******************n");
-        return result;
-    }
-
-}
-</code></pre>
-
-<p>其中的invoke方法就表示当被代理的类调用方法的前后，我们可以做的操作。甚至可以根据方法的不同，选择不同的操作。</p>
-
-<p>最后，再通过Proxy的newProxyInstance静态方法动态生成代理类，因为代理类也是实现Interface接口的，所以操作代理类就像操作被代理类一样。</p>
-
-<p>以下是运行结果：</p>
-
-<pre><code>funcA() in RealObject
-funcB() in RealObject : 123
-saveXXX() in RealObject
-
-*******************
-class $Proxy0
-before public abstract void org.quxiao.Interface.funcA()
-funcA() in RealObject
-after public abstract void org.quxiao.Interface.funcA()
-*******************
-
-*******************
-class $Proxy0
-before public abstract void org.quxiao.Interface.funcB(java.lang.String)
-funcB() in RealObject : 123
-after public abstract void org.quxiao.Interface.funcB(java.lang.String)
-*******************
-
-*******************
-class $Proxy0
-transaction begins
-before public abstract void org.quxiao.Interface.saveXXX()
-saveXXX() in RealObject
-after public abstract void org.quxiao.Interface.saveXXX()
-transaction ends
-*******************
-</code></pre>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/6/">&larr; Older</a>
@@ -1209,6 +1140,10 @@ transaction ends
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/03/18/log-practice/">日志实践</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/02/24/a-try-to-play-with-travis-ci/">小试Travis-Ci</a>
       </li>
     
@@ -1222,10 +1157,6 @@ transaction ends
     
       <li class="post">
         <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/11/30/information_retrievial_in_practice_note_architecture/">《Information Retrieval in Practice》笔记——整体架构</a>
       </li>
     
   </ul>

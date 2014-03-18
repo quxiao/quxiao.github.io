@@ -1,0 +1,318 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>日志实践 - Xavier's Blog</title>
+  <meta name="author" content="Xavier">
+
+  
+  <meta name="description" content="问题 这两天在整理现有模块的日志格式规范，以便于自己团队和其它团队更好的分析目前的产品。看了下，遗留的问题还真不少，问题主要集中在以下几点： 日志级别不正确 不是请求粒度的日志打成了NOTICE，用于排查的日志打成了WARNING、甚至打成了FATAL。这对于线上模块监控很不利， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://quxiao.github.io/blog/2014/03/18/log-practice">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Xavier's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Xavier's Blog</a></h1>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:quxiao.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">日志实践</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-03-18T21:54:26+08:00" pubdate data-updated="true">Mar 18<span>th</span>, 2014</time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://quxiao.github.io">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h1>问题</h1>
+
+<p>这两天在整理现有模块的日志格式规范，以便于自己团队和其它团队更好的分析目前的产品。看了下，遗留的问题还真不少，问题主要集中在以下几点：</p>
+
+<h4>日志级别不正确</h4>
+
+<p>不是请求粒度的日志打成了<code>NOTICE</code>，用于排查的日志打成了<code>WARNING</code>、甚至打成了<code>FATAL</code>。这对于线上模块监控很不利，一方面很难从众多的<code>WARNING</code>和<code>FATAL</code>日志中找到有价值的信息，另一方面这些日志多了，难免让人产生“狼来了”的麻痹心理。</p>
+
+<h4>字段命名不统一</h4>
+
+<p>同样一个参数，比如说是请求ID，在不同的请求日志中，有<code>logid</code>、<code>log_id</code>、<code>logId</code>各种不同风格的写法，有的参数是用<code>[]</code>括起来的，有的则没有。这些问题会给日志解析程序带来很大的负担。</p>
+
+<h4>字段含义不一致</h4>
+
+<p>不同请求日志中的参数A，在一种请求中表示一种含义（比如触发出的商品数），在其它请求中则表示另一种含义（比如一页展现的商品数）。</p>
+
+<h4>日志被公共Lib污染</h4>
+
+<p>自己的模块依赖了其它公共lib，但是公共lib中的日志级别比较随意，结果污染了自身模块日志。</p>
+
+<h4>日志信息不足</h4>
+
+<p>许多<code>NOTICE</code>日志只打印出了给上游的返回数据，请求数据却不全。一些<code>WARNING</code>日志只能看出只在代码的哪一行出了问题，请求参数是什么、甚至请求ID，都没有。线上出现了问题，很难根据这条日志找到线索。</p>
+
+<h1>规范</h1>
+
+<p>因此，我们需要对现在的日志格式进行<strong>专项整治</strong>，总结出一些合理的、改动尽量小的日志规范。这两天和同事讨论了下，整理出了一些：</p>
+
+<h4>统一字段命名</h4>
+
+<p>对于不同请求中的同一含义的字段，只能有一个名字。</p>
+
+<h4>统一字段风格</h4>
+
+<p>字段一律使用<code>xxx_yyy</code>的下划线命名风格。</p>
+
+<h4>统一日志层级风格</h4>
+
+<p>日志中的信息均通过<code>k=v</code>形式表达，<code>kv</code>之间以<code>,</code>分割，表示第一层级；如果<code>v</code>还有第二层级，则用<code>_</code>分割；第三层级用<code>|</code>分割。ex: <code>k1=v111|v112_v21_v22,k2=v2</code></p>
+
+<h4>统一字段顺序</h4>
+
+<p>统一使用<code>请求ID/服务名/请求参数/响应数据/响应时间</code>作为日志字段顺序。（当然，一般公司都有自己的日志工具，会将日志级别、时间、线程ID、函数、行号这些打印在最前面。）</p>
+
+<h4>日志必须有请求ID</h4>
+
+<p>请求粒度的日志中，必须包含请求ID；工具类的lib中，对于功能较小的函数，无需打日志；功能点较多的函数，需将请求ID通过参数传递进去。</p>
+
+<h4>只有请求粒度的日志，才能是NOTICE级别</h4>
+
+<p>其它公共lib中的代码，需要打到单独的日志文件中，不和本身模块的日志混淆。</p>
+
+<hr />
+
+<p>日志实在是太重要了，一方面反映了用户的行为，另一方面也反映了模块的指标（召回率、响应时间等），怎么规范它估计都不为过。我们整理的这些规范也智能算是个迷你版本。</p>
+
+<p>其实，我们制定的这些规范（以及其它规范），并没有谁一开始就能全部想到，正如TA一开始也想不到会有再上面的问题一样。每个人都很自信的认为其他人会和TA是一样的代码或者日志风格，如果所有关于打印日志的代码，都是由一个人来写的话，风格想必都是统一的，因为TA知道过去的代码是什么样的，为什么需要改成现在这样，哪些字段是后来因为什么原因而加上的。如果TA另外也负责对日志进行解析和统计的话，那么日志风格就会完全统一了。 :P</p>
+
+<p>规范的制定，从某种意义上讲，也是一种被逼的结果，因为总会有人最终无法忍受由于种种问题而导致的心智负担，然后说道，“受不了了，我们还是搞个规范吧！”</p>
+
+<p>&mdash; EOF &mdash;</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Xavier</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-03-18T21:54:26+08:00" pubdate data-updated="true">Mar 18<span>th</span>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/development/'>Development</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/02/24/a-try-to-play-with-travis-ci/" title="Previous Post: 小试Travis-Ci">&laquo; 小试Travis-Ci</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/03/18/log-practice/">日志实践</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/02/24/a-try-to-play-with-travis-ci/">小试Travis-Ci</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/31/typelist-and-abstract-fatory/">Typelist && Abstract Fatory</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/quxiao">@quxiao</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'quxiao',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Xavier -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'qxavier';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://quxiao.github.io/blog/2014/03/18/log-practice/';
+        var disqus_url = 'http://quxiao.github.io/blog/2014/03/18/log-practice/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

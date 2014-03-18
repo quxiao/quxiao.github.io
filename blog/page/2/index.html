@@ -9,9 +9,8 @@
   <meta name="author" content="Xavier">
 
   
-  <meta name="description" content="Memcached中有以下几类线程： 主线程
-工作线程
-维护线程 主线程，又可以叫分发线程，除了完成程序的各种参数、以及其他线程的初始化以外，还会listen端口，新建连接，并且将该连接分发到其他的工作线程。 工作线程，大部分实际的工作都是他们干的，包括读取请求的协议内容、解析、进行具体存、取、 &hellip;">
+  <meta name="description" content="链表，应该是每一个学编程的人都会接触到的经典数据结构，大部分计算机专业的同学至少在上学期间也实现过单向、双向链表。在我的印象里，链表一般都是这么表示的： struct LinkNode
+{ LinkNode* prev; LinkNode* next; int my_data1; double &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -66,6 +65,259 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/07/06/intrusive-list/">Intrusive List</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-07-06T20:47:21+08:00" pubdate data-updated="true">Jul 6<span>th</span>, 2013</time>
+        
+           | <a href="/blog/2013/07/06/intrusive-list/#disqus_thread"
+             data-disqus-identifier="http://quxiao.github.io/blog/2013/07/06/intrusive-list/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>链表，应该是每一个学编程的人都会接触到的经典数据结构，大部分计算机专业的同学至少在上学期间也实现过单向、双向链表。在我的印象里，链表一般都是这么表示的：</p>
+
+<pre><code>struct LinkNode
+{
+    LinkNode* prev;
+    LinkNode* next;
+    int my_data1;
+    double my_data2;
+    //...
+};
+
+class LinkList
+{
+    LinkNode root;
+    //...
+};
+</code></pre>
+
+<p>或者，我们就干脆直接是用<code>std::list&lt;T&gt;</code>。无论是哪一种，它都是将使用的数据“嵌入”到链表的节点中，或者说是节点包在数据之外。这种实现也是教科书里面讲到的那个实现，也是我之前知道的唯一的实现方式。</p>
+
+<p>前段时间看网上的几篇博客（<a href="http://rdc.taobao.com/blog/cs/?p=1675">Tips of Linux C programming</a>，<a href="http://www.codeofhonor.com/blog/avoiding-game-crashes-related-to-linked-lists">Avoiding game crashes related to linked lists</a>），发现原来还有另外一种更优雅的链表实现——intrusive list。Linux kernel，以及许多底层软件（另外还有游戏星际争霸）的开发中，都是使用intrusive list进行链表操作的。</p>
+
+<p>所谓intrusive list，就是指不像上面说的那样将链表节点包在数据外面，而是将链表节点包在数据里面。例如下面这样：</p>
+
+<pre><code>struct list_node_t
+{
+    list_node_t* prev;
+    list_node_t* next;
+};
+
+struct MyClass
+{
+    int data;
+    list_node_t node;
+};
+</code></pre>
+
+<p>这样做，是为了让节点和数据在一个数据结构中。因为许多场景下，链表包含的数据是指针（考虑到数据拷贝构造的代价，以及一份数据被多个链表共享的情况），例如<code>std::list&lt;MyClass*&gt;</code>。使用intrusive list实现，就可以省去了&#8221;节点 &ndash;> 数据指针 &ndash;> 数据&#8221;的二次查找。找到intrusive list中的一个节点后，就可以立即找到这个节点对应的数据，即我知道一个<code>list_node_t</code>的地址，我改如何找到这个<code>list_node_t</code>对应的<code>MyClass</code>的<code>data</code>呢？这里用到了一段很优美的宏：</p>
+
+<pre><code>#define GET_ENTRY(ptr, type, member)\
+    ((type *)((char *)(ptr)-(unsigned long)(&amp;((type *)0)-&gt;member)))
+</code></pre>
+
+<p>第一眼肯定觉得晕，不急，我们一步一步来。首先看参数：</p>
+
+<ul>
+<li><p>ptr: <code>list_node_t</code>的地址</p></li>
+<li><p>type: 包含这个<code>list_node_t</code>的类型，对应上面的例子，就是<code>Myclass</code></p></li>
+<li><p>member：这个<code>list_node_t</code>类型变量在MyClass中的变量名，需要这个得到改变量的offset</p></li>
+</ul>
+
+
+<p>首先看</p>
+
+<pre><code>(&amp;((type *)0)-&gt;member)
+</code></pre>
+
+<p>这个的意思是：如果有个type类型的变量，它的地址是0，那type类型中的member变量的地址是多少，其实就是这个member变量距离所属的type类型变量的偏移量。</p>
+
+<p>然后是</p>
+
+<pre><code>((char *)(ptr)-(unsigned long)(&amp;((type *)0)-&gt;member))
+</code></pre>
+
+<p>这就很清楚了，知道了偏移量，我又知道了真正的member变量的地址（ptr），用ptr的地址减去ptr的偏移量，就得到了ptr所在的type变量的地址了，然后就可以获取type变量上的数据了。</p>
+
+<p>自己简单实现了intrusive list，再和<code>std::list</code>做一个简单的性能测试，对一个int数据的链表插入，结果是：<code>std::list push_back</code>的操作操作时间基本上都在intrusive list的2倍以上！这么看来，intrusive list的优势还是挺明显的。</p>
+
+<pre><code>QuXiaos-MacBook-Pro:intrusive_list quxiao$ ./a.out 1000
+std_list: 0.129 ms
+intrusive_list: 0.059 ms
+QuXiaos-MacBook-Pro:intrusive_list quxiao$ ./a.out 10000
+std_list: 1.297 ms
+intrusive_list: 0.550 ms
+QuXiaos-MacBook-Pro:intrusive_list quxiao$ ./a.out 100000
+std_list: 11.961 ms
+intrusive_list: 4.901 ms
+QuXiaos-MacBook-Pro:intrusive_list quxiao$ ./a.out 1000000
+std_list: 116.855 ms
+intrusive_list: 53.086 ms
+QuXiaos-MacBook-Pro:intrusive_list quxiao$ ./a.out 10000000
+std_list: 1061.955 ms
+intrusive_list: 544.419 ms
+</code></pre>
+
+<p>intrusive list的实现以及测试的代码如下：</p>
+
+<div>
+  <pre><code class='cpp'>#include &lt;stdlib.h&gt;
+    #include &lt;stdio.h&gt;
+    #include &lt;time.h&gt;
+    #include &lt;list&gt;
+    
+    struct list_node_t
+    {
+        list_node_t* prev;
+        list_node_t* next;
+    };
+    
+    struct MyClass
+    {
+        int data;
+        list_node_t node;
+    };
+    
+    void _list_add(list_node_t* cur, list_node_t* prev, list_node_t* next)
+    {
+        prev-&gt;next = cur;
+        next-&gt;prev = cur;
+        cur-&gt;prev = prev;
+        cur-&gt;next = next;
+    }
+    
+    void list_add_head(list_node_t* cur, list_node_t* head)
+    {
+        _list_add(cur, head, head-&gt;next);
+    }
+    
+    void list_add_tail(list_node_t* cur, list_node_t* head)
+    {
+        _list_add(cur, head-&gt;prev, head);
+    }
+    
+    void list_del(list_node_t* cur)
+    {
+        cur-&gt;prev-&gt;next = cur-&gt;next;
+        cur-&gt;next-&gt;prev = cur-&gt;prev;
+        cur-&gt;prev = cur-&gt;next = NULL;
+    }
+    
+    #define GET_ENTRY(ptr, type, member)\
+        ((type *)((char *)(ptr)-(unsigned long)(&amp;((type *)0)-&gt;member)))
+    
+    #define INIT_NODE(ptr)\
+        (ptr)-&gt;next = (ptr)-&gt;prev = ptr;
+    
+    #define list_for_each(pos, head) \
+            for (pos = (head)-&gt;next; pos != (head); \
+                            pos = pos-&gt;next)
+    
+    #define list_for_each_safe(pos, n, head) \
+            for (pos = (head)-&gt;next, n = pos-&gt;next; pos != (head); \
+                        pos = n, n = pos-&gt;next)
+    
+    void test_std_list(int run_num)
+    {
+        int t1 = clock();
+        std::list&lt;int&gt; std_list;
+        for (int i = 0; i &lt; run_num; i ++)
+        {
+            std_list.push_back(i);
+        }
+    
+        printf(&quot;std_list: %.3lf ms\n&quot;, double(clock() - t1) / CLOCKS_PER_SEC * 1000);
+    }
+    
+    void test_intrusive_list(int run_num)
+    {
+        int t1 = clock();
+        list_node_t list_head;
+        INIT_NODE(&amp;list_head);
+    
+        for (int i = 0; i &lt; run_num; i ++)
+        {
+            MyClass* c = (MyClass*) malloc(sizeof(MyClass));
+            c-&gt;data = i;
+            list_add_tail(&amp;c-&gt;node, &amp;list_head);
+        }
+        printf(&quot;intrusive_list: %.3lf ms\n&quot;, double(clock() - t1) / CLOCKS_PER_SEC * 1000);
+    }
+    
+    int main(int argc, char** argv)
+    {
+        if ( argc != 2 )
+        {
+            fprintf(stderr, &quot;argc is not 2&quot;);
+            return -1;
+        }
+        int run_num = atoi(argv[1]);
+        if ( 0 == run_num )
+        {
+            fprintf(stderr, &quot;argv[%s] is not num&quot;, argv[1]);
+            return -1;
+        }
+    
+        test_std_list(run_num);
+        test_intrusive_list(run_num);
+    
+        return 0;
+    }</code></pre>
+</div>
+
+
+<p>另外，intrusive list还有几个特点，比如：</p>
+
+<ul>
+<li><p>移植性好，不像数据包在链表里面的实现，要么每种链表类型都写重复的代码，要么就使用template，但只能在C++中使用</p></li>
+<li><p>容易使用，你需要使用哪种类型的列表，就在这种类型中添加节点即可</p></li>
+<li><p>可以方便实现一份数据被多个链表共享的情况，有几个链表，就在类型下添加几个节点变量即可，多个链表直接不会互相干扰</p></li>
+</ul>
+
+
+<p>要不是看了那几篇博客，我对链表的认识还停留在教科书上，好歹也看了几本数据结构的书，其中不乏经典书籍，但从没有听说过intrusive list这种实现，看来很多知识，并不是光靠看书就能获取的。</p>
+
+<p>参考材料：</p>
+
+<ul>
+<li><p><a href="http://highscalability.com/blog/2013/5/22/strategy-stop-using-linked-lists.html">Strategy: Stop Using Linked-Lists</a></p></li>
+<li><p><a href="http://www.codeofhonor.com/blog/avoiding-game-crashes-related-to-linked-lists">Avoiding game crashes related to linked lists</a></p></li>
+<li><p><a href="http://rdc.taobao.com/blog/cs/?p=1675">Tips of Linux C programming</a></p></li>
+<li><p><a href="http://isis.poly.edu/kulesh/stuff/src/klist/">Linux Kernel Linked List Explained</a></p></li>
+</ul>
+
+
+<p>&mdash;EOF&mdash;</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1277,75 +1529,6 @@ class D: public B1, public B2 {
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/09/26/matthew-effect-and-long-tail/">马太效应 and 长尾理论</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-09-26T21:46:31+08:00" pubdate data-updated="true">Sep 26<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/09/26/matthew-effect-and-long-tail/#disqus_thread"
-             data-disqus-identifier="http://quxiao.github.io/blog/2012/09/26/matthew-effect-and-long-tail/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>平常准备没事记录下与专业相关的概念，再加上一些例子。让看的人更容易理解，也让自己更容易记忆和消化。</p>
-
-<h1>马太效应</h1>
-
-<p>这个名字来源于《圣经 马太福音》中的一句话：</p>
-
-<blockquote><p>“For to all those who have, more will be given, and they will have an abundance; but from those who have nothing, even what they have will be taken away.”</p></blockquote>
-
-<p>“凡有的，还要加给他叫他多余；没有的，连他所有的也要夺过来。”</p>
-
-<p><strong>马达效应就是指好的越好，差的越差，是一种两级分化的现象。</strong></p>
-
-<p>财富的分配就会遇到这种问题，有钱的人，更容易获取各种资源，因此可以凭借这些资源获得更多的钱；没钱的人，很难获取资源，也就很难有赚钱的机会，也就很难变得有钱。</p>
-
-<p>好吧，社会问题就不说了。互联网中，也有很多这样的例子。</p>
-
-<p>比如排序问题，可以想象成一个网站对各种商品进行排序的问题。需要根据商品的权重大小来对商品排序，商品的权重除了与自身的属性有关外，还跟在页面上面的表现有关，比如展现次数、点击次数、下单次数。这样，问题就出现了，一开始由于自身属性好而排在前面的商品，它的展现数据、点击数和下单数从概率上就会比排在后面的商品要好。也就是一开始排在前面的商品，它的权重就会越来越大，而一开始在后面的商品，与前面商品的权重差距就会越来越大，这就出现了马太效应。后续可能要加入时间热度、或者轮流展现的技术来消除这种马太效应。</p>
-
-<h1>长尾理论</h1>
-
-<p><a href="http://qxavier.me/wp-content/uploads/2012/09/rawtail.jpg"><img src="http://qxavier.me/wp-content/uploads/2012/09/rawtail.jpg" alt="" /></a>这是一种与“二八定律”相悖的理论。“二八定律”是指80%的价值存在于总体的20%里面，例如80%的财富掌握在20%的人手中；80%程序运行时间被20%的代码所占用。但是，长尾理论是指，有些情况下，少部分个体的单位价值比较大，绝大部分个体的单位价值都比较少。例如，大公司就那么几家，而中小公司就有很多很多。这个似乎是符合“二八定律”的，但是，如果符合“二八定律”，那么少部分个体的价值之和应该占据总体价值的大多数。而实际情况是，<strong>那些单位价值较少的许多个体的价值之和，占了总体价值的大多数</strong>。</p>
-
-<p>Google就是利用长尾理论的公司之一，它的AdSense产品的用户就是不计其数的中小网站和个人用户上面，而没有面向那些看起来价值更大的大公司，结果AdSense占据了其收入的半壁江山。</p>
-
-<p>亚马逊副经理史蒂夫·凯塞尔也说过：</p>
-
-<blockquote><p>“如果我有10万种书，哪怕一次仅卖掉一本，10年后加起来它们的销售就会超过最新出版的《哈利·波特》。”</p></blockquote>
-
-<p>但这长尾理论有个前提，那就是成本足够低。就好像出版书籍的成本足够低了，我才可以接受一本书只卖出去几本，因为就算只卖出去几本，我也是赚钱的。怪不得电子书现在这么火，一旦谁占领了市场，大概就是稳赚不赔了，我比较看好Amazon。</p>
-
-<p>&mdash;EOF&mdash;</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/3/">&larr; Older</a>
@@ -1363,6 +1546,10 @@ class D: public B1, public B2 {
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/03/18/log-practice/">日志实践</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/02/24/a-try-to-play-with-travis-ci/">小试Travis-Ci</a>
       </li>
     
@@ -1376,10 +1563,6 @@ class D: public B1, public B2 {
     
       <li class="post">
         <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/11/30/information_retrievial_in_practice_note_architecture/">《Information Retrieval in Practice》笔记——整体架构</a>
       </li>
     
   </ul>
