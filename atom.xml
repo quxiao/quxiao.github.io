@@ -4,7 +4,7 @@
   <title><![CDATA[Xavier's Blog]]></title>
   <link href="http://quxiao.github.io/atom.xml" rel="self"/>
   <link href="http://quxiao.github.io/"/>
-  <updated>2014-03-18T23:41:49+08:00</updated>
+  <updated>2014-03-19T09:24:57+08:00</updated>
   <id>http://quxiao.github.io/</id>
   <author>
     <name><![CDATA[Xavier]]></name>
@@ -14,11 +14,11 @@
 
   
   <entry>
-    <title type="html"><![CDATA[日志实践]]></title>
+    <title type="html"><![CDATA[日志规范实践]]></title>
     <link href="http://quxiao.github.io/blog/2014/03/18/log-practice/"/>
     <updated>2014-03-18T21:54:26+08:00</updated>
     <id>http://quxiao.github.io/blog/2014/03/18/log-practice</id>
-    <content type="html"><![CDATA[<h1>问题</h1>
+    <content type="html"><![CDATA[<h2>问题</h2>
 
 <p>这两天在整理现有模块的日志格式规范，以便于自己团队和其它团队更好的分析目前的产品。看了下，遗留的问题还真不少，问题主要集中在以下几点：</p>
 
@@ -42,7 +42,10 @@
 
 <p>许多<code>NOTICE</code>日志只打印出了给上游的返回数据，请求数据却不全。一些<code>WARNING</code>日志只能看出只在代码的哪一行出了问题，请求参数是什么、甚至请求ID，都没有。线上出现了问题，很难根据这条日志找到线索。</p>
 
-<h1>规范</h1>
+<!--More-->
+
+
+<h2>规范</h2>
 
 <p>因此，我们需要对现在的日志格式进行<strong>专项整治</strong>，总结出一些合理的、改动尽量小的日志规范。这两天和同事讨论了下，整理出了一些：</p>
 
