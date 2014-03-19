@@ -53,6 +53,8 @@ RD* rd = fact->create_RD();
 
 可以看出来，每一个具体的Factory类只是重复的实现AbstractFactory提供的接口，唯一的不同就是填写具体的类名，其它的语句都是重复的。（我不得不在编写以上代码的时候使用了Vim的替换功能）
 
+<!--more-->
+
 # 定义接口
 
 有了Typelist，我们可以联想到，如果有了一个Typelist例如：

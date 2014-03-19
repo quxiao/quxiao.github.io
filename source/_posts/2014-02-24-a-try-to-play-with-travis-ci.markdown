@@ -18,6 +18,7 @@ categories:
 * 跑测试用例的命令
 * etc.
 
+<!--more-->
 是的，不过travis-ci提供更细粒度的操作。当你每次push时，它进行如下操作：
 
 1. `clone`你的repository并`cd`进去
