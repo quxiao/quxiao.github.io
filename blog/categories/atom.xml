@@ -4,7 +4,7 @@
   <title><![CDATA[Category: | Xavier's Blog]]></title>
   <link href="http://quxiao.github.io/blog/categories//atom.xml" rel="self"/>
   <link href="http://quxiao.github.io/"/>
-  <updated>2014-03-19T09:24:57+08:00</updated>
+  <updated>2014-03-19T09:42:50+08:00</updated>
   <id>http://quxiao.github.io/</id>
   <author>
     <name><![CDATA[Xavier]]></name>
@@ -33,6 +33,9 @@ TypeList&lt; FilterE,
 <p>```</p>
 
 <p>感觉代码风格略微诡异了些，怎么像是LISP，呵呵。后来查了些资料，得知这就是我一直心仪已久的模板元编程中的一种技巧——<strong> Typelist</strong> 。</p>
+
+<!--more-->
+
 
 <p>当你需要对于大量的类型进行相似的操作时，比如对于返回的商品进行五种类型的过滤，许多（手工写的）代码都是重复、冗余的，代码可能是这样的：</p>
 

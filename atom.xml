@@ -4,7 +4,7 @@
   <title><![CDATA[Xavier's Blog]]></title>
   <link href="http://quxiao.github.io/atom.xml" rel="self"/>
   <link href="http://quxiao.github.io/"/>
-  <updated>2014-03-19T09:24:57+08:00</updated>
+  <updated>2014-03-19T09:42:50+08:00</updated>
   <id>http://quxiao.github.io/</id>
   <author>
     <name><![CDATA[Xavier]]></name>
@@ -103,6 +103,9 @@
 <li>跑测试用例的命令</li>
 <li>etc.</li>
 </ul>
+
+
+<!--more-->
 
 
 <p>是的，不过travis-ci提供更细粒度的操作。当你每次push时，它进行如下操作：</p>
@@ -227,6 +230,9 @@ script:
 
 
 <p>可以看出来，每一个具体的Factory类只是重复的实现AbstractFactory提供的接口，唯一的不同就是填写具体的类名，其它的语句都是重复的。（我不得不在编写以上代码的时候使用了Vim的替换功能）</p>
+
+<!--more-->
+
 
 <h1>定义接口</h1>
 
@@ -634,6 +640,9 @@ ConcreteFactory
 
 
 <p>感觉代码风格略微诡异了些，怎么像是LISP，呵呵。后来查了些资料，得知这就是我一直心仪已久的模板元编程中的一种技巧——<strong> Typelist</strong> 。</p>
+
+<!--more-->
+
 
 <p>当你需要对于大量的类型进行相似的操作时，比如对于返回的商品进行五种类型的过滤，许多（手工写的）代码都是重复、冗余的，代码可能是这样的：</p>
 
