@@ -9,7 +9,7 @@
   <meta name="author" content="Xavier">
 
   
-  <meta name="description" content="给定一字符串集合Pn, 1&lt;=n&lt;=200, 1&lt;=strlen(Pn)&lt;=10，再给定一个字符串S，1&lt;=strlen(s)&lt;=200000。问能用字符串集合组成的S的最长前缀的长度。 之前想的是用KMP将每一个集合中的Pn与S匹配，找出Pn能构成S子串的位置 &hellip;">
+  <meta name="description" content="一棵树，每个节点有0或2个孩子，共N个节点，高度为K，问可以组成多少种不同的结构？ 假设，当前树的节点问n，高度为k，那么子树可分为3种情况： 左子树高度为k-1，右子树高度为1～k-2 右子树高度为k-1，左子树高度为1～k-2 左右子树均为k-1 并且，满足题目要求的树的节点与高度有这样的关系 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -64,6 +64,60 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/01/10/usaco-section-2-3-cow-pedigrees/">USACO Section 2.3 Cow Pedigrees</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-01-10T20:00:23+08:00" pubdate data-updated="true">Jan 10<span>th</span>, 2011</time>
+        
+           | <a href="/blog/2011/01/10/usaco-section-2-3-cow-pedigrees/#disqus_thread"
+             data-disqus-identifier="http://quxiao.github.io/blog/2011/01/10/usaco-section-2-3-cow-pedigrees/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>一棵树，每个节点有0或2个孩子，共N个节点，高度为K，问可以组成多少种不同的结构？</p>
+
+<p>假设，当前树的节点问n，高度为k，那么子树可分为3种情况：</p>
+
+<ol>
+<li><p> 左子树高度为k-1，右子树高度为1～k-2</p></li>
+<li><p> 右子树高度为k-1，左子树高度为1～k-2</p></li>
+<li><p> 左右子树均为k-1</p></li>
+</ol>
+
+
+<p>并且，满足题目要求的树的节点与高度有这样的关系：2*k-1 &lt;= n &lt;= 2<sup>k</sup>-1，可是根据这个关系枚举左右子树的节点数</p>
+
+<p>于是就可以用递归+DP的方法解出这道题了。</p>
+
+<p>（在对n &lt;= 2<sup>k</sup>-1进行转化时，自己居然写成了k >= log(n+1.0)/log(2.0)，其实应该是k >= floor (log(n+1.0)/log(2.0))，还是太粗心啦）</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -856,59 +910,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2010/09/30/decided-to-use-zotero-it/">决定用Zotero了！</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2010-09-30T14:27:36+08:00" pubdate data-updated="true">Sep 30<span>th</span>, 2010</time>
-        
-           | <a href="/blog/2010/09/30/decided-to-use-zotero-it/#disqus_thread"
-             data-disqus-identifier="http://quxiao.github.io/blog/2010/09/30/decided-to-use-zotero-it/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>用了一段时间Evernote和Zotero，经过使用和对比，还是决定用Zotero来进行资料的管理，原因有以下几点：</p>
-
-<p><strong>跨平台      <br/>
-</strong>Evernote在电脑上只有Windows版本，而Zotero作为FireFox的插件，可以说是跨平台的</p>
-
-<p><strong>文献管理      <br/>
-</strong>因为经常要看一些论文，Zotero可以自动识别网页中的论文相关信息，这一点我很喜欢</p>
-
-<p><strong>运行速度</strong>     <br/>
-Zotero运行起来比较流畅，而Evernote就比较慢了，而且会占用很多内存</p>
-
-<p><strong>分类管理</strong>     <br/>
-Zotero可以按文件夹进行树形的管理，Evernote中只有按tag分类的，虽然也可以建立子tag，但用起来还是很别扭</p>
-
-<p>不过，其实Evernote还是挺好的，只要认准用一个就行了。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/9/">&larr; Older</a>
@@ -926,6 +927,10 @@ Zotero可以按文件夹进行树形的管理，Evernote中只有按tag分类的
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/03/24/branch-in-my-eye/">公司设立分部弊端之我见</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/03/18/log-practice/">日志规范实践</a>
       </li>
     
@@ -939,10 +944,6 @@ Zotero可以按文件夹进行树形的管理，Evernote中只有按tag分类的
     
       <li class="post">
         <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
       </li>
     
   </ul>

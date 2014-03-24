@@ -9,7 +9,7 @@
   <meta name="author" content="Xavier">
 
   
-  <meta name="description" content="平常准备没事记录下与专业相关的概念，再加上一些例子。让看的人更容易理解，也让自己更容易记忆和消化。 马太效应 这个名字来源于《圣经 马太福音》中的一句话： “For to all those who have, more will be given, and they will have an &hellip;">
+  <meta name="description" content="前段时间公司进行校招，大家那段时间也顺带看看一些面试题目。其中一道经典的题目就是C++中的虚函数是如何实现的？要是直接问我，我还真不记得了。（现在让我再去面试，肯定完蛋） 所谓虚函数，就是函数声明前使用virtual关键字，作用是当基类指针指向子类对象时，通过基类指针调用虚函数， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -64,6 +64,143 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/11/01/virtual-function-implement-in-cpp/">C++虚函数的实现</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-11-01T22:47:02+08:00" pubdate data-updated="true">Nov 1<span>st</span>, 2012</time>
+        
+           | <a href="/blog/2012/11/01/virtual-function-implement-in-cpp/#disqus_thread"
+             data-disqus-identifier="http://quxiao.github.io/blog/2012/11/01/virtual-function-implement-in-cpp/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>前段时间公司进行校招，大家那段时间也顺带看看一些面试题目。其中一道经典的题目就是C++中的虚函数是如何实现的？要是直接问我，我还真不记得了。（现在让我再去面试，肯定完蛋）</p>
+
+<p>所谓虚函数，就是函数声明前使用virtual关键字，作用是当基类指针指向子类对象时，通过基类指针调用虚函数，运行的就是实际子类的对应函数，而不是基类的。这种特性在像Java这种“纯”面向对象的语言中，是默认实现的，在C++中就要进行显示声明。如果不显示声明的话，运行的就会是基类的函数。</p>
+
+<p>C++中的虚函数是通过虚表（virtual table）实现的。声明类时，编译器会放一个隐藏的指针，这个指针放在了类的最开始位置，并且指向的就是虚表，虚表里面存放着这个类声明的各个虚函数的地址。假设如果有基类Base：</p>
+
+<pre><code>class Base {
+    virtual void f1();
+    virtual void f2();
+}
+</code></pre>
+
+<p>那么Base类的虚表的结构就是：</p>
+
+<pre><code>Base
+    __vptr    --&gt;    Base::f1(), Base::f2()
+    .....（其他成员）
+</code></pre>
+
+<p>假设还有类D：</p>
+
+<pre><code>class D: public Base {
+    virtual void f1();
+}
+</code></pre>
+
+<p>那么D的虚表就是下面这个样子的：</p>
+
+<pre><code>D
+    __vptr    --&gt;    D::f1(), Base::f2()
+    .....
+</code></pre>
+
+<p>这样的话，当Base类的指针p_base= D()并且p_base->f1()的时候，调用的就是D的f1()了。注意，因为Base和D的虚表的结构一致，所以才能保证调用了正确的函数。</p>
+
+<p>那么，如果是多重继承，即有多个基类时，结果如何呢？C++中，一个类的每一个基类，都有一个单独的虚表与之对应。假设类结构如下：</p>
+
+<pre><code>class B1 {
+    virtual void f1();
+    virtual void f3();
+}
+
+class B2 {
+    virtual void f2();
+    virtual void f3();
+}
+
+class D: public B1, public B2 {
+    virtual void f1();
+    virtual void f2();
+}
+</code></pre>
+
+<p>那么D类的虚表结构就是：</p>
+
+<pre><code>D
+    __vptr  --&gt; D::f1(), B1::f3()
+            --&gt; D::f2(), B2::f3()
+    .....
+</code></pre>
+
+<p>还有种情况，那就是在多重继承的情况下，子类声明了不属于任何父类的虚函数。例如：</p>
+
+<pre><code>class B1 {
+    virtual void f1();
+    virtual void f3();
+}
+
+class B2 {
+    virtual void f2();
+    virtual void f3();
+}
+
+class D: public B1, public B2 {
+    virtual void f1();
+    virtual void f2();
+    virtual void f4();
+}
+</code></pre>
+
+<p>子类声明的不属于任何父类的虚函数地址就会继续向第一个虚表的结尾放。</p>
+
+<pre><code>D
+    __vptr  --&gt; D::f1(), B1::f3(), D::f4()
+            --&gt; D::f2(), B2::f3()
+    .....
+</code></pre>
+
+<p>这样的话，不管你用什么类的声明，声明类的虚表结构和实际类的就会是一致的（准确的说应该是父类虚表的结构一定是子类对应的虚表的前缀），这样就实现了基类指针调用子类函数的功能。</p>
+
+<p>参考文章：</p>
+
+<p><a href="http://blog.csdn.net/haoel/article/details/1948051">C++ 虚函数表解析</a></p>
+
+<p><a href="http://www.learncpp.com/cpp-tutorial/125-the-virtual-table/">The virtual table</a></p>
+
+<p><a href="http://coldattic.info/shvedsky/s/blogs/a-foo-walks-into-a-bar/posts/3">Busting C++ myths: virtual function calls are slow</a></p>
+
+<p>&mdash;EOF&mdash;</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -939,92 +1076,6 @@ The fetched row contains the value 'some_value'
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2011/12/04/some_python_plotting_tools/">一些Python图表工具</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-12-04T17:10:39+08:00" pubdate data-updated="true">Dec 4<span>th</span>, 2011</time>
-        
-           | <a href="/blog/2011/12/04/some_python_plotting_tools/#disqus_thread"
-             data-disqus-identifier="http://quxiao.github.io/blog/2011/12/04/some_python_plotting_tools/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>考虑到最近写毕业论文以及以后自己博客中的实验分析，绘制一些图表就变得在所难免，再加上最近对Python比较感兴趣，于是就找了写利用Python绘制图表的工具库。说实话，一找一大堆，挑了几个自己感觉不错的，作为候选。</p>
-
-<h1><a href="http://matplotlib.sourceforge.net/">matplotlib</a></h1>
-
-<p>matplotlib可谓是matlab的Python版本，可以绘制高质量的2D图表，例如柱状图，饼状图，散点图，以及很多我不知道科学图表。除了能以python script的形式编程，还能通过ipython shell来进行交互。另外，matplotlib不但能进行绘图，还能进行复杂的科学计算（通过 <a href="http://scipy.org/Numpy_Example_List_With_Doc">numpy</a>和<a href="http://matplotlib.sourceforge.net/api/mlab_api.html">matplotlib.mlab</a>）。如果之前熟悉matlab的话，应该能很快上手。    <br/>
-matplotlib很好很强大，图表又好看，就算对于一个搞科研的人来说，也是足够的。不过相应的代价就是学习曲线较陡，尤其是对于之前没有接触过matlab和python的人来说。</p>
-
-<h1><a href="https://bitbucket.org/lgs/pycha/wiki/Home">Pycha</a> (PYthon CHArts)</h1>
-
-<p>Pycha是一个基于<a href="http://www.cairographics.org/">Cairo</a>图形库的、轻量级、易于使用的python包。Pycha在大多数默认情况下能有很漂亮的外观，当然你也可以定制各种细节。它并不像matplotlib那样可以画出几乎所有的图形，只是提供了一些常用的图表类型。</p>
-
-<h1><a href="http://home.gna.org/pychart/">Pychart</a></h1>
-
-<p>也是一个轻量级的python图形库，支持线状图、柱状图、饼状图、范围图，以及Encapsulated Postscript, PDF, PNG, SVG 等多种格式。图表外观朴素不花哨，已经够用了。   <br/>
-有意思的是，官网上，作者还说自己写的这个图形库已经用在了自己发表的几篇论文里面了，还列举了一些与它类似的图形库并讲了他们的优缺点。再一查作者信息，果然是牛人，在HP实验室待过 ，05年去了google。</p>
-
-<p>另外，还有像<a href="http://linil.wordpress.com/2008/09/16/cairoplot-11/">CairoPlot</a>、<a href="http://www.advsofteng.com/product.html">ChartDirector for Python</a>等也是不错的选择。下面是这些图形库的柱状图例子，可以有个直观的感觉。总的来说，如果时间充裕或者今后后大量用到科学图表的话，matplotlib就是最好的选择了。如果就偶尔画一些简单的图形的话，上面介绍的都能基本满足需求，实在不行干脆直接用VISIO！</p>
-
-<p><strong>matplotlib</strong></p>
-
-<p><a href="http://www.qxavier.me/wp-content/uploads/2011/12/matplotlib.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/12/matplotlib.png" alt="" /></a></p>
-
-<p>//////////////////////////////////////////////////////////////</p>
-
-<p><strong>Pycha</strong></p>
-
-<p><a href="http://www.qxavier.me/wp-content/uploads/2011/12/pycha.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/12/pycha.png" alt="" />      <br/>
-</a></p>
-
-<p>//////////////////////////////////////////////////////////////</p>
-
-<p><strong>Pychart</strong></p>
-
-<p><a href="http://www.qxavier.me/wp-content/uploads/2011/12/pychart1.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/12/pychart1-1024x350.png" alt="" /></a></p>
-
-<p>//////////////////////////////////////////////////////////////</p>
-
-<p><strong>CairoPlot</strong></p>
-
-<p><a href="http://www.qxavier.me/wp-content/uploads/2011/12/cairoplot.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/12/cairoplot.png" alt="" /></a></p>
-
-<p>//////////////////////////////////////////////////////////////</p>
-
-<p><strong>ChartDirector for Python</strong></p>
-
-<p><a href="http://www.qxavier.me/wp-content/uploads/2011/12/ChartDirector.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/12/ChartDirector.png" alt="" /></a></p>
-
-<p>&mdash;EOF&mdash;</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/4/">&larr; Older</a>
@@ -1042,6 +1093,10 @@ matplotlib很好很强大，图表又好看，就算对于一个搞科研的人�
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/03/24/branch-in-my-eye/">公司设立分部弊端之我见</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/03/18/log-practice/">日志规范实践</a>
       </li>
     
@@ -1055,10 +1110,6 @@ matplotlib很好很强大，图表又好看，就算对于一个搞科研的人�
     
       <li class="post">
         <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
       </li>
     
   </ul>

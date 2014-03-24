@@ -9,7 +9,7 @@
   <meta name="author" content="Xavier">
 
   
-  <meta name="description" content="Hadoop，在不同的上下文的环境下，会表示不同范围的概念。有人可能把Hadoop单单理解为一个分布式文件系统，我感觉欠妥，因为也有很多其他的分布式文件系统。Hadoop之所以称为Hadoop，其核心在于它的MapReduce框架。所以，Hadoop的最精简的理解应该是HDFS （Hadoop &hellip;">
+  <meta name="description" content="考虑到最近写毕业论文以及以后自己博客中的实验分析，绘制一些图表就变得在所难免，再加上最近对Python比较感兴趣，于是就找了写利用Python绘制图表的工具库。说实话，一找一大堆，挑了几个自己感觉不错的，作为候选。 matplotlib matplotlib可谓是matlab的Python版本， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -64,6 +64,92 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/12/04/some_python_plotting_tools/">一些Python图表工具</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-12-04T17:10:39+08:00" pubdate data-updated="true">Dec 4<span>th</span>, 2011</time>
+        
+           | <a href="/blog/2011/12/04/some_python_plotting_tools/#disqus_thread"
+             data-disqus-identifier="http://quxiao.github.io/blog/2011/12/04/some_python_plotting_tools/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>考虑到最近写毕业论文以及以后自己博客中的实验分析，绘制一些图表就变得在所难免，再加上最近对Python比较感兴趣，于是就找了写利用Python绘制图表的工具库。说实话，一找一大堆，挑了几个自己感觉不错的，作为候选。</p>
+
+<h1><a href="http://matplotlib.sourceforge.net/">matplotlib</a></h1>
+
+<p>matplotlib可谓是matlab的Python版本，可以绘制高质量的2D图表，例如柱状图，饼状图，散点图，以及很多我不知道科学图表。除了能以python script的形式编程，还能通过ipython shell来进行交互。另外，matplotlib不但能进行绘图，还能进行复杂的科学计算（通过 <a href="http://scipy.org/Numpy_Example_List_With_Doc">numpy</a>和<a href="http://matplotlib.sourceforge.net/api/mlab_api.html">matplotlib.mlab</a>）。如果之前熟悉matlab的话，应该能很快上手。    <br/>
+matplotlib很好很强大，图表又好看，就算对于一个搞科研的人来说，也是足够的。不过相应的代价就是学习曲线较陡，尤其是对于之前没有接触过matlab和python的人来说。</p>
+
+<h1><a href="https://bitbucket.org/lgs/pycha/wiki/Home">Pycha</a> (PYthon CHArts)</h1>
+
+<p>Pycha是一个基于<a href="http://www.cairographics.org/">Cairo</a>图形库的、轻量级、易于使用的python包。Pycha在大多数默认情况下能有很漂亮的外观，当然你也可以定制各种细节。它并不像matplotlib那样可以画出几乎所有的图形，只是提供了一些常用的图表类型。</p>
+
+<h1><a href="http://home.gna.org/pychart/">Pychart</a></h1>
+
+<p>也是一个轻量级的python图形库，支持线状图、柱状图、饼状图、范围图，以及Encapsulated Postscript, PDF, PNG, SVG 等多种格式。图表外观朴素不花哨，已经够用了。   <br/>
+有意思的是，官网上，作者还说自己写的这个图形库已经用在了自己发表的几篇论文里面了，还列举了一些与它类似的图形库并讲了他们的优缺点。再一查作者信息，果然是牛人，在HP实验室待过 ，05年去了google。</p>
+
+<p>另外，还有像<a href="http://linil.wordpress.com/2008/09/16/cairoplot-11/">CairoPlot</a>、<a href="http://www.advsofteng.com/product.html">ChartDirector for Python</a>等也是不错的选择。下面是这些图形库的柱状图例子，可以有个直观的感觉。总的来说，如果时间充裕或者今后后大量用到科学图表的话，matplotlib就是最好的选择了。如果就偶尔画一些简单的图形的话，上面介绍的都能基本满足需求，实在不行干脆直接用VISIO！</p>
+
+<p><strong>matplotlib</strong></p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/12/matplotlib.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/12/matplotlib.png" alt="" /></a></p>
+
+<p>//////////////////////////////////////////////////////////////</p>
+
+<p><strong>Pycha</strong></p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/12/pycha.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/12/pycha.png" alt="" />      <br/>
+</a></p>
+
+<p>//////////////////////////////////////////////////////////////</p>
+
+<p><strong>Pychart</strong></p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/12/pychart1.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/12/pychart1-1024x350.png" alt="" /></a></p>
+
+<p>//////////////////////////////////////////////////////////////</p>
+
+<p><strong>CairoPlot</strong></p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/12/cairoplot.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/12/cairoplot.png" alt="" /></a></p>
+
+<p>//////////////////////////////////////////////////////////////</p>
+
+<p><strong>ChartDirector for Python</strong></p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/12/ChartDirector.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/12/ChartDirector.png" alt="" /></a></p>
+
+<p>&mdash;EOF&mdash;</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1305,147 +1391,6 @@ void Solve ()
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2011/07/01/usaco-section-4-1-fence-rails/">USACO Section 4.1 Fence Rails</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-07-01T14:01:32+08:00" pubdate data-updated="true">Jul 1<span>st</span>, 2011</time>
-        
-           | <a href="/blog/2011/07/01/usaco-section-4-1-fence-rails/#disqus_thread"
-             data-disqus-identifier="http://quxiao.github.io/blog/2011/07/01/usaco-section-4-1-fence-rails/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>题目大意：</p>
-
-<p>给你N(1 &lt;= N &lt;= 50)段长度不一的木材，另外有R(1 &lt;= R &lt;= 1023)条栏杆需要修复，1 &lt;= ri &lt;= 128。问以这些木材为原材料，能够做出最多多少块栏杆？（做出的栏杆需要是完整的，不能拼接）</p>
-
-<p>思路：</p>
-
-<p>这是一道背包问题，不过，这是高维背包。是把R个栏杆放入N段木材中，传统背包的DP解法在这里貌似就无能为力了，看了hint才知道，原来要用到DFSID算法，也就是限制搜索深度的DFS。是一种类似BFS的求解过程，但是却用DFS来实现的算法。简单的说，每次枚举搜索深度，进行DFS，如果未得到解，则继续增加（减少）搜索深度，直至找到解。</p>
-
-<p>搜索的过程中，有一些重要的减枝：</p>
-
-<ol>
-<li><p> <strong>如果可以组成k块栏杆，那么最小的前k块栏杆一定是其中的一个解。</strong>因为就算存在不连续的解，我们也可以将较大的栏杆替换成较小的栏杆，最终转化为最小的k块栏杆。</p></li>
-<li><p> 根据R和ri ，可以看出栏杆的长度有很多都是<strong>重复</strong>的。将木材和栏杆排序，搜索时记录下当前的栏杆是选择哪块木材。搜索到当前栏杆i时，如果发现与上一个栏杆i+1的长度相同，则我们可以从i+1块栏杆所选择的那块木材开始搜。</p></li>
-<li><p> 假设前k块栏杆是题目的解，那么在这种情况下最大浪费掉的木材maxWaste就是sumBoard – sumRail[k]。在搜索过程中，如果发现某块木材的剩余量比最小的栏杆都小，就可以把他计入curWaste，如果发现curWaste > maxWaste，那么肯定无解。</p></li>
-<li><p> 我们还可以将R的范围减小，如果发现sumRail[k] &lt;= sumBoard并且sumRail[k+1] > sumBoard，那么我们可以将R减小到k。</p></li>
-</ol>
-
-
-<p>嗯，差不多就是这些。还有一个减枝，就是如果发现栏杆长度比最大的木材还要长的话，那在输入的时候就略去它（貌似减枝效果不明显-_-）。我们从（经过优化过的）R开始搜索，假设前k个栏杆就是解，对于每个栏杆，枚举木材，基本上就是这么个思路。做完这题的最大感受就是：要善于挖掘题目中的潜在信息。根据R和ri的关系，得知栏杆有许多重复的情况，以及如何推导出如果k为解，则前k个栏杆肯定能构成解，这就是真正的分析问题的能力了！</p>
-
-<p>以下是关键代码：</p>
-
-<pre><code>bool Search (int rIndex)
-{
-    if ( rIndex &lt; 0 )
-        return true;
-    int bound = 0;
-    //如果当前rail和上一个rail的长度相同，则从上一个rail选的board开始搜索
-    if ( rIndex &lt; r - 1 &amp;&amp; rail[rIndex] == rail[rIndex+1] )
-        bound = railSelect[rIndex+1];
-    int i;
-    bool ret = false;
-
-    for (i = bound; i &lt; n; i ++)
-    {
-        if ( board[i] &gt;= rail[rIndex] )
-        {
-            board[i] -= rail[rIndex];
-            railSelect[rIndex] = i;
-            if ( board[i] &lt; rail[0] )
-            {
-                curWaste += board[i];
-                //如果当前浪费的board大于最大允许的浪费量，则不选这个board
-                if ( curWaste &gt; maxWaste )
-                {
-                    curWaste -= board[i];
-                    board[i] += rail[rIndex];
-                    railSelect[i] = -1;
-                    continue;
-                }
-            }
-            ret = Search(rIndex - 1);
-            //恢复之前状态，顺序很重要！
-            if ( board[i] &lt; rail[0] )
-                curWaste -= board[i];
-            board[i] += rail[rIndex];
-            railSelect[rIndex] = -1;
-            if ( ret )
-                return true;
-        }
-    }
-
-    return false;
-}
-
-void Solve ()
-{
-    int i;
-    memset(railSelect, -1, sizeof(railSelect));
-    sort(rail, rail + r);
-    sort(board, board + n);
-
-    boardSum = 0;
-    for (i = 0; i &lt; n; i ++)
-        boardSum += board[i];
-    //找到可以优化的R
-    //用一个int表示前k个rail之和
-    railSum = 0;
-    for (i = 0; i &lt; r; i ++)
-    {
-        railSum += rail[i];
-        if ( railSum &gt; boardSum )
-        {
-            railSum -= rail[i];
-            break;
-        }
-    }
-
-    -- i;
-    for (; i &gt;= 0; i --)
-    {
-        curWaste = 0;
-        maxWaste = boardSum - railSum;
-        if ( Search(i) )
-        {
-            printf("%d\n", i+1);
-            return;
-        }
-        railSum -= rail[i];
-    }
-    printf("0\n");
-}
-</code></pre>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/5/">&larr; Older</a>
@@ -1463,6 +1408,10 @@ void Solve ()
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/03/24/branch-in-my-eye/">公司设立分部弊端之我见</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/03/18/log-practice/">日志规范实践</a>
       </li>
     
@@ -1476,10 +1425,6 @@ void Solve ()
     
       <li class="post">
         <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
       </li>
     
   </ul>

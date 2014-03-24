@@ -9,7 +9,7 @@
   <meta name="author" content="Xavier">
 
   
-  <meta name="description" content="AOP，即面向方面的编程（面向“切片”的编程应该更合适）。按我的理解，就是对业务逻辑中的某一阶段进行抽取，以达到逻辑模块之前低耦合的编程方法。举个例子，一个系统有许多资源，只有当用户登录系统之后才能访问。那么，验证用户登录就可以抽象成一个“切片”，插在了用户和系统资源之间， &hellip;">
+  <meta name="description" content="CGLib，即code generation library，原理是通过动态生成类以实现代理的功能。上一篇文章中，我们提到了AOP（面向切片编程）以及AOP的一种实现方法——Java Dynamic Proxy。需要注意的是，Java动态代理是面向接口的，即被代理的类必须实现某个接口， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -64,6 +64,178 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/04/05/cglib-dynamic-proxy-mode/">CGLib动态代理模式</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-04-05T17:30:52+08:00" pubdate data-updated="true">Apr 5<span>th</span>, 2011</time>
+        
+           | <a href="/blog/2011/04/05/cglib-dynamic-proxy-mode/#disqus_thread"
+             data-disqus-identifier="http://quxiao.github.io/blog/2011/04/05/cglib-dynamic-proxy-mode/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>CGLib，即code generation library，原理是通过动态生成类以实现代理的功能。<a href="http://www.qxavier.me/2011/04/03/aop-and-dynamic-proxy-mode/">上一篇</a>文章中，我们提到了AOP（面向切片编程）以及AOP的一种实现方法——Java Dynamic Proxy。需要注意的是，Java动态代理是面向接口的，即被代理的类必须实现某个接口，代理类以该接口的形式出现，而使用CGLib，则没有这方面的限制，任意一个类都是可以的。</p>
+
+<p>简单的说，使用CGLib代理某个类，需要在Enhancer对象中设置好基类（也就是被代理类），以及一系列回调函数Callback。Callback是一个接口，CGLib提供了6个它的子接口：</p>
+
+<p><strong>Callback子接口</strong></p>
+
+<p><strong>用途（有待确认）</strong></p>
+
+<p><a href="http://cglib.sourceforge.net/apidocs/net/sf/cglib/proxy/Dispatcher.html">Dispatcher</a></p>
+
+<p>分发给其他Callback</p>
+
+<p><a href="http://cglib.sourceforge.net/apidocs/net/sf/cglib/proxy/FixedValue.html">FixedValue</a></p>
+
+<p>仅仅返回被代理类方法的返回值，对于限定某一些特定方法很有用（因为返回值必须和被代理类方法的返回值类型相匹配）</p>
+
+<p><a href="http://cglib.sourceforge.net/apidocs/net/sf/cglib/proxy/InvocationHandler.html">InvocationHandler</a></p>
+
+<p>主要用于Proxy（替代Java动态代理），也可以用户Enhancer</p>
+
+<p><a href="http://cglib.sourceforge.net/apidocs/net/sf/cglib/proxy/LazyLoader.html">LazyLoader</a></p>
+
+<p>与Dispatcher类似，当代理类的第一个lazily-load方法调用时才会被调用</p>
+
+<p><a href="http://cglib.sourceforge.net/apidocs/net/sf/cglib/proxy/MethodInterceptor.html">MethodInterceptor</a></p>
+
+<p>普通用途的回调方法，在处理逻辑（advice）前后进行处理</p>
+
+<p><a href="http://cglib.sourceforge.net/apidocs/net/sf/cglib/proxy/NoOp.html">NoOp</a></p>
+
+<p>直接调用基类（被代理类）的方法调用</p>
+
+<p>好，那我们来假设一个场景吧。</p>
+
+<p>有这样一个类RealObject，它可以查询、保存资源，比如是这样：</p>
+
+<pre><code>public class RealObject {
+    public void queryA ()
+    {
+        System.out.println("queryA");
+    }
+    public void queryB ()
+    {
+        System.out.println("queryB");
+    }
+    public void saveA ()
+    {
+        System.out.println("saveA");
+    }
+    public void saveB ()
+    {
+        System.out.println("saveB");
+    }
+}
+</code></pre>
+
+<p>我们有这样的需求：保存资源时，需要加入事务功能。那么可以实现自己的MethodInterceptor，实现其中的intercept方法：</p>
+
+<pre><code>public class MyMethodInterceptor implements MethodInterceptor {
+
+    @Override
+    public Object intercept(Object obj, Method method, Object[] args,
+            MethodProxy proxy) throws Throwable {
+        // TODO Auto-generated method stub
+        System.out.println(obj.getClass());
+        //模拟事务功能
+        if ( method.getName().startsWith("save") )
+        {
+            System.out.println("begin transaction");
+        }
+        Object result = proxy.invokeSuper(obj, args);
+        if ( method.getName().startsWith("save") )
+        {
+            System.out.println("end transaction");
+        }
+        System.out.println("************************\n");
+        return result;
+    }
+}
+</code></pre>
+
+<p>再来写主入口：</p>
+
+<pre><code>public class Main {
+
+    /**
+     * @param args
+     */
+    public static void main(String[] args) {
+        // TODO Auto-generated method stub
+        Enhancer enhancer = new Enhancer();
+        //将需要代理的类作为基类
+        enhancer.setSuperclass(RealObject.class);
+        //设置回调功能，这里使用的是拦截器，
+        //当被代理类调用方法时，会执行拦截器的intercept方法
+        enhancer.setCallback(new MyMethodInterceptor());
+        RealObject realObj = (RealObject) enhancer.create();
+        consume(realObj);
+    }
+
+    private static void consume(RealObject realObj)
+    {
+        realObj.queryA();
+        realObj.queryB();
+        realObj.saveA();
+        realObj.saveB();
+    }
+}
+</code></pre>
+
+<p>运行一下，看看效果吧！</p>
+
+<pre><code>class org.quxiao.RealObject$$EnhancerByCGLIB$$91eddf0b
+queryA
+************************
+
+class org.quxiao.RealObject$$EnhancerByCGLIB$$91eddf0b
+queryB
+************************
+
+class org.quxiao.RealObject$$EnhancerByCGLIB$$91eddf0b
+begin transaction
+saveA
+end transaction
+************************
+
+class org.quxiao.RealObject$$EnhancerByCGLIB$$91eddf0b
+begin transaction
+saveB
+end transaction
+************************
+</code></pre>
+
+<p>我们可以看到，CGLib动态生成了一个叫RealObject$$EnhancerByCGLIB$$91eddf0b的类，这个类就是RealObject的代理类。以后有时间来反编译一下，研究研究CGLib动态生成类的原理。</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1444,220 +1616,6 @@ error!</p></blockquote>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2011/02/24/linux-api-practice-the-process-of-resource-constraints/">Linux API 实践：限制进程资源</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-02-24T22:38:51+08:00" pubdate data-updated="true">Feb 24<span>th</span>, 2011</time>
-        
-           | <a href="/blog/2011/02/24/linux-api-practice-the-process-of-resource-constraints/#disqus_thread"
-             data-disqus-identifier="http://quxiao.github.io/blog/2011/02/24/linux-api-practice-the-process-of-resource-constraints/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><a href="http://www.qxavier.me/2011/02/18/linux-api-practice-access-to-the-process-of-resource-constraints/">上一篇</a>文章，讲到了如何用getrlimit获取进程资源上限。既然能getrlimit，那当然我们也可以setrlimit，对进程的资源进行限制。我们就以进程的CPU时间和占用的内存为例，讲述如何限制进程相应的资源以及当资源上限超过时，是如何捕捉的。</p>
-
-<p>一个对子进程的资源（时间和内存）进行限制的程序：</p>
-
-<pre><code>#include &lt;stdio.h&gt;
-#include &lt;stdlib.h&gt;
-#include &lt;ctype.h&gt;
-#include &lt;unistd.h&gt;
-#include &lt;sys/wait.h&gt;
-#include &lt;sys/resource.h&gt;
-#include &lt;sys/types.h&gt;
-#include &lt;sys/stat.h&gt;
-#include &lt;errno.h&gt;
-#include &lt;fcntl.h&gt;
-#include &lt;signal.h&gt;
-
-#define SYSTEM_ERROR        10
-
-#define MIN_TIME_LIMIT 1
-#define MAX_TIME_LIMIT 100
-#define MIN_MEM_LIMIT 4
-#define MAX_MEM_LIMIT 1024
-
-struct rlimit tLimit, mLimit;
-
-int main (int argc, char** argv)
-{
-    int timeLimit, memLimit, ret;
-    pid_t pid;
-    int s;
-    struct rusage rUsage;
-    double passTime;
-    char** childCmd;
-
-    if ( argc &lt; 4 )
-    {
-        printf("argument number error!\n");
-        printf("usage: timeLimt(%d~%ds) memoryLimit(%d~%dMb) commandLine\n",
-                MIN_TIME_LIMIT, MAX_TIME_LIMIT, MIN_MEM_LIMIT, MAX_MEM_LIMIT);
-        return SYSTEM_ERROR;
-    }
-    //获取时间限制和内存限制
-    if ( isdigit(argv[1][0]) )
-        timeLimit = atoi(argv[1]);
-    if ( isdigit(argv[2][0]) )
-        memLimit = atoi(argv[2]);
-    if ( timeLimit &lt; MIN_TIME_LIMIT || timeLimit &gt; MAX_TIME_LIMIT )
-    {
-        printf("time limit argument error!(%d~%ds)\n", MIN_TIME_LIMIT, MAX_TIME_LIMIT);
-        return SYSTEM_ERROR;
-    }
-    if ( memLimit &lt; MIN_MEM_LIMIT || memLimit &gt; MAX_MEM_LIMIT )
-    {
-        printf("memory limit argument error!(%d~%dMb)\n", MIN_MEM_LIMIT, MAX_MEM_LIMIT);
-        return SYSTEM_ERROR;
-    }
-    memLimit = memLimit * 1024 * 1024;
-
-    if ( (pid=fork()) &lt; 0 )
-    {
-        printf("fork error!\n");
-        return SYSTEM_ERROR;
-    }
-    else if ( pid == 0 )        /*child process*/
-    {
-        getrlimit(RLIMIT_CPU, &amp;tLimit);
-        getrlimit(RLIMIT_AS, &amp;mLimit);
-
-        tLimit.rlim_cur = timeLimit;
-        mLimit.rlim_cur = memLimit;
-
-        if ( setrlimit(RLIMIT_CPU, &amp;tLimit) == -1 )     /*设置时间限制*/
-            printf("setrlimit time limit error!\n");
-        if ( setrlimit(RLIMIT_AS, &amp;mLimit) == -1 )      /*设置内存限制*/
-            printf("setrlimit memory limit error!\n");
-
-        childCmd = argv + 3;
-        execvp(childCmd[0], childCmd);
-    }
-    else
-    {
-        waitpid(pid, &amp;s, 0);        //等待子进程结束，并获取信号
-        printf("================parent process=====================\n");
-        printf("child exit status: %d\n", s);
-        if ( WIFEXITED(s) )
-            printf("exit normally.\n");
-        else
-            printf("exit abnormally.\n");
-        if ( WIFSIGNALED(s) )
-            printf("exit by signal: %d | %d\n", s, WTERMSIG(s));
-        printf("parent process is finished.\n");
-        getrusage(RUSAGE_CHILDREN, &amp;rUsage);
-        passTime = (rUsage.ru_utime.tv_sec + rUsage.ru_stime.tv_sec) * 1000 + (float)(rUsage.ru_stime.tv_usec + rUsage.ru_utime.tv_usec) / 1000;
-        printf("child process time: %d ms\n", (int)passTime);
-        printf("===================================================\n\n");
-        return 0;
-    }
-}
-</code></pre>
-
-<p>好了，下面我们写几个测试程序。</p>
-
-<p>第一个，写个占用CPU时间很长的程序：</p>
-
-<pre><code>#include &lt;stdio.h&gt;
-#include &lt;unistd.h&gt;
-
-const int MAX = 50000;
-
-int main ()
-{
-    int i, j, k;
-    for (i = 0; i &lt; MAX; i ++)
-        for (j = 0; j &lt; MAX; j ++)
-            k = i * j;
-    return 0;
-}
-</code></pre>
-
-<p>测试运行结果：</p>
-
-<pre><code>&gt; quxiao@quxiao-laptop:~/learnLinux/setrlimit$ ./setrlimit_ex.o 1 64 ./run_so_long.o
-
-================parent process=====================
-
-child exit status: 24
-
-exit abnormally.
-
-exit by signal: 24 | 24
-
-parent process is finished.
-
-child process time: 1000 ms
-
-===================================================
-</code></pre>
-
-<p>信号24是<strong>SIGXCPU</strong>信号，表示超出CPU时间上限（我们的程序中为1s）。</p>
-
-<p>好，再写个申请过多内存空间的程序：</p>
-
-<pre><code>#define MAX 10000
-
-int arr[MAX][MAX];
-
-int main ()
-{
-    return 0;
-}
-</code></pre>
-
-<p>测试运行结果：</p>
-
-<pre><code>&gt; quxiao@quxiao-laptop:~/learnLinux/setrlimit$ ./setrlimit_ex.o 1 64 ./so_long_array.o
-
-================parent process=====================
-
-child exit status: 9
-
-exit abnormally.
-
-exit by signal: 9 | 9
-
-parent process is finished.
-
-child process time: 0 ms
-
-===================================================
-</code></pre>
-
-<p>信号9表示<strong>SIGKILL</strong>，申请过多内存空间时会产生该信号。（还有哪些情况会产生这个信号？）</p>
-
-<p>这样，我们就可以对进程的行为进行限制，并测量进程的各项资源了。（这也是我们的OJ所需要的 :) ）</p>
-
-<p>具体所有信号所表示的含义，可以查看<a href="http://linux.die.net/man/7/signal">这里</a>。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/7/">&larr; Older</a>
@@ -1675,6 +1633,10 @@ child process time: 0 ms
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/03/24/branch-in-my-eye/">公司设立分部弊端之我见</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/03/18/log-practice/">日志规范实践</a>
       </li>
     
@@ -1688,10 +1650,6 @@ child process time: 0 ms
     
       <li class="post">
         <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
       </li>
     
   </ul>

@@ -4,7 +4,7 @@
   <title><![CDATA[Xavier's Blog]]></title>
   <link href="http://quxiao.github.io/atom.xml" rel="self"/>
   <link href="http://quxiao.github.io/"/>
-  <updated>2014-03-19T09:42:50+08:00</updated>
+  <updated>2014-03-24T20:18:38+08:00</updated>
   <id>http://quxiao.github.io/</id>
   <author>
     <name><![CDATA[Xavier]]></name>
@@ -12,6 +12,33 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[公司设立分部弊端之我见]]></title>
+    <link href="http://quxiao.github.io/blog/2014/03/24/branch-in-my-eye/"/>
+    <updated>2014-03-24T20:16:08+08:00</updated>
+    <id>http://quxiao.github.io/blog/2014/03/24/branch-in-my-eye</id>
+    <content type="html"><![CDATA[<p>入职已经快两年了，因为当时考虑到离家近，就没有去北京的总部，而是选了上海的分部研发中心。但是心想，“多好啊，研发中心里面大多数都是搞技术的，我们技术人员之间沟通肯定很顺畅，也能学到不少东西”。现实情况和我想得其实差不多，不过还多了些我当初没有想到的地方。</p>
+
+<h2>老大们都在总部</h2>
+
+<p>虽然团队的项目经理或者技术经历基本上都在上海，但是，总监级别的老大却几乎都在北京的总部，有些上层的消息，上海分部就比较迟才能接收到。正式由于这种消息的滞后性，以及来上层管理人员的沟通不畅，<strong> 分部在资源分配上面就略显吃亏了。</strong></p>
+
+<h2>人员结构单一</h2>
+
+<p>我入职前总以为，作为分部，按道理是按项目来分的。比如一部分项目划给总部的团队、另一部分划给分部的团队。但事实是：<strong>项目的开发人员放在分部，而其它人员全在总部。</strong> 我就见过一两个团队的全部人员都是在分部的，其余都是我前面说的那种情况。</p>
+
+<p>这种的人员的划分方式，就直接导致一个问题：同一个团队的总部人员和分部人员的不团结。我一开始待的团队，是这样划分的：老大、产品经理、UE、FE都在总部，后端RD在分部。我们对于需求的沟通，基本上都是电话会议的形式。虽然在一个团队，但是毕竟在两个地方工作，彼此都没有见过，互相不熟悉，大家只是共事，而不算是朋友。每当有一些争论的时候，大家心里都是下意识的怀疑是不是对方想少干一些活儿，把东西都推给我来做。因此很容易有矛盾。本来如果面对面也就10分钟能沟通好的事情，相隔两地就是无法打成一致。</p>
+
+<h2>核心技术在总部</h2>
+
+<p>一般来说，掌握核心技术的团队都会在总部，分部一般都是由于业务需要而逐渐扩展出来的。到了大公司，渐渐明白，<strong> 大公司的项目组之间的差异实在是太大了！就好像不同公司之间的差距一样 </strong>。在一个比较核心的团队里面，无论是技术、资源、还是经验，都比其它团队要成熟、规范的多，对于自身的成长，是极其有益的。万一你进了一个不是那么受重视的团队的话，各种没技术含量的重复劳动、或者是为了争取一些资源的各种扯皮，还是会很多的。</p>
+
+<p>我之前和同事聊到这个话题，总会拿星际争霸来打比方：分基地嘛，主要的任务就是采矿，给主基地提供资源，能搞点兵营、炮台守住就可以了，主要的高端兵种都是总基地先造出来了，就算分基地有高级兵种，也会出的比较慢。</p>
+
+<p>&mdash;EOF&mdash;</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[日志规范实践]]></title>
@@ -2773,113 +2800,6 @@ Client会事先获取一个关于key的64位cas值，更新时，只有当server
 <p>参考资料：</p>
 
 <p><a href="http://vimdoc.sourceforge.net/htmldoc/quickref.html#option-list">http://vimdoc.sourceforge.net/htmldoc/quickref.html#option-list</a></p>
-
-<p>&mdash;EOF&mdash;</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[C++虚函数的实现]]></title>
-    <link href="http://quxiao.github.io/blog/2012/11/01/virtual-function-implement-in-cpp/"/>
-    <updated>2012-11-01T22:47:02+08:00</updated>
-    <id>http://quxiao.github.io/blog/2012/11/01/virtual-function-implement-in-cpp</id>
-    <content type="html"><![CDATA[<p>前段时间公司进行校招，大家那段时间也顺带看看一些面试题目。其中一道经典的题目就是C++中的虚函数是如何实现的？要是直接问我，我还真不记得了。（现在让我再去面试，肯定完蛋）</p>
-
-<p>所谓虚函数，就是函数声明前使用virtual关键字，作用是当基类指针指向子类对象时，通过基类指针调用虚函数，运行的就是实际子类的对应函数，而不是基类的。这种特性在像Java这种“纯”面向对象的语言中，是默认实现的，在C++中就要进行显示声明。如果不显示声明的话，运行的就会是基类的函数。</p>
-
-<p>C++中的虚函数是通过虚表（virtual table）实现的。声明类时，编译器会放一个隐藏的指针，这个指针放在了类的最开始位置，并且指向的就是虚表，虚表里面存放着这个类声明的各个虚函数的地址。假设如果有基类Base：</p>
-
-<pre><code>class Base {
-    virtual void f1();
-    virtual void f2();
-}
-</code></pre>
-
-<p>那么Base类的虚表的结构就是：</p>
-
-<pre><code>Base
-    __vptr    --&gt;    Base::f1(), Base::f2()
-    .....（其他成员）
-</code></pre>
-
-<p>假设还有类D：</p>
-
-<pre><code>class D: public Base {
-    virtual void f1();
-}
-</code></pre>
-
-<p>那么D的虚表就是下面这个样子的：</p>
-
-<pre><code>D
-    __vptr    --&gt;    D::f1(), Base::f2()
-    .....
-</code></pre>
-
-<p>这样的话，当Base类的指针p_base= D()并且p_base->f1()的时候，调用的就是D的f1()了。注意，因为Base和D的虚表的结构一致，所以才能保证调用了正确的函数。</p>
-
-<p>那么，如果是多重继承，即有多个基类时，结果如何呢？C++中，一个类的每一个基类，都有一个单独的虚表与之对应。假设类结构如下：</p>
-
-<pre><code>class B1 {
-    virtual void f1();
-    virtual void f3();
-}
-
-class B2 {
-    virtual void f2();
-    virtual void f3();
-}
-
-class D: public B1, public B2 {
-    virtual void f1();
-    virtual void f2();
-}
-</code></pre>
-
-<p>那么D类的虚表结构就是：</p>
-
-<pre><code>D
-    __vptr  --&gt; D::f1(), B1::f3()
-            --&gt; D::f2(), B2::f3()
-    .....
-</code></pre>
-
-<p>还有种情况，那就是在多重继承的情况下，子类声明了不属于任何父类的虚函数。例如：</p>
-
-<pre><code>class B1 {
-    virtual void f1();
-    virtual void f3();
-}
-
-class B2 {
-    virtual void f2();
-    virtual void f3();
-}
-
-class D: public B1, public B2 {
-    virtual void f1();
-    virtual void f2();
-    virtual void f4();
-}
-</code></pre>
-
-<p>子类声明的不属于任何父类的虚函数地址就会继续向第一个虚表的结尾放。</p>
-
-<pre><code>D
-    __vptr  --&gt; D::f1(), B1::f3(), D::f4()
-            --&gt; D::f2(), B2::f3()
-    .....
-</code></pre>
-
-<p>这样的话，不管你用什么类的声明，声明类的虚表结构和实际类的就会是一致的（准确的说应该是父类虚表的结构一定是子类对应的虚表的前缀），这样就实现了基类指针调用子类函数的功能。</p>
-
-<p>参考文章：</p>
-
-<p><a href="http://blog.csdn.net/haoel/article/details/1948051">C++ 虚函数表解析</a></p>
-
-<p><a href="http://www.learncpp.com/cpp-tutorial/125-the-virtual-table/">The virtual table</a></p>
-
-<p><a href="http://coldattic.info/shvedsky/s/blogs/a-foo-walks-into-a-bar/posts/3">Busting C++ myths: virtual function calls are slow</a></p>
 
 <p>&mdash;EOF&mdash;</p>
 ]]></content>

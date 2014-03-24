@@ -9,7 +9,7 @@
   <meta name="author" content="Xavier">
 
   
-  <meta name="description" content="题目大意：有n（&lt;=10）个整数a1, a2, …, an（&lt;=256），问是否存在无法用a1～an的线性表达式（k1a1 + k2a2 + … + knan）组成的数，如果有，其中最大的数是多少？（这个数的上限为2,000,000,000！） 思路：本想可以用简单的DP来实现， &hellip;">
+  <meta name="description" content="题目大意： 给你N(1 &lt;= N &lt;= 50)段长度不一的木材，另外有R(1 &lt;= R &lt;= 1023)条栏杆需要修复，1 &lt;= ri &lt;= 128。问以这些木材为原材料，能够做出最多多少块栏杆？（做出的栏杆需要是完整的，不能拼接） 思路： 这是一道背包问题， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -64,6 +64,147 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/07/01/usaco-section-4-1-fence-rails/">USACO Section 4.1 Fence Rails</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-07-01T14:01:32+08:00" pubdate data-updated="true">Jul 1<span>st</span>, 2011</time>
+        
+           | <a href="/blog/2011/07/01/usaco-section-4-1-fence-rails/#disqus_thread"
+             data-disqus-identifier="http://quxiao.github.io/blog/2011/07/01/usaco-section-4-1-fence-rails/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>题目大意：</p>
+
+<p>给你N(1 &lt;= N &lt;= 50)段长度不一的木材，另外有R(1 &lt;= R &lt;= 1023)条栏杆需要修复，1 &lt;= ri &lt;= 128。问以这些木材为原材料，能够做出最多多少块栏杆？（做出的栏杆需要是完整的，不能拼接）</p>
+
+<p>思路：</p>
+
+<p>这是一道背包问题，不过，这是高维背包。是把R个栏杆放入N段木材中，传统背包的DP解法在这里貌似就无能为力了，看了hint才知道，原来要用到DFSID算法，也就是限制搜索深度的DFS。是一种类似BFS的求解过程，但是却用DFS来实现的算法。简单的说，每次枚举搜索深度，进行DFS，如果未得到解，则继续增加（减少）搜索深度，直至找到解。</p>
+
+<p>搜索的过程中，有一些重要的减枝：</p>
+
+<ol>
+<li><p> <strong>如果可以组成k块栏杆，那么最小的前k块栏杆一定是其中的一个解。</strong>因为就算存在不连续的解，我们也可以将较大的栏杆替换成较小的栏杆，最终转化为最小的k块栏杆。</p></li>
+<li><p> 根据R和ri ，可以看出栏杆的长度有很多都是<strong>重复</strong>的。将木材和栏杆排序，搜索时记录下当前的栏杆是选择哪块木材。搜索到当前栏杆i时，如果发现与上一个栏杆i+1的长度相同，则我们可以从i+1块栏杆所选择的那块木材开始搜。</p></li>
+<li><p> 假设前k块栏杆是题目的解，那么在这种情况下最大浪费掉的木材maxWaste就是sumBoard – sumRail[k]。在搜索过程中，如果发现某块木材的剩余量比最小的栏杆都小，就可以把他计入curWaste，如果发现curWaste > maxWaste，那么肯定无解。</p></li>
+<li><p> 我们还可以将R的范围减小，如果发现sumRail[k] &lt;= sumBoard并且sumRail[k+1] > sumBoard，那么我们可以将R减小到k。</p></li>
+</ol>
+
+
+<p>嗯，差不多就是这些。还有一个减枝，就是如果发现栏杆长度比最大的木材还要长的话，那在输入的时候就略去它（貌似减枝效果不明显-_-）。我们从（经过优化过的）R开始搜索，假设前k个栏杆就是解，对于每个栏杆，枚举木材，基本上就是这么个思路。做完这题的最大感受就是：要善于挖掘题目中的潜在信息。根据R和ri的关系，得知栏杆有许多重复的情况，以及如何推导出如果k为解，则前k个栏杆肯定能构成解，这就是真正的分析问题的能力了！</p>
+
+<p>以下是关键代码：</p>
+
+<pre><code>bool Search (int rIndex)
+{
+    if ( rIndex &lt; 0 )
+        return true;
+    int bound = 0;
+    //如果当前rail和上一个rail的长度相同，则从上一个rail选的board开始搜索
+    if ( rIndex &lt; r - 1 &amp;&amp; rail[rIndex] == rail[rIndex+1] )
+        bound = railSelect[rIndex+1];
+    int i;
+    bool ret = false;
+
+    for (i = bound; i &lt; n; i ++)
+    {
+        if ( board[i] &gt;= rail[rIndex] )
+        {
+            board[i] -= rail[rIndex];
+            railSelect[rIndex] = i;
+            if ( board[i] &lt; rail[0] )
+            {
+                curWaste += board[i];
+                //如果当前浪费的board大于最大允许的浪费量，则不选这个board
+                if ( curWaste &gt; maxWaste )
+                {
+                    curWaste -= board[i];
+                    board[i] += rail[rIndex];
+                    railSelect[i] = -1;
+                    continue;
+                }
+            }
+            ret = Search(rIndex - 1);
+            //恢复之前状态，顺序很重要！
+            if ( board[i] &lt; rail[0] )
+                curWaste -= board[i];
+            board[i] += rail[rIndex];
+            railSelect[rIndex] = -1;
+            if ( ret )
+                return true;
+        }
+    }
+
+    return false;
+}
+
+void Solve ()
+{
+    int i;
+    memset(railSelect, -1, sizeof(railSelect));
+    sort(rail, rail + r);
+    sort(board, board + n);
+
+    boardSum = 0;
+    for (i = 0; i &lt; n; i ++)
+        boardSum += board[i];
+    //找到可以优化的R
+    //用一个int表示前k个rail之和
+    railSum = 0;
+    for (i = 0; i &lt; r; i ++)
+    {
+        railSum += rail[i];
+        if ( railSum &gt; boardSum )
+        {
+            railSum -= rail[i];
+            break;
+        }
+    }
+
+    -- i;
+    for (; i &gt;= 0; i --)
+    {
+        curWaste = 0;
+        maxWaste = boardSum - railSum;
+        if ( Search(i) )
+        {
+            printf("%d\n", i+1);
+            return;
+        }
+        railSum -= rail[i];
+    }
+    printf("0\n");
+}
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -951,178 +1092,6 @@ myPhone cost : 400</p></blockquote>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2011/04/05/cglib-dynamic-proxy-mode/">CGLib动态代理模式</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-04-05T17:30:52+08:00" pubdate data-updated="true">Apr 5<span>th</span>, 2011</time>
-        
-           | <a href="/blog/2011/04/05/cglib-dynamic-proxy-mode/#disqus_thread"
-             data-disqus-identifier="http://quxiao.github.io/blog/2011/04/05/cglib-dynamic-proxy-mode/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>CGLib，即code generation library，原理是通过动态生成类以实现代理的功能。<a href="http://www.qxavier.me/2011/04/03/aop-and-dynamic-proxy-mode/">上一篇</a>文章中，我们提到了AOP（面向切片编程）以及AOP的一种实现方法——Java Dynamic Proxy。需要注意的是，Java动态代理是面向接口的，即被代理的类必须实现某个接口，代理类以该接口的形式出现，而使用CGLib，则没有这方面的限制，任意一个类都是可以的。</p>
-
-<p>简单的说，使用CGLib代理某个类，需要在Enhancer对象中设置好基类（也就是被代理类），以及一系列回调函数Callback。Callback是一个接口，CGLib提供了6个它的子接口：</p>
-
-<p><strong>Callback子接口</strong></p>
-
-<p><strong>用途（有待确认）</strong></p>
-
-<p><a href="http://cglib.sourceforge.net/apidocs/net/sf/cglib/proxy/Dispatcher.html">Dispatcher</a></p>
-
-<p>分发给其他Callback</p>
-
-<p><a href="http://cglib.sourceforge.net/apidocs/net/sf/cglib/proxy/FixedValue.html">FixedValue</a></p>
-
-<p>仅仅返回被代理类方法的返回值，对于限定某一些特定方法很有用（因为返回值必须和被代理类方法的返回值类型相匹配）</p>
-
-<p><a href="http://cglib.sourceforge.net/apidocs/net/sf/cglib/proxy/InvocationHandler.html">InvocationHandler</a></p>
-
-<p>主要用于Proxy（替代Java动态代理），也可以用户Enhancer</p>
-
-<p><a href="http://cglib.sourceforge.net/apidocs/net/sf/cglib/proxy/LazyLoader.html">LazyLoader</a></p>
-
-<p>与Dispatcher类似，当代理类的第一个lazily-load方法调用时才会被调用</p>
-
-<p><a href="http://cglib.sourceforge.net/apidocs/net/sf/cglib/proxy/MethodInterceptor.html">MethodInterceptor</a></p>
-
-<p>普通用途的回调方法，在处理逻辑（advice）前后进行处理</p>
-
-<p><a href="http://cglib.sourceforge.net/apidocs/net/sf/cglib/proxy/NoOp.html">NoOp</a></p>
-
-<p>直接调用基类（被代理类）的方法调用</p>
-
-<p>好，那我们来假设一个场景吧。</p>
-
-<p>有这样一个类RealObject，它可以查询、保存资源，比如是这样：</p>
-
-<pre><code>public class RealObject {
-    public void queryA ()
-    {
-        System.out.println("queryA");
-    }
-    public void queryB ()
-    {
-        System.out.println("queryB");
-    }
-    public void saveA ()
-    {
-        System.out.println("saveA");
-    }
-    public void saveB ()
-    {
-        System.out.println("saveB");
-    }
-}
-</code></pre>
-
-<p>我们有这样的需求：保存资源时，需要加入事务功能。那么可以实现自己的MethodInterceptor，实现其中的intercept方法：</p>
-
-<pre><code>public class MyMethodInterceptor implements MethodInterceptor {
-
-    @Override
-    public Object intercept(Object obj, Method method, Object[] args,
-            MethodProxy proxy) throws Throwable {
-        // TODO Auto-generated method stub
-        System.out.println(obj.getClass());
-        //模拟事务功能
-        if ( method.getName().startsWith("save") )
-        {
-            System.out.println("begin transaction");
-        }
-        Object result = proxy.invokeSuper(obj, args);
-        if ( method.getName().startsWith("save") )
-        {
-            System.out.println("end transaction");
-        }
-        System.out.println("************************\n");
-        return result;
-    }
-}
-</code></pre>
-
-<p>再来写主入口：</p>
-
-<pre><code>public class Main {
-
-    /**
-     * @param args
-     */
-    public static void main(String[] args) {
-        // TODO Auto-generated method stub
-        Enhancer enhancer = new Enhancer();
-        //将需要代理的类作为基类
-        enhancer.setSuperclass(RealObject.class);
-        //设置回调功能，这里使用的是拦截器，
-        //当被代理类调用方法时，会执行拦截器的intercept方法
-        enhancer.setCallback(new MyMethodInterceptor());
-        RealObject realObj = (RealObject) enhancer.create();
-        consume(realObj);
-    }
-
-    private static void consume(RealObject realObj)
-    {
-        realObj.queryA();
-        realObj.queryB();
-        realObj.saveA();
-        realObj.saveB();
-    }
-}
-</code></pre>
-
-<p>运行一下，看看效果吧！</p>
-
-<pre><code>class org.quxiao.RealObject$$EnhancerByCGLIB$$91eddf0b
-queryA
-************************
-
-class org.quxiao.RealObject$$EnhancerByCGLIB$$91eddf0b
-queryB
-************************
-
-class org.quxiao.RealObject$$EnhancerByCGLIB$$91eddf0b
-begin transaction
-saveA
-end transaction
-************************
-
-class org.quxiao.RealObject$$EnhancerByCGLIB$$91eddf0b
-begin transaction
-saveB
-end transaction
-************************
-</code></pre>
-
-<p>我们可以看到，CGLib动态生成了一个叫RealObject$$EnhancerByCGLIB$$91eddf0b的类，这个类就是RealObject的代理类。以后有时间来反编译一下，研究研究CGLib动态生成类的原理。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/6/">&larr; Older</a>
@@ -1140,6 +1109,10 @@ end transaction
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/03/24/branch-in-my-eye/">公司设立分部弊端之我见</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/03/18/log-practice/">日志规范实践</a>
       </li>
     
@@ -1153,10 +1126,6 @@ end transaction
     
       <li class="post">
         <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/01/01/from_2013_to_2014/">从2013到2014</a>
       </li>
     
   </ul>
