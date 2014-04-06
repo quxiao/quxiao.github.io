@@ -4,7 +4,7 @@
   <title><![CDATA[Xavier's Blog]]></title>
   <link href="http://quxiao.github.io/atom.xml" rel="self"/>
   <link href="http://quxiao.github.io/"/>
-  <updated>2014-04-06T21:50:27+08:00</updated>
+  <updated>2014-04-06T22:01:55+08:00</updated>
   <id>http://quxiao.github.io/</id>
   <author>
     <name><![CDATA[Xavier]]></name>
@@ -14,7 +14,7 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Functor (Function Object)]]></title>
+    <title type="html"><![CDATA[仿函数——Functor]]></title>
     <link href="http://quxiao.github.io/blog/2014/04/05/functor/"/>
     <updated>2014-04-05T22:59:13+08:00</updated>
     <id>http://quxiao.github.io/blog/2014/04/05/functor</id>
