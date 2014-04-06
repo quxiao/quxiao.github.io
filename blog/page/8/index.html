@@ -9,7 +9,7 @@
   <meta name="author" content="Xavier">
 
   
-  <meta name="description" content="一棵树，每个节点有0或2个孩子，共N个节点，高度为K，问可以组成多少种不同的结构？ 假设，当前树的节点问n，高度为k，那么子树可分为3种情况： 左子树高度为k-1，右子树高度为1～k-2 右子树高度为k-1，左子树高度为1～k-2 左右子树均为k-1 并且，满足题目要求的树的节点与高度有这样的关系 &hellip;">
+  <meta name="description" content="明明是一道难度不大的题，我却做了N天才做出来，惭愧惭愧！看到题的第一想法就是如果A控制了B，就把B所占有的股份传给A以及A的母公司，并且这样递归下去。可自己编程会发生股份重复计算的情况，解决方法是当将B的股份更新到A上时（通过母公司的关系找到A），如果之前A已经直接或间接控制了B， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -64,6 +64,58 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/01/22/usaco-section-2-3-controlling-companies/">USACO Section 2.3 Controlling Companies</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-01-22T16:22:28+08:00" pubdate data-updated="true">Jan 22<span>nd</span>, 2011</time>
+        
+           | <a href="/blog/2011/01/22/usaco-section-2-3-controlling-companies/#disqus_thread"
+             data-disqus-identifier="http://quxiao.github.io/blog/2011/01/22/usaco-section-2-3-controlling-companies/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>明明是一道难度不大的题，我却做了N天才做出来，惭愧惭愧！看到题的第一想法就是如果A控制了B，就把B所占有的股份传给A以及A的母公司，并且这样递归下去。可自己编程会发生股份重复计算的情况，解决方法是当将B的股份更新到A上时（通过母公司的关系找到A），如果之前A已经直接或间接控制了B，那么如果再加就算是重复计算了。但在判断A是否直接或间接控制B时，又要判断是否有环。</p>
+
+<p>后来在网上找到了一种解法：当发现A控制B时，将B的股份传给A，如果发现增加股份之后，A中的股份[A][i] > 50 并且A还没有控制i，则将(A, i)加入队列。一直循环操作，直至队列为空为止。</p>
+
+<p>官方的解题报告中，其实就是我一开始想的递归的方法，他在更新（A, B）时：</p>
+
+<ol>
+<li><p> 如果A已经控制B，退出</p></li>
+<li><p> 若没有，control[A][B] = 1</p></li>
+<li><p> 将B的股份传给A</p></li>
+<li><p> 枚举已控制了A的i，递归更新（i, B）</p></li>
+<li><p> 枚举A的股份[A][k]，如果大于50，递归更新（A, k）</p></li>
+</ol>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -869,47 +921,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2010/10/17/usaco/">USACO</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2010-10-17T23:05:33+08:00" pubdate data-updated="true">Oct 17<span>th</span>, 2010</time>
-        
-           | <a href="/blog/2010/10/17/usaco/#disqus_thread"
-             data-disqus-identifier="http://quxiao.github.io/blog/2010/10/17/usaco/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>USACO，是美国计算机奥林匹克的简称，跟ACM/ICPC一样，都是一项让参赛者通过算法和编程解决问题的赛事。其实，关于USACO的比赛我不是很清楚，但觉得它的训练平台<a href="http://http://train.usaco.org/usacogate">USACO TRAINING PROGRAM GATEWAY</a>真的很不错。这个平台跟许多国内外的Online Judge很像，但其优点就是，不但可以做题，还能边做边学，而且题目难度由易到难，使得整个过程循序渐进，使人感觉十分有成就感。每次提交，程序运行的结果显示的十分详细。每道题目做完之后，也会提供官方的思路和样例代码。想提高编程技巧和算法能力的朋友，可以到上面学习一番，应该会收获颇丰。</p>
-
-<p><a href="http://www.qxavier.me/wp-content/uploads/2010/10/usaco.jpg"><img src="http://www.qxavier.me/wp-content/uploads/2010/10/usaco_thumb.jpg" alt="usaco" /></a></p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/9/">&larr; Older</a>
@@ -927,6 +938,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/04/05/functor/">Functor (Function Object)</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/03/24/branch-in-my-eye/">公司设立分部弊端之我见</a>
       </li>
     
@@ -940,10 +955,6 @@
     
       <li class="post">
         <a href="/blog/2014/01/31/typelist-and-abstract-fatory/">Typelist && Abstract Fatory</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
       </li>
     
   </ul>

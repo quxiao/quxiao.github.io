@@ -9,7 +9,7 @@
   <meta name="author" content="Xavier">
 
   
-  <meta name="description" content="CGLib，即code generation library，原理是通过动态生成类以实现代理的功能。上一篇文章中，我们提到了AOP（面向切片编程）以及AOP的一种实现方法——Java Dynamic Proxy。需要注意的是，Java动态代理是面向接口的，即被代理的类必须实现某个接口， &hellip;">
+  <meta name="description" content="Decorator模式，又称装饰模式。在实际编程中，如果希望能在原有基础上动态的添加新的功能或者扩展已有功能，那么Decorator模式提供了一种很好的解决方案。Decorator模式如下图所示： &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -64,6 +64,164 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/04/08/decorator_pattern/">Decorator模式初探</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-04-08T19:03:06+08:00" pubdate data-updated="true">Apr 8<span>th</span>, 2011</time>
+        
+           | <a href="/blog/2011/04/08/decorator_pattern/#disqus_thread"
+             data-disqus-identifier="http://quxiao.github.io/blog/2011/04/08/decorator_pattern/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Decorator模式，又称装饰模式。在实际编程中，如果希望能在原有基础上动态的添加新的功能或者扩展已有功能，那么Decorator模式提供了一种很好的解决方案。Decorator模式如下图所示：</p>
+
+<p><a href="http://www.qxavier.me/wp-content/uploads/2011/04/image5.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/04/image_thumb5.png" alt="image" /></a></p>
+
+<p>具体的实现类ConcreteComponent和装饰类Decorator均实现了Component接口，装饰类含有一个Component类作为其成员。这样，当需要在ConcreteComponent基础上添加新的功能时，只需扩展Decorator形成具有某一特定功能的Decorator即可。由于不同的Decorator都是遵循Component接口，当需要扩展新功能时，在原有的Decorator上再套一层Decorator就可以啦。</p>
+
+<p>来用一个简单的例子解释一下吧。比如现在有个手机类SimplePhone，实现了Phone接口：</p>
+
+<pre><code>public interface Phone {
+    String getDescription();
+    int getCost();
+}
+
+package org.quxiao.phone;
+
+public class SimplePhone implements Phone {
+
+    @Override
+    public String getDescription() {
+        return "simple phone";
+    }
+
+    @Override
+    public int getCost() {
+        return 100;
+    }
+
+}
+</code></pre>
+
+<p>为了能动态增加功能，做一个抽象的Decorator：</p>
+
+<pre><code>public abstract class AbstractPhoneDecorator implements Phone {
+    protected Phone phone;
+
+    public AbstractPhoneDecorator(Phone phone)
+    {
+        this.phone = phone;
+    }
+}
+</code></pre>
+
+<p>现在需要给手机添加GPS模块，扩展抽象的Decorator：</p>
+
+<pre><code>public class GPSPhoneDecorator extends AbstractPhoneDecorator {
+
+    public GPSPhoneDecorator(Phone phone) {
+        super(phone);
+    }
+
+    @Override
+    public String getDescription() {
+        // TODO Auto-generated method stub
+        return phone.getDescription() + " and GPS";
+    }
+
+    @Override
+    public int getCost() {
+        // TODO Auto-generated method stub
+        return phone.getCost() + 100;
+    }
+
+}
+</code></pre>
+
+<p>同理，再添加蓝牙的模块：</p>
+
+<pre><code>public class BlueToothPhoneDecorator extends AbstractPhoneDecorator {
+
+    public BlueToothPhoneDecorator(Phone phone) {
+        super(phone);
+    }
+
+    @Override
+    public String getDescription() {
+        return phone.getDescription() + " and blue tooth";
+    }
+
+    @Override
+    public int getCost() {
+        return phone.getCost() + 200;
+    }
+
+}
+</code></pre>
+
+<p>这样，我们就可以给SimplePhone类动态的添加模块了</p>
+
+<pre><code>public class Main {
+
+    public static void main(String[] args) {
+        Phone simplePhone = new SimplePhone();
+        Phone GPSPhone = new GPSPhoneDecorator(simplePhone);
+        Phone myPhone = new GPSPhoneDecorator(new BlueToothPhoneDecorator(new SimplePhone()));
+
+        System.out.println("simplePhone description : " + simplePhone.getDescription());
+        System.out.println("simplePhone cost : " + simplePhone.getCost());
+        System.out.println("GPSPhone description : " + GPSPhone.getDescription());
+        System.out.println("GPSPhone cost : " + GPSPhone.getCost());
+        System.out.println("myPhone description : " + myPhone.getDescription());
+        System.out.println("myPhone cost : " + myPhone.getCost());
+    }
+}
+</code></pre>
+
+<blockquote><p>simplePhone description : simple phone
+simplePhone cost : 100
+GPSPhone description : simple phone and GPS
+GPSPhone cost : 200
+myPhone description : simple phone and blue tooth and GPS
+myPhone cost : 400</p></blockquote>
+
+<p>其实，Java I/O库中就是用了Decorator模式。</p>
+
+<p>在基于Stream的输入中，所有数据都抽象成InputStream类，其子类FilterInputStream就相当于InputStream的装饰类。<a href="http://download.oracle.com/javase/6/docs/api/java/io/BufferedInputStream.html">BufferedInputStream</a>, <a href="http://download.oracle.com/javase/6/docs/api/java/util/zip/CheckedInputStream.html">CheckedInputStream</a>, <a href="http://download.oracle.com/javase/6/docs/api/javax/crypto/CipherInputStream.html">CipherInputStream</a>, <a href="http://download.oracle.com/javase/6/docs/api/java/io/DataInputStream.html">DataInputStream</a>, <a href="http://download.oracle.com/javase/6/docs/api/java/util/zip/DeflaterInputStream.html">DeflaterInputStream</a>, <a href="http://download.oracle.com/javase/6/docs/api/java/security/DigestInputStream.html">DigestInputStream</a>,<a href="http://download.oracle.com/javase/6/docs/api/java/util/zip/InflaterInputStream.html">InflaterInputStream</a>, <a href="http://download.oracle.com/javase/6/docs/api/java/io/LineNumberInputStream.html">LineNumberInputStream</a>, <a href="http://download.oracle.com/javase/6/docs/api/javax/swing/ProgressMonitorInputStream.html">ProgressMonitorInputStream</a>, <a href="http://download.oracle.com/javase/6/docs/api/java/io/PushbackInputStream.html">PushbackInputStream</a>都扩展自FilterInputStream，每个都对应于一个特定的功能。比如哦BufferedInputStream具有缓存功能，DataInputStream可将读出基本（primitive）类型的数据。因此，当我们使用Java I/O库进行输入输出时，总会生成一堆的类，就像这样：</p>
+
+<pre><code>DataInputStream dis = new DataInputStream( new BufferedInputStream( new FileInputStream(FILE_LOC)));
+</code></pre>
+
+<p>之前一直不明白为什么Java的输入输出会这么麻烦，原来是因为用到了Decorator模式。现在明白了其中的原理，也觉得不那么复杂了。</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1477,145 +1635,6 @@ child process time: 0 ms</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2011/03/02/linux-api-practice-setjmp-and-longjmp/">Linux API 实践：setjmp和longjmp</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-03-02T21:09:09+08:00" pubdate data-updated="true">Mar 2<span>nd</span>, 2011</time>
-        
-           | <a href="/blog/2011/03/02/linux-api-practice-setjmp-and-longjmp/#disqus_thread"
-             data-disqus-identifier="http://quxiao.github.io/blog/2011/03/02/linux-api-practice-setjmp-and-longjmp/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>我们在平时编程的过程中，编写异常处理的代码是常有的事。但有时，我们的函数调用的比较“深”，同时又想根据较深处的函数的异常处理，使较高层次的调用函数作出相应动作。举个例子吧，main()调用a()，a()调用b()，b()调用c()，如果c()中进行异常处理，要在main()中显示错误信息。我们一般的做法应该都是根据函数返回值将底层的错误返回给调用者，以此类推，直至main()。示意代码如下：</p>
-
-<pre><code>#include &lt;stdio.h&gt;
-
-int a(int);     //-1 means error
-int b(int);     //-1 means error
-int c(int);     //-1 means error
-
-int main ()
-{
-    int i;
-    while ( scanf("%d", &amp;i) != EOF )
-    {
-        if ( a(i) == -1 )
-            printf("error!\n");
-    }
-}
-
-int a (int n)
-{
-    //blablabla
-    if ( b(n) == -1 )
-        return -1;
-}
-
-int b (int n)
-{
-    //blablabla
-    if ( c(n) == -1 )
-                return -1;
-}
-
-int c (int n)
-{
-    //blablabla
-    if ( n &lt; 0 )
-        return -1;
-}
-</code></pre>
-
-<p>可以看到，a, b, c三个函数都需返回错误信息，有时a和b本来并不需要进行异常处理，而因为c要将异常信息传给main，a和b不得不加入更多的代码。</p>
-
-<p>但是，当你知道有setjmp和longjmp这两个函数后，处理起来就会简单一些。它们可以进行跨函数的跳转，其内在的动作是直接改变程序调用栈的栈顶位置，而不用根据函数调用关系一层一层的返回。我们再来看看经过改进的代码：</p>
-
-<pre><code>#include &lt;setjmp.h&gt;
-#include &lt;stdio.h&gt;
-
-int a(int);
-int b(int);
-int c(int);
-
-jmp_buf jmpbuffer;
-
-int main ()
-{
-    int i;
-    if ( setjmp(jmpbuffer) )
-        printf("error!\n");
-    while ( scanf("%d", &amp;i) != EOF )
-    {
-        a(i);
-    }
-}
-
-int a (int n)
-{
-    //blablabla
-    b(n);
-}
-
-int b (int n)
-{
-    //blablabla
-    c(n);
-}
-
-int c (int n)
-{
-    //blablabla
-    if ( n &lt; 0 )
-        longjmp(jmpbuffer, 1);
-}
-</code></pre>
-
-<p>在完成功能的情况下，少写了一些代码，结构也清晰了一些。</p>
-
-<p>运行结果如下：</p>
-
-<blockquote><p>quxiao@quxiao-laptop:~/learnLinux/setjmp$ ./setjmp_ex.o
-0
-1
-2
-3
--1
-error!
--2
-error!
--3
-error!</p></blockquote>
-
-<p>不过，对于这种加强版的&#8221;goto&#8221;，我还是觉得应该慎用。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/7/">&larr; Older</a>
@@ -1633,6 +1652,10 @@ error!</p></blockquote>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/04/05/functor/">Functor (Function Object)</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/03/24/branch-in-my-eye/">公司设立分部弊端之我见</a>
       </li>
     
@@ -1646,10 +1669,6 @@ error!</p></blockquote>
     
       <li class="post">
         <a href="/blog/2014/01/31/typelist-and-abstract-fatory/">Typelist && Abstract Fatory</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
       </li>
     
   </ul>

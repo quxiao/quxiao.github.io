@@ -9,7 +9,7 @@
   <meta name="author" content="Xavier">
 
   
-  <meta name="description" content="题目大意： 给你N(1 &lt;= N &lt;= 50)段长度不一的木材，另外有R(1 &lt;= R &lt;= 1023)条栏杆需要修复，1 &lt;= ri &lt;= 128。问以这些木材为原材料，能够做出最多多少块栏杆？（做出的栏杆需要是完整的，不能拼接） 思路： 这是一道背包问题， &hellip;">
+  <meta name="description" content="题目大意： 有N个栏杆，告诉你它们的长度以及它们各自的连接情况，求出围成的最短的封闭空间的周长。其中，1 &lt;= N &lt;= 100，栏杆长度Ls，1 &lt;= Ls &lt;= 255，每个栏杆至多与另外8跟栏杆相连。 思路： 就是在图中找最小环。因为N（即边数）最大为100， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -64,6 +64,135 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/07/05/usaco-section-4-1-fence-loops/">USACO Section 4.1 Fence Loops</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-07-05T21:56:12+08:00" pubdate data-updated="true">Jul 5<span>th</span>, 2011</time>
+        
+           | <a href="/blog/2011/07/05/usaco-section-4-1-fence-loops/#disqus_thread"
+             data-disqus-identifier="http://quxiao.github.io/blog/2011/07/05/usaco-section-4-1-fence-loops/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>题目大意：</p>
+
+<p>有N个栏杆，告诉你它们的长度以及它们各自的连接情况，求出围成的最短的封闭空间的周长。其中，1 &lt;= N &lt;= 100，栏杆长度Ls，1 &lt;= Ls &lt;= 255，每个栏杆至多与另外8跟栏杆相连。</p>
+
+<p>思路：</p>
+
+<p>就是在图中找最小环。因为N（即边数）最大为100，即使通过枚举每个点进行搜索，复杂度也不过为100×100，可以采用搜索。枚举每个栏杆的一端顶点，如果搜索到这根栏杆的另一端顶点，那么就意味着找到环了，更新答案。</p>
+
+<p>这题思路倒很简单，但是由于输入是以边为中心的，所以实现起来稍稍有点困难。我将每个栏杆的两个顶点定义为s端和e端，如果从某栏杆a的s端出发，那么枚举与a的e端相连的栏杆b，再判断是b的哪一端连接着a，枚举b的另一端，以此类推。</p>
+
+<p>还有一些减枝和优化，比如：</p>
+
+<ol>
+<li><p> 收到<a href="http://www.qxavier.me/2011/07/01/usaco-section-4-1-fence-rails/">上一题</a>的启发，可以限定搜索深度，因为组成环的边数少，周长小的概率就比较大。</p></li>
+<li><p> 当前的长度和大于等于目前的答案，退出。</p></li>
+<li><p> 当前栏杆之前访问过，退出。</p></li>
+<li><p> 只需枚举栏杆的一端即可，因为s->e和e->s的效果是一样的。</p></li>
+</ol>
+
+
+<p>看了USACO的官方分析，貌似处理的比较复杂，先把输入转化成标准的图，再对于每一条边，先删除它，然后用Dijkstras算法求最短路。这种方案相交于我的思路，没有太多优越性，但是编码的复杂度却也高。-_&ndash;</p>
+
+<p>关键代码如下：</p>
+
+<pre><code>const int N = 101;
+
+int n;
+int len[N];
+vector&lt;int&gt; childSeg[N][2];     //[0] s end; [1] e end
+short int connect[N][N];        //connect[a][b] = 0/1 means the s/e end of a connects with seg b
+int curMax = 1&lt;&lt;20;
+int visited[N];
+
+/*
+seg为负，表示当前节点为seg的s端
+seg为正，表示当前节点为seg的e端
+*/
+void Search(int seg/*negtive s end; positive e end*/, int curLen, int destSeg, int depth)
+{
+    if ( seg == destSeg &amp;&amp; curLen != 0)
+    {
+        if ( curLen &lt; curMax )
+            curMax = curLen;
+        return;
+    }
+    if ( !depth )
+        return;
+    if ( curLen &gt;= curMax )
+        return;
+
+    int segId = abs(seg);
+    if ( visited[segId] )
+        return;
+    visited[segId] = 1;
+    int childSegId;
+    //whichEnd, segId的另一端
+    int whichEnd = 0;
+    if ( seg &lt; 0 )
+        whichEnd = 1;
+    int i;
+    for (i = 0; i &lt; childSeg[segId][whichEnd].size(); i ++)
+    {
+        childSegId = childSeg[segId][whichEnd][i];
+        //从childSegId的另一端继续搜索
+        if ( connect[childSegId][segId] == 0 )
+        {
+            Search(childSegId * -1, curLen + len[segId], destSeg, depth-1);
+        }
+        else if ( connect[childSegId][segId] == 1 )
+        {
+            Search(childSegId, curLen + len[segId], destSeg, depth-1);
+        }
+    }
+    visited[segId] = 0;
+}
+
+void Solve ()
+{
+    int i, j;
+    for (i = 3; i &lt;= n; i ++)
+    {
+        for (j = 1; j &lt;= n; j ++)
+        {
+            Search(j, 0, j, i);
+//          不需要枚举另一端，因为s-&gt;e和e-&gt;s的效果是一样的
+//          Search(-1*j, 0, -1*j, i);
+        }
+    }
+    printf("%d\n", curMax);
+}
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -934,164 +1063,6 @@ void Output ()
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2011/04/08/decorator_pattern/">Decorator模式初探</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-04-08T19:03:06+08:00" pubdate data-updated="true">Apr 8<span>th</span>, 2011</time>
-        
-           | <a href="/blog/2011/04/08/decorator_pattern/#disqus_thread"
-             data-disqus-identifier="http://quxiao.github.io/blog/2011/04/08/decorator_pattern/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Decorator模式，又称装饰模式。在实际编程中，如果希望能在原有基础上动态的添加新的功能或者扩展已有功能，那么Decorator模式提供了一种很好的解决方案。Decorator模式如下图所示：</p>
-
-<p><a href="http://www.qxavier.me/wp-content/uploads/2011/04/image5.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/04/image_thumb5.png" alt="image" /></a></p>
-
-<p>具体的实现类ConcreteComponent和装饰类Decorator均实现了Component接口，装饰类含有一个Component类作为其成员。这样，当需要在ConcreteComponent基础上添加新的功能时，只需扩展Decorator形成具有某一特定功能的Decorator即可。由于不同的Decorator都是遵循Component接口，当需要扩展新功能时，在原有的Decorator上再套一层Decorator就可以啦。</p>
-
-<p>来用一个简单的例子解释一下吧。比如现在有个手机类SimplePhone，实现了Phone接口：</p>
-
-<pre><code>public interface Phone {
-    String getDescription();
-    int getCost();
-}
-
-package org.quxiao.phone;
-
-public class SimplePhone implements Phone {
-
-    @Override
-    public String getDescription() {
-        return "simple phone";
-    }
-
-    @Override
-    public int getCost() {
-        return 100;
-    }
-
-}
-</code></pre>
-
-<p>为了能动态增加功能，做一个抽象的Decorator：</p>
-
-<pre><code>public abstract class AbstractPhoneDecorator implements Phone {
-    protected Phone phone;
-
-    public AbstractPhoneDecorator(Phone phone)
-    {
-        this.phone = phone;
-    }
-}
-</code></pre>
-
-<p>现在需要给手机添加GPS模块，扩展抽象的Decorator：</p>
-
-<pre><code>public class GPSPhoneDecorator extends AbstractPhoneDecorator {
-
-    public GPSPhoneDecorator(Phone phone) {
-        super(phone);
-    }
-
-    @Override
-    public String getDescription() {
-        // TODO Auto-generated method stub
-        return phone.getDescription() + " and GPS";
-    }
-
-    @Override
-    public int getCost() {
-        // TODO Auto-generated method stub
-        return phone.getCost() + 100;
-    }
-
-}
-</code></pre>
-
-<p>同理，再添加蓝牙的模块：</p>
-
-<pre><code>public class BlueToothPhoneDecorator extends AbstractPhoneDecorator {
-
-    public BlueToothPhoneDecorator(Phone phone) {
-        super(phone);
-    }
-
-    @Override
-    public String getDescription() {
-        return phone.getDescription() + " and blue tooth";
-    }
-
-    @Override
-    public int getCost() {
-        return phone.getCost() + 200;
-    }
-
-}
-</code></pre>
-
-<p>这样，我们就可以给SimplePhone类动态的添加模块了</p>
-
-<pre><code>public class Main {
-
-    public static void main(String[] args) {
-        Phone simplePhone = new SimplePhone();
-        Phone GPSPhone = new GPSPhoneDecorator(simplePhone);
-        Phone myPhone = new GPSPhoneDecorator(new BlueToothPhoneDecorator(new SimplePhone()));
-
-        System.out.println("simplePhone description : " + simplePhone.getDescription());
-        System.out.println("simplePhone cost : " + simplePhone.getCost());
-        System.out.println("GPSPhone description : " + GPSPhone.getDescription());
-        System.out.println("GPSPhone cost : " + GPSPhone.getCost());
-        System.out.println("myPhone description : " + myPhone.getDescription());
-        System.out.println("myPhone cost : " + myPhone.getCost());
-    }
-}
-</code></pre>
-
-<blockquote><p>simplePhone description : simple phone
-simplePhone cost : 100
-GPSPhone description : simple phone and GPS
-GPSPhone cost : 200
-myPhone description : simple phone and blue tooth and GPS
-myPhone cost : 400</p></blockquote>
-
-<p>其实，Java I/O库中就是用了Decorator模式。</p>
-
-<p>在基于Stream的输入中，所有数据都抽象成InputStream类，其子类FilterInputStream就相当于InputStream的装饰类。<a href="http://download.oracle.com/javase/6/docs/api/java/io/BufferedInputStream.html">BufferedInputStream</a>, <a href="http://download.oracle.com/javase/6/docs/api/java/util/zip/CheckedInputStream.html">CheckedInputStream</a>, <a href="http://download.oracle.com/javase/6/docs/api/javax/crypto/CipherInputStream.html">CipherInputStream</a>, <a href="http://download.oracle.com/javase/6/docs/api/java/io/DataInputStream.html">DataInputStream</a>, <a href="http://download.oracle.com/javase/6/docs/api/java/util/zip/DeflaterInputStream.html">DeflaterInputStream</a>, <a href="http://download.oracle.com/javase/6/docs/api/java/security/DigestInputStream.html">DigestInputStream</a>,<a href="http://download.oracle.com/javase/6/docs/api/java/util/zip/InflaterInputStream.html">InflaterInputStream</a>, <a href="http://download.oracle.com/javase/6/docs/api/java/io/LineNumberInputStream.html">LineNumberInputStream</a>, <a href="http://download.oracle.com/javase/6/docs/api/javax/swing/ProgressMonitorInputStream.html">ProgressMonitorInputStream</a>, <a href="http://download.oracle.com/javase/6/docs/api/java/io/PushbackInputStream.html">PushbackInputStream</a>都扩展自FilterInputStream，每个都对应于一个特定的功能。比如哦BufferedInputStream具有缓存功能，DataInputStream可将读出基本（primitive）类型的数据。因此，当我们使用Java I/O库进行输入输出时，总会生成一堆的类，就像这样：</p>
-
-<pre><code>DataInputStream dis = new DataInputStream( new BufferedInputStream( new FileInputStream(FILE_LOC)));
-</code></pre>
-
-<p>之前一直不明白为什么Java的输入输出会这么麻烦，原来是因为用到了Decorator模式。现在明白了其中的原理，也觉得不那么复杂了。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/6/">&larr; Older</a>
@@ -1109,6 +1080,10 @@ myPhone cost : 400</p></blockquote>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/04/05/functor/">Functor (Function Object)</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/03/24/branch-in-my-eye/">公司设立分部弊端之我见</a>
       </li>
     
@@ -1122,10 +1097,6 @@ myPhone cost : 400</p></blockquote>
     
       <li class="post">
         <a href="/blog/2014/01/31/typelist-and-abstract-fatory/">Typelist && Abstract Fatory</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/01/23/typelist-in-template-metaprogramming/">模板元编程中的Typelist</a>
       </li>
     
   </ul>
