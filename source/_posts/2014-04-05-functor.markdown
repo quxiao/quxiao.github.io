@@ -1,0 +1,126 @@
+---
+layout: post
+title: "仿函数——Functor"
+date: 2014-04-05 22:59:13 +0800
+comments: true
+categories:
+---
+
+简单的需求
+---------------------
+
+比如，有一个简单需求：找到一个`vector<string>`中，长度小于3的字符串的数目。解决方法可能会是：
+
+{% codeblock lang:cpp %}
+    int count(const std::vector<std::string>& str_vec, const size_t threshold)
+    {
+        int size = 0;
+        std::vector<std::string>::const_iterator it; 
+        for (it = str_vec.begin(); it != str_vec.end(); ++ it) {
+            if (it->length() < threshold) {
+                ++ size;
+            }   
+        }   
+        return size;
+    }
+{% endcodeblock %}
+
+其实，数据STL的同学应该知道有个`count_if`函数。`count_if`的功能就是对于某种容器，对符合条件的元素进行计数。`count_if`包含三个参数，容器的开始地址、容器的结束地址、以及参数为元素类型的函数。
+
+使用`count_if`的代码可以这样写：
+
+{% codeblock lang:cpp %}
+    bool test(const std::string& str) { return str.length() < 3; }
+    int count(const std::vector<std::string>& str_vec)
+    {
+        return std::count_if(str_vec.begin(), str_vec.end(), test);
+    }
+{% endcodeblock %}
+
+但是，这样有个问题：没有扩展性。比如，判断的字符串由长度3变成5呢？将`test`函数上面再增加一个长度参数可以吗？不行，`count_if`的实现就决定了`test`必须是单一参数的。既想满足`count_if`的语法要求，又需要让判断的函数具有可扩展性，这时候就需要**`functor`**了。
+
+`functor`登场
+---------------------
+
+`functor`的含义是：调用它就像调用一个普通的函数一样，不过它的本质是一个类的实例的成员函数（`operator()`这个函数），所以`functor`也叫`function object`。
+因此以下代码的最后两个语句是等价的：
+
+{% codeblock lang:cpp %}
+    class SomeFunctor
+    {
+    public:
+        void operator() (const string& str)
+        {
+            cout << "Hello " << str << end;
+        }
+    };
+
+    SomeFunctor functor;
+    functor("world");               //Hello world
+    functor.operator()("world");    //Hello world
+{% endcodeblock %}
+
+其实，它并不算是STL中的一部分，不过需要STL中的函数都把`functor`所谓参数之一，`functor`起到了定制化的作用。`functor`与其它普通的函数相比，有一个明显的特点：**可以使用成员变量**。这样，就提供了扩展性。
+
+继续上面例子，写成`functor`的形式：
+
+{% codeblock lang:cpp %}
+    class LessThan
+    {
+    public:
+        LessThan(size_t threshold): _threshold(threshold) {}
+        bool operator() (const std::string str) { return str.length() < _threshold; }
+    private:
+        const size_t _threshold;
+    };
+
+    int count(const std::vector<std::string>& str_vec)
+    {
+        LessThan less_than_three(3);
+        return std::count_if(str_vec.begin(), str_vec.end(), less_than_three);
+        //LessThan less_than_five(5);
+        //std::count_if(str_vec.begin(), str_vec.end(), less_than_five);
+    }
+
+    int count_v2(const std::vector<std::string>& str_vec, const size_t threshold)
+    {
+        return std::count_if(str_vec.begin(), str_vec.end(), LessThan(threshold));
+    }
+{% endcodeblock %}
+
+
+C++11的新玩法
+---------------------
+
+有人可能会说，我已经有了自己实现的判断函数了，但是直接用又不行，有啥解决办法吗？
+其实是有的！（我也是最近才发现的）
+
+C++11的标准中，提供了一套函数，能将一个普通的、不符合使用方要求的函数，转变成一个符合参数列表要求的`functor`，这实在是太酷了！
+
+比如用户自己实现的`int test(const std::string& str_vec, const size_t threshold)`函数，如果能将第二个参数进行**绑定**，不就符合`count_if`的要求了吗？
+
+新标准的C++就提供了这样一个函数——`bind`。
+
+通过`std::bind`以及`std::placeholders`，就可以实现转化，样例代码如下：
+
+{% codeblock lang:cpp %}
+    bool less_than_func(const std::string& str, const size_t threshold)
+    {
+            return str.length() < threshold;
+    }
+
+    //提供 _1 占位符
+    using namespace std::placeholders;                              
+    //绑定less_than_func第二个参数为5, 转化为functor
+    auto less_than_functor = std::bind(less_than_func, _1, 5); 
+    std::cout << std::count_if(str_vec.begin(), str_vec.end(), less_than_functor) << std::endl;
+{% endcodeblock %}
+
+参考资料
+---------------------
+
+* <http://www.stanford.edu/class/cs106l/course-reader/Ch13_Functors.pdf>
+* <http://www.cplusplus.com/reference/functional/bind/>
+
+
+--EOF--
