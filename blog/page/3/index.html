@@ -9,7 +9,7 @@
   <meta name="author" content="Xavier">
 
   
-  <meta name="description" content="cmdheight (ch) 设置vim下方命令行的行数，觉得命令行在最下面一行有些压抑的同学，可以把行数设置得大一些 cursorline (cul) 高亮光标当前行 incsearch (is) 在搜索字符串时，会高亮显示当前匹配的位置 list 显示Tab和分行符，处理log的时候很有用 &hellip;">
+  <meta name="description" content="最近因开发需要，调研了下memcached，share一下！ 什么是memcached Memcached是一个开源的高性能，分布式的内存对象缓存系统，通过键值对的形式来对数据进行存取。 特性 简单的Key Value存储 |&mdash;-Memcached只把key &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -64,6 +64,176 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/12/06/memcached_study/">Memcached调研</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-12-06T00:28:32+08:00" pubdate data-updated="true">Dec 6<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/12/06/memcached_study/#disqus_thread"
+             data-disqus-identifier="http://quxiao.github.io/blog/2012/12/06/memcached_study/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>最近因开发需要，调研了下memcached，share一下！</p>
+
+<h1>什么是memcached</h1>
+
+<p>Memcached是一个开源的高性能，分布式的内存对象缓存系统，通过键值对的形式来对数据进行存取。</p>
+
+<h1>特性</h1>
+
+<h2>简单的Key Value存储</h2>
+
+<p>|&mdash;-Memcached只把key value当作一组字符串来组织，不关心数据的格式
+|&mdash;-没有持久化，所有数据都存储在内存中，当内存用满时，丢弃最旧的数据
+-&mdash;数据只会保存一份，不支持replication，也不支持容错（一些客户端有自己的实现）</p>
+
+<h2>Server和client共同决定操作的行为</h2>
+
+<p>|&mdash;-Server只关心如何获取数据、存储数据、丢弃数据
+-&mdash;Client只关心如何通过key定位server，以及如何和server通信</p>
+
+<h2>Server相互独立</h2>
+
+<p>|&mdash;-Server之间不会有通信，也不知道其他server的存在，但是Client知道所有server的存在。</p>
+
+<h2>所有操作都是常数时间，所有操作也都是原子操作</h2>
+
+<h1>数据组织</h1>
+
+<h2>内部结构</h2>
+
+<p>Memcached将内存分为不同的page（默认为1 Mb）、每个page被（永久）赋给某一个slab。Memcached中有多个级别的slab，每一种slab决定了内存的粒度。举例说明：
+假设memcached可以操作1 Mb的内存，每个page为1Kb，有3类slab：class1、class2、class3。Class1的内存分配粒度为96字节，class2的内存分配粒度为288字节，class3的内存分配粒度为1024字节。那么，memcached的内存结构为下图：</p>
+
+<p><a href="http://qxavier.me/wp-content/uploads/2012/12/memcached_internal_struct.png"><img src="http://qxavier.me/wp-content/uploads/2012/12/memcached_internal_struct.png" alt="" /></a></p>
+
+<p>实际运行效果：</p>
+
+<blockquote><p>./bin/memcached -vv -m 1 -I 1k -f 3 -M -p 11225</p>
+
+<p>slab class   1: chunk size        96 perslab      10</p>
+
+<p>slab class   2: chunk size       288 perslab       3</p>
+
+<p>slab class   3: chunk size      1024 perslab       1</p></blockquote>
+
+<p>class 1中，chunk的大小为96字节，共有10个chunk；
+class 2中，chunk的大小为288字节，共有3个chunk；
+class 3中，chunk的大小为1024字节，共有1个chunk；</p>
+
+<h1>数据处理</h1>
+
+<h2>存储</h2>
+
+<p>数据（item）以key、value的形式进行存储，key最大为250 byte，value最大为1 Mb。
+当存储item时，memcached会找到最“适合”大小的chunk用于保存这个item。例如item大小为200字节，对于上面的例子，这个item会被保存至class 2。</p>
+
+<h2>删除</h2>
+
+<p>Memcached不会主动删除数据，删除数据的情况有两种：</p>
+
+<ol>
+<li><p> 当新数据无法找到合适的位置进行存储时，会删除数据，删除数据的原则是LRU算法。</p></li>
+<li><p> 当client查找一个数据，server发现其已经过期时，就会删除该数据。</p></li>
+</ol>
+
+
+<p>对于情况1，具体来说，当对一个item进行存储时，如果在适合的slab class中，既找不到空闲的chunk，又找不着这个slab class中空闲的page，memcached就会选择数据进行删除。Memcached首先会在处于LRU队列尾部的几个数据中，查找已经过期的数据；如果找不到过期的数据，就在队列尾部选择一个未过期的数据进行删除。</p>
+
+<h1>线程工作方式</h1>
+
+<p>Memcached采用libevent库进行多线程请求处理。
+（libevent是一个事件出发的网络库，使用与 windows, linux, mac os 等的高性能跨平台网络库 ,支持的多种I/O 网络模型 epoll poll dev/poll select kqueue 等）
+Memcached中，每个线程拥有一个自己的libevent实例。
+如果memcached采用TCP/IP连接，将采用单线程监听端口，监听线程获取到请求之后，将其分配给其中一个处理线程，选取处理线程的算法为round-robin。
+如果memcached采用UDP连接，所有（空闲的）处理线程都有监听UDP socket，其中一个线程监听到请求之后，进行相应处理。</p>
+
+<h1>操作</h1>
+
+<p>Memcached中，所有操作都是原子操作，操作时间都是常数级别。Memcached的操作有以下几类：</p>
+
+<h2>存储</h2>
+
+<p>Set
+如有没有key对应的value，添加value；如果已存在该key对应的value，更新value。</p>
+
+<p>Add
+如有没有key对应的value，添加value；如果已存在该key对应的value，则操作失败。</p>
+
+<p>Replace
+如果已存在该key对应的value，更新value；如果没有key对应的value，则操作失败。</p>
+
+<p>Append / Prepend
+在key对应的value前/后添加数据</p>
+
+<p>Cas（check and set）
+Client会事先获取一个关于key的64位cas值，更新时，只有当server的cas值与client的cas一致时，才会执行value更新操作，否则操作失败。</p>
+
+<h2>查询</h2>
+
+<p>Get（Mget）
+根据一个key或者一系列key，获取对应的value(s)。</p>
+
+<p>Gets（get with cas）
+获取key所对应的value的同时，也会返回cas值。</p>
+
+<p>Exist
+查询某个key是否存在（不是官方标准，部分client会实现该功能）</p>
+
+<h2>删除</h2>
+
+<p>Del
+删除对应key的value</p>
+
+<h2>自增/自减</h2>
+
+<p>Incr / Decr
+如果value的形式是为64位整数的字符串，Incr / Decr将对该value进行自增/自减操作。</p>
+
+<h2>Flush</h2>
+
+<p>将memcached中的所有item都设置为过期。</p>
+
+<h1>参考</h1>
+
+<ul>
+<li><p><a href="http://memcached.org/">http://memcached.org/</a></p></li>
+<li><p><a href="http://work.tinou.com/2011/04/memcached-for-dummies.html">Memcached for Dummies</a></p></li>
+<li><p><a href="http://docs.oracle.com/cd/E17952_01/refman-5.5-en/ha-memcached-using.html">http://docs.oracle.com/cd/E17952_01/refman-5.5-en/ha-memcached-using.html</a></p></li>
+<li><p><a href="http://libmemcached.org/">http://libmemcached.org/</a></p></li>
+</ul>
+
+
+<p>&mdash;EOF&mdash;</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -987,93 +1157,6 @@ The fetched row contains the value 'some_value'
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/01/10/mozilla-wiki-secure-coding-guidelinese7ac94e8aeb0/">Mozilla Wiki Secure Coding Guidelines笔记</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-01-10T12:04:52+08:00" pubdate data-updated="true">Jan 10<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/01/10/mozilla-wiki-secure-coding-guidelinese7ac94e8aeb0/#disqus_thread"
-             data-disqus-identifier="http://quxiao.github.io/blog/2012/01/10/mozilla-wiki-secure-coding-guidelinese7ac94e8aeb0/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>最近网站安全问题频发啊，我在某技术论坛上的帐号也沦陷了（虽然N年不用了）。自己赶紧补补这方面的知识，重点看了下Mozilla Wiki中的Secure Coding Guidelines，记下一些重点和之前忽略的地方。</p>
-
-<h1>密码怎么设计？</h1>
-
-<p>密码设计原则</p>
-
-<ul>
-<li><p>最好是8位或8位以上</p></li>
-<li><p>要有数字、字母的组合，最好是包含字母大小写和特殊字符</p></li>
-<li><p>设置密码黑名单，禁止用户注册过于简单的密码，以防止黑客通过社会工程学猜到密码</p></li>
-</ul>
-
-
-<p>之前做项目只想到第一条，而且还是只要求6位。要是用户只注册含有数字的6为密码，那就可以被轻易破解了。人人网都没有做到以上全部，我的人人密码就是6位数字。。。虽说密码设计应该是用户自己的事情，但是简单的密码实在是太好破解了，还是最好引导用户设计出相对复杂的密码比较好。</p>
-
-<h1>密码怎么保存？</h1>
-
-<p>密码应该用<a href="http://en.wikipedia.org/wiki/HMAC">hmac</a>+<a href="http://en.wikipedia.org/wiki/Bcrypt">bcrypt</a>进行加密保存。</p>
-
-<p>简单的说，hmac是通过含有密钥的hash算法，生成消息认证码（Message Authentication Code），可以进行数据一致性检测和消息认证；bcrypt是一种较“慢”的hash算法，这样可以使得暴力枚举破解的时间成本极大提升。</p>
-
-<p>bcrypt的Python实现<a href="http://www.mindrot.org/projects/py-bcrypt/">py-bcrypt</a>和Java实现<a href="http://www.mindrot.org/projects/jBCrypt/">jBCrypt</a>。</p>
-
-<p>我感觉，即使不用Mozilla推荐的hmac+bcrypt的策略，至少也应该是用md5和sha来保存的。明文是绝对不允许的，否则一抓包，用户名和密码就搞到手了。让黑客暴力破解出密码可能不是你的错，但是直接把密码告诉黑客，就是你的不对了。</p>
-
-<h1>输入是在客户端验证，还是在服务端验证？</h1>
-
-<p>都要！因为即使有客户端的js验证，用户也可以禁用浏览器的js功能，将“脏”数据传到服务端。</p>
-
-<p>在客户端验证，是为了有很好的用户体验，避免什么数据都要先提交到服务端，然后再告诉你提交的数据有误；在服务端验证，则是加上了第二把锁，并且，有的数据是一定要到服务端才能检测的，比如帐号密码。</p>
-
-<p>另外，在验证输入时，应该检测符合要求的格式，即“<strong>accept known good</strong>”，而不是检测不符合要求的格式，即“reject known bad”。符合要求的格式是可以设计全面的，它的补集则不可以。</p>
-
-<h1>输出编码</h1>
-
-<p>输出编码是防止XSS和各种注入的首要手段。（输入验证是次要手段）</p>
-
-<pre><code>输出编码就是将一些HTML、JS、XML等格式中的特殊字符进行转义，比如将&lt;script&gt;转化为&amp;lt;script&amp;gt;。这样，即使用户在之前的输入中填写了恶意代码，等到系统显示的时候，它也不会被执行了。
-</code></pre>
-
-<p>在进行SQL查询时，应该使用参数化的SQL语句（parameterized queries），千万不要使用字符串拼接来进行SQL查询（貌似之前的项目绝大部分都是这么做的 :( ）。一些ORM（比如Hibernate）可以阻止一部分的SQL注入，但是在一些情况下，ORM仍然会使用native SQL，所以ORM不是万能的。</p>
-
-<h1>访问控制</h1>
-
-<p>应该防止一些URL暴露保密的内容，即使你没有提供给用户，一些用户也会有意无意的访问到那些URL（比如通过枚举）。设计某个Web工程的时候，应该先要按照某种原则设计好URL目录，然后根据不同的路径设计不同的访问权限，比如可以通过url filter实现。</p>
-
-<p>安全可是永恒的话题，先写这么多，以后还要在实践中慢慢领悟。</p>
-
-<p>&mdash;EOF&mdash;</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/4/">&larr; Older</a>
@@ -1091,6 +1174,10 @@ The fetched row contains the value 'some_value'
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/05/02/get-last-some-minutes-log/">获取最近几分钟的日志</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/04/05/functor/">仿函数——Functor</a>
       </li>
     
@@ -1104,10 +1191,6 @@ The fetched row contains the value 'some_value'
     
       <li class="post">
         <a href="/blog/2014/02/24/a-try-to-play-with-travis-ci/">小试Travis-Ci</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/01/31/typelist-and-abstract-fatory/">Typelist && Abstract Fatory</a>
       </li>
     
   </ul>

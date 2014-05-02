@@ -9,17 +9,7 @@
   <meta name="author" content="Xavier">
 
   
-  <meta name="description" content="简单的需求 比如，有一个简单需求：找到一个vector&lt;string&gt;中，长度小于3的字符串的数目。解决方法可能会是： 1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11 int count(const std::vector&lt;std::string&gt;&amp; str_vec &hellip;">
+  <meta name="description" content="最近在整理对于各个模块的监控，需要有一定的实时性。比如，需要获取最近几分钟内的日志，然后看某些请求的数量以及响应时间是否符合要求。但是，线上服务的日志，通常都是按照小时粒度进行切分的，你不可能对一个文件进行直接的过滤操作。在此之前需要解决一个问题：在一份文件中，获取最近一段时间的日志。 当然， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -74,6 +64,95 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/05/02/get-last-some-minutes-log/">获取最近几分钟的日志</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-05-02T16:39:35+08:00" pubdate data-updated="true">May 2<span>nd</span>, 2014</time>
+        
+           | <a href="/blog/2014/05/02/get-last-some-minutes-log/#disqus_thread"
+             data-disqus-identifier="http://quxiao.github.io/blog/2014/05/02/get-last-some-minutes-log/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>最近在整理对于各个模块的监控，需要有一定的实时性。比如，需要获取最近几分钟内的日志，然后看某些请求的数量以及响应时间是否符合要求。但是，线上服务的日志，通常都是按照小时粒度进行切分的，你不可能对一个文件进行直接的过滤操作。在此之前需要解决一个问题：<strong>在一份文件中，获取最近一段时间的日志</strong>。</p>
+
+<p>当然，还有一个最最基础的问题：你的日志内容里面是表示时间的字段的。（不打时间和请求ID的日志简直就是耍流氓！）</p>
+
+<p>我一开始的想法是：估算平均请求压力下，每5分钟的日志会有多少条，然后直接将<code>cat</code>替换为<code>tail -n XXX</code>就可以了。虽然修改起来很方便，但是是有明显缺陷的：</p>
+
+<ol>
+<li>随着流量变化，<code>tail</code>出来的日志的时间粒度是不一样的。如果用来监控实时请求响应时间还算能接受，用来监控请求量就不行了；</li>
+<li>如果以后模块升级，增加或者减少了请求日志，<code>tail</code>出来的数字需要不断调整。</li>
+</ol>
+
+
+<p>看来还是要精确的获取某个时间段的日志才行。其实思路还是比较清晰的：</p>
+
+<ol>
+<li>计算出<code>开始时间</code>和<code>结束时间</code>两个字段</li>
+<li>提取日志行中的<code>日志时间</code></li>
+<li>比较三个值，如果日志行的时间符合要求，则将其打印，作为过滤程序的输入</li>
+<li>执行数日志数量或者统计请求响应时间的命令</li>
+</ol>
+
+
+<p>对于步骤1，使用<code>date</code>命令就可以获取，这个简单。</p>
+
+<p>对于步骤2，一般日志中的时间都会比较在日志前面几个字段，比较好提取，也不难。</p>
+
+<p>步骤4嘛，就看需求是什么了，如果是获取请求数目，直接用<code>grep</code>和<code>wc -l</code>就OK了。如果涉及到提取日志字段，简单的也可以用<code>cut</code>搞定，复杂就得用<code>grep</code>或者<code>awk</code>了。</p>
+
+<p>最关键是步骤3如何实现，我想到的是在<code>awk</code>中进行逻辑判断，获取日志中的时间字段不难，但是如果时间字段是通过多个字段拼接而来的，比如<code>2014-05-02</code>和<code>17:25:00</code>，怎么把他们放到一个变量里面呢？要是有像<code>sprintf</code>这样的函数就好了，没想到，还真有！类似于下面这样：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>    cat xxx.log | awk <span class="s1">&#39;{t=sprintf(&quot;%s %s&quot;, $2, $3);}&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>还有一个问题，就是如何将BASH中的<code>开始时间</code>和<code>结束时间</code>变量传入<code>awk</code>呢？也有办法的！<code>awk</code>里面有<code>-v</code>选项，支持将外部变量传入其中。那么程序就类似于这样了：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>    <span class="nv">start_time</span><span class="o">=</span><span class="sb">`</span>date -d<span class="s2">&quot;$last_minutes minutes ago&quot;</span> +<span class="s2">&quot;%Y-%m-%d %H:%M:%S&quot;</span><span class="sb">`</span>
+</span><span class='line'>    <span class="nv">end_time</span><span class="o">=</span><span class="sb">`</span>date +<span class="s2">&quot;%Y-%m-%d %H:%M:%S&quot;</span><span class="sb">`</span>
+</span><span class='line'>    cat xxx.log | awk -v <span class="nv">st</span><span class="o">=</span><span class="s2">&quot;$start_time&quot;</span> -v <span class="nv">et</span><span class="o">=</span><span class="s2">&quot;$end_time&quot;</span> <span class="s1">&#39;{t=sprintf(&quot;%s %s&quot;, $2, $3); if(t&gt;=st &amp;&amp; t&lt;=et){print $0}}&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>最后，还有一个小问题，因为会定期切分日志，所以需要考虑临界时间点的情况，把当前时间段和上个时间段的日志同时作为输入即可。</p>
+
+<p>这样，精确获取最近一段时间日志的需求就得到解决了。</p>
+
+<p>&mdash;EOF&mdash;</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -958,137 +1037,6 @@ term2 -&gt; (docid_2, data_21), (docid_3, data_22), ...
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/11/17/immigrate-from-wordpress/">从Wordpres迁移至Jekyll(@github.io)</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-11-17T00:00:00+08:00" pubdate data-updated="true"></time>
-        
-           | <a href="/blog/2013/11/17/immigrate-from-wordpress/#disqus_thread"
-             data-disqus-identifier="http://quxiao.github.io/blog/2013/11/17/immigrate-from-wordpress/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>用上Wordpress之后，总体感觉还是很不错的，安装、设置、撰写文章都很方便，但仍然有几点不足：</p>
-
-<ol>
-<li>许多功能都需要插件支持，比如代码语法高亮，首页截取文章摘要</li>
-<li>图片和文章的存储方式，图片需要单独找图床、或者上传到服务器，而文章又是保存
-mysql数据库中的</li>
-<li>数据备份比较麻烦，每次都得使用插件或者人工备份数据</li>
-</ol>
-
-
-<p>因此决定将博客迁移到github上面，即免费又能使用<a href="http://jekyllrb.com/">Jekyll</a>这种静态博客，不需要配置DB、使用git发布、markdown语法。简单、方便、
-很极客！</p>
-
-<h2>建立github.io初始环境</h2>
-
-<p>首先，你需要一个github帐号，然后使用<a href="http://jekyllbootstrap.com/">JekyllBootstrap</a>建立一个初始化的环境，参照<a href="http://jekyllbootstrap.com/usage/jekyll-quick-start.html">教程</a>一步一步来，环境很快就可以搞定。你就可以在USERNAME.github.io上面看到环境了</p>
-
-<p>PS: 教程上面说需要建立的是USERNAME.github.com的repository，需要改为USERNAME.github.io才可以</p>
-
-<h2>备份Wordpress数据</h2>
-
-<p>迁移之前，先备份下数据，如果是使用VPN的话，SSH登录到服务器上，备份数据库</p>
-
-<pre><code>mysqldump -u root -p -h localhost BLOG_TABLE &gt; BLOG_TABLE.sql
-</code></pre>
-
-<p>另外一些静态文件，比如图片什么的，也备份一份</p>
-
-<h2>选择迁移工具</h2>
-
-<p>迁移工具方面，基本上是基于下面两种方式：</p>
-
-<ol>
-<li>使用WordPress导出的xml文件，导出md文档</li>
-<li>连接WordPress的Mysql数据库导出md文档</li>
-</ol>
-
-
-<p>Jekyll有自带的<code>jekyll-import</code>工具，很想使用官方的迁移工具，但我一直“未遂”，说是无法load到<code>jekyll-import</code>模块……</p>
-
-<p>另外，Jekyll官网上还推荐了三个第三方的工具：</p>
-
-<ol>
-<li><a href="https://github.com/thomasf/exitwp">Exitwp</a></li>
-<li><a href="http://vitobotta.com/how-to-migrate-from-wordpress-to-jekyll/">A great
-article</a> ，
-其实是一篇详细的迁移教程</li>
-<li><a href="https://github.com/theaob/wpXml2Jekyll">wpXml2Jekyll</a></li>
-</ol>
-
-
-<p>第二个太过详细，第三个只能运行在Windows下，所以看来只能选择第一个工具了。</p>
-
-<h2>导出WordPress XML文件</h2>
-
-<p>在WordPress的<code>export.php</code>页面上可以轻松导出XML文件。但这一步遇到一个小插曲：blog上面太多spam评论了，结果也会一并export出来，这些spam
-评论会导致后面工具导出markdown文档失败。因为blog上面真实的评论并不多，所以就考
-虑把评论都删除，网上查了资料，只需要将WordPress Mysql表中的<code>wp_comments</code>表删除即可</p>
-
-<pre><code>DROP TABLE wp_comments;
-</code></pre>
-
-<h2>使用exitwp</h2>
-
-<p>这个工具带有鲜明的“反WordPress”风格，使用起来还是比较简单的，按照项目首页的
-README操作即可，你的WordPress文章就变成一个个markdown文档了！</p>
-
-<p>不过使用途中发现有几个问题：</p>
-
-<ol>
-<li>在Mac上使用pip进行依赖安装后，那些依赖的库还是会import失败（是我打开方式不对吗……），还是得自己将一个个依赖下载后安装</li>
-<li>Exitwp虽然支持下载图片，但是文章中的图片链接却没有换过来</li>
-<li>导出后的md文档，对于正文中的特殊字符没有做处理，比如<code>*</code>，会导致<code>jekyll build</code>失败，需要手动修改</li>
-<li>由于系统编码原因，会导致使用exitwp以及jekyll失败，参考这篇<a href="http://www.webplay.pro/linux/set-locale-terminal-settings-mac-os-x.html">文章</a>
-，需要在<code>/etc/profile</code>添加<code>export LANG=zh_CN.UTF-8</code>以及<code>export
-LC_ALL=zh_CN.UTF-8</code></li>
-</ol>
-
-
-<h2>发布！</h2>
-
-<p>发布之前，现在本地使用<code>jekyll server</code>或者<code>rake --preview</code>在本地预览，没问题就可以发布了。</p>
-
-<p>好了，下面将生成的markdown文档以及图片，push到你的github空间即可！Just enjoy it! :)</p>
-
-<p>最后，在使用markdown编写中文文章时，发现jekyll默认的markdown引擎对于中文支持不
-是很好，对于对于全部为中文的列表对完全失效，需要将markdown引擎改为<code>rdiscount</code>
-，在<code>_config.yaml</code>中添加：</p>
-
-<pre><code>markdown: rdiscount
-</code></pre>
-
-<p>就可以了。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -1104,6 +1052,10 @@ LC_ALL=zh_CN.UTF-8</code></li>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/05/02/get-last-some-minutes-log/">获取最近几分钟的日志</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/04/05/functor/">仿函数——Functor</a>
       </li>
     
@@ -1117,10 +1069,6 @@ LC_ALL=zh_CN.UTF-8</code></li>
     
       <li class="post">
         <a href="/blog/2014/02/24/a-try-to-play-with-travis-ci/">小试Travis-Ci</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/01/31/typelist-and-abstract-fatory/">Typelist && Abstract Fatory</a>
       </li>
     
   </ul>

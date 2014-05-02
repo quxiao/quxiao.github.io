@@ -9,7 +9,7 @@
   <meta name="author" content="Xavier">
 
   
-  <meta name="description" content="题目大意： 有N个栏杆，告诉你它们的长度以及它们各自的连接情况，求出围成的最短的封闭空间的周长。其中，1 &lt;= N &lt;= 100，栏杆长度Ls，1 &lt;= Ls &lt;= 255，每个栏杆至多与另外8跟栏杆相连。 思路： 就是在图中找最小环。因为N（即边数）最大为100， &hellip;">
+  <meta name="description" content="题目大意： 一种字符串加密算法，即在原有字符串的任意位置插入C、O、W，C的下标 &lt; O的下标 &lt; W的下标，将C、O之间和O、W之间子串交换，得到新的字符串。给你一个字符串，问其是否是对字符串Begin the Escape execution at the Break of &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -64,6 +64,295 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/07/15/usaco-section-4-1-cryptcowgraphy/">USACO Section 4.1 Cryptcowgraphy</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-07-15T00:00:54+08:00" pubdate data-updated="true">Jul 15<span>th</span>, 2011</time>
+        
+           | <a href="/blog/2011/07/15/usaco-section-4-1-cryptcowgraphy/#disqus_thread"
+             data-disqus-identifier="http://quxiao.github.io/blog/2011/07/15/usaco-section-4-1-cryptcowgraphy/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>题目大意：</p>
+
+<p>一种字符串加密算法，即在原有字符串的任意位置插入C、O、W，C的下标 &lt; O的下标 &lt; W的下标，将C、O之间和O、W之间子串交换，得到新的字符串。给你一个字符串，问其是否是对字符串Begin the Escape execution at the Break of Dawn经过多次加密过后的字符串。</p>
+
+<p>我的思路：</p>
+
+<p>首先，原字符串中并没有COW三个字母，所以不用判断COW是属于原先的字符还是加密时加上的字符，这样简单很多。另外，对于已加密的字符串，只要找到任意一组COW，交换CO和OW之间的子串，再把COW删掉，得到的字符串就是可能的一种原字符串，再这样递归下去，直到不可能的情况或者字符串变为Begin the Escape execution at the Break of Dawn。</p>
+
+<p>在搜索时，有几种减枝可以排除目前的字符串：</p>
+
+<ul>
+<li><p>如果目前字符串的长度不等于原串长度+3×k，排除。（其实只需在开始时判断一次即可）</p></li>
+<li><p>如果目前字符串中COW三个字母的数目不相等，排除。（也可只判断一次）</p></li>
+<li><p>如果任意COW字符之间的子串，没有出现在原串中，排除。（这个减枝很重要，但是没想到，不应该啊）</p></li>
+<li><p>字符串中，所有出现COW的地方，C应该排在第一个，W应该排在最后一个。否则，无法还原成原字符串。</p></li>
+<li><p>用hash来判断目前字符串之前有没有出现过。（hash表的大小选择很关键，选的太大，可能会超时，选的太小，可能会WA）</p></li>
+</ul>
+
+
+<p>另外，枚举COW时的搜索方式也很重要。如果每一层都会从i到len，像这样：</p>
+
+<pre><code>    for (i = 0; i &lt; l; i ++)
+    {
+        if ( str[i] != 'C' )
+            continue;
+        for (j = i + 1; j &lt; l; j ++)
+        {
+            if ( str[j] != 'O' )
+                continue;
+            for (k = j + 1; k &lt; l; k ++)
+            {
+                if ( str[k] != 'W' )
+                    continue;
+                if ( CheckStr( RestoreString(str, i, j, k)) )
+                    return true;
+            }
+        }
+    }
+</code></pre>
+
+<p>很容易就超时了。</p>
+
+<p>但是，如果先把所有COW的下标先记下来，再在每一层枚举它们的下标，像这样：</p>
+
+<pre><code>    for (i = 0; i &lt; cNum; i ++)
+    {
+        for (j = 0; j &lt; oNum; j ++)
+        {
+            for (k = 0; k &lt; wNum; k ++)
+            {
+                if ( cIdx[i] &lt; oIdx[j] &amp;&amp; oIdx[j] &lt; wIdx[k] )
+                {
+                    if ( CheckStr( RestoreString(str, cIdx[i], oIdx[j], wIdx[k])) )
+                        return true;
+                }
+            }
+        }
+    }
+</code></pre>
+
+<p>就会快很多。</p>
+
+<p>好了，废话不多说，直接上代码：</p>
+
+<pre><code>unsigned int elf_hash(string str)
+{
+    unsigned long h = 0, g, i, l;
+    l = str.length();
+    for (i = 0; i &lt; l; i ++)
+    {
+        h = (h &lt;&lt; 4) + str[i];
+        if (g = h &amp; 0xf0000000l)
+            h ^= g &gt;&gt; 24;
+        h &amp;= ~g;
+    }
+    return h % HASH_NUM;
+}
+
+//COW的数目是否相等，以及数目是多少
+//其实跟CheckStr中的判断有重复，还可以优化！
+int CheckCOWNum (string str)
+{
+    int i, l;
+    int nC, nO, nW;
+    nC= nO = nW = 0;
+    l = str.length();
+
+    for (i = 0; i &lt; l; i ++)
+    {
+        if ( str[i] == 'C' )
+            ++ nC;
+        else if ( str[i] == 'O' )
+        {
+            ++ nO;
+        }
+        else if ( str[i] == 'W' )
+        {
+            ++ nW;
+        }
+    }
+    if ( nC == nO &amp;&amp; nO == nW )
+        return nC;
+    else
+        return -1;
+}
+
+//还原加密的字符串
+//idx1 &lt; idx2 &lt; idx3
+string RestoreString (string now, int idx1, int idx2, int idx3)
+{
+    string pre = "";
+    int i, l;
+    l = now.length();
+    pre = now.substr(0, idx1);
+    pre += now.substr(idx2+1, idx3-idx2-1);
+    pre += now.substr(idx1+1, idx2-idx1-1);
+    pre += now.substr(idx3+1, l-idx3-1);
+
+    return pre;
+}
+
+bool CheckBetweenCOW (string str)
+{
+    int lastIdx;
+    int i, l;
+    lastIdx = -1;
+    l = str.length();
+    for (i = 0; i &lt; l; i ++)
+    {
+        if ( str[i] == 'C' || str[i] == 'O' || str[i] == 'W' )
+        {
+            if ( finalStr.find(str.substr(lastIdx + 1, i - lastIdx - 1)) == string::npos )
+            {
+                return false;
+            }
+            lastIdx = i;
+        }
+    }
+    return true;
+}
+
+bool CheckStr (string str)
+{
+    if ( str == finalStr )
+        return true;
+
+    int hash;
+    hash = elf_hash(str);
+    if ( hashVisited[hash] )
+        return false;
+    hashVisited[hash] = true;
+
+    int i, j, k, l;
+    int cNum, oNum, wNum, allNum;
+    int cIdx[NUM], oIdx[NUM], wIdx[NUM], allIdx[NUM];
+    cNum = oNum = wNum = allNum = 0;
+    l = str.length();
+
+    //记录C O W的下标
+    allIdx[allNum++] = -1;
+    for (i = 0; i &lt; l; i ++)
+    {
+        if ( str[i] == 'C' )
+        {
+            cIdx[cNum++] = i;
+            allIdx[allNum++] = i;
+        }
+        else if ( str[i] == 'O' )
+        {
+            oIdx[oNum++] = i;
+            allIdx[allNum++] = i;
+        }
+        else if ( str[i] == 'W' )
+        {
+            wIdx[wNum++] = i;
+            allIdx[allNum++] = i;
+        }
+    }
+    if ( allIdx[allNum-1] != l - 1 )
+        allIdx[allNum++] = l;
+
+    //所有出现COW的地方，C应该排在第一个，W应该排在最后一个。否则，无法还原成原字符串
+    if ( cNum )
+    {
+        if ( cIdx[0] &gt; oIdx[0] || cIdx[0] &gt; wIdx[0] )
+            return false;
+        if ( wIdx[wNum-1] &lt; cIdx[cNum-1] || wIdx[wNum-1] &lt; oIdx[oNum-1] )
+            return false;
+    }
+
+    //任意COW之间的子串都应该在原串中出现过
+    for (i = 0; i &lt; allNum-1; i ++)
+    {
+        if ( finalStr.find(str.substr(allIdx[i]+1, allIdx[i+1]-allIdx[i]-1)) == string::npos )
+            return false;
+    }
+
+    for (i = 0; i &lt; cNum; i ++)
+    {
+        for (j = 0; j &lt; oNum; j ++)
+        {
+            for (k = 0; k &lt; wNum; k ++)
+            {
+                if ( cIdx[i] &lt; oIdx[j] &amp;&amp; oIdx[j] &lt; wIdx[k] )
+                {
+                    if ( CheckStr( RestoreString(str, cIdx[i], oIdx[j], wIdx[k])) )
+                        return true;
+                }
+            }
+        }
+    }
+
+    //这样就会很慢。。。
+    //  for (i = 0; i &lt; l; i ++)
+    //  {
+    //      if ( str[i] != 'C' )
+    //          continue;
+    //      for (j = i + 1; j &lt; l; j ++)
+    //      {
+    //          if ( str[j] != 'O' )
+    //              continue;
+    //          for (k = j + 1; k &lt; l; k ++)
+    //          {
+    //              if ( str[k] != 'W' )
+    //                  continue;
+    //              if ( CheckStr( RestoreString(str, i, j, k)) )
+    //                  return true;
+    //          }
+    //      }
+    //  }
+
+    return false;
+}
+
+void Solve ()
+{
+    if ( (str.length() - finalStr.length()) % 3 != 0 )
+    {
+        printf("0 0\n");
+        return;
+    }
+
+    int nCOW = CheckCOWNum(str);
+    if ( nCOW == -1 || !CheckStr(str) )
+    {
+        printf("0 0\n");
+        return;
+    }
+    printf("1 %d\n", nCOW);
+}
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1004,65 +1293,6 @@ void Output ()
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2011/04/22/practice-u0026quotfarceu0026quot/">实习“闹剧”</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-04-22T01:48:06+08:00" pubdate data-updated="true">Apr 22<span>nd</span>, 2011</time>
-        
-           | <a href="/blog/2011/04/22/practice-u0026quotfarceu0026quot/#disqus_thread"
-             data-disqus-identifier="http://quxiao.github.io/blog/2011/04/22/practice-u0026quotfarceu0026quot/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>这学期开始的时候，导师让我们写论文发表，自己试着写了一部分，但感觉很垃圾。三月底的时候，听说一家我十分想去的公司在招实习生，于是投了简历，经过电话面试，自己得到了实习的机会！好了，下一关，征求导师的同意。写邮件给导师，第二天导师回复了我。从他回复我的邮件可以看出，他是不太愿意我去，但没有明确说不能去，只是说“随便我”。我自认为搞定了，收拾了下行李，过了两天就出发了。</p>
-
-<p>虽然实习的公司在外地，也因为算是我第一次出远门，各种情况都需要适应，各种问题需要自己独立解决，但自打进了公司开始实习，我就感觉自己来对地方了，这就是我向往的地方！公司的氛围十分轻松，也十分单纯，重视技术，尊重有技术的工程师，公司里面的许多技术框架也都是自己研发的。在那里交流十分平等，没什么等级的概念，组织结构相对扁平化。不管是刚进来的实习生，还是某个团队的leader，大家都可以当面或者通过IM、邮件对某一问题进行讨论。看到几个看上去30多岁的员工对于某行代码进行讨论，那是常有的事。对于培训，公司做的也十分出色。公司会不定期通过邮件告知课程信息，你可以根据自己的兴趣或者所在团队的业务，选择是否参加。我们团队每隔1～2周也会让其中的一个成员给我们分享一下某个方面的技术问题。公司内网也有各种文档资源，你可以自由搜索、查阅。另外，公司的工作时间也十分宽松。不用打卡，一般早上9点到就可以了，晚上吃过晚饭，待一会儿就可以走了。（但我们这些新人一般会选择晚上10点钟以后走，没有人强迫我们，只是愿意待在公司再学点东西）</p>
-
-<p>经过一周左右的适应，打算正式开工了！不料，好景不长，导师打电话给我，把我训了一顿，说我未经同意擅自出去实习，还说如果不能按期毕业的话后果自负。我说，“当时您不是随便我吗？”他说，“你应该能听得出我这句话背后的意思。”我跟导师说尽量缩短实习时间，尽快回学校。但他的态度很强硬，甚至说可以去实习，不过每周都要给他汇报学术进展，两周不汇报的话就采取相应行动，而且还有在规定日期前发表一篇论文。身在屋檐下，哪能不低头啊，想想还是毕业要紧，只好跟公司说明了情况。公司这边没有为难我，很顺利的办理了离职，然后收拾收拾行李就回去了，一场闹剧就这样（暂时）结束了。</p>
-
-<p>虽然有可能就此跟导师的关系不会那么融洽了，虽然这次去实习还没拿到offer，但我一点没有因为当初选择去实习的决定而有丝毫的后悔，甚至感觉挺好玩的，因为至少我去了自己向往的地方，哪怕只待了短短十几天的时间而已。如果在生命中，发现了你向往的东西，是应该去追随的，哪怕可能因此付出巨大的代价。这就好像如果遇到一个你喜欢的女孩，就算之后自己会被拒绝，就算会把自己搞得很痛苦，那也还是要追求的啊！否则人生就没什么意思了。</p>
-
-<p>事情虽然暂时告一段落了，但是这场“闹剧”还是给了我一些思考和教训的：</p>
-
-<ul>
-<li><p>沟通很重要     <br/>
-如果当初跟导师好好沟通，了解了他真正的意思，或者他明确告诉我不可以去，那我也就不会去了，也就不会有这档子事了。另外，还要多想想对方的难处。其实，导师对我们还是不错的，和我们的关系其实很近，这次去实习做得的确有些不太“地道”。</p></li>
-<li><p>学生是弱势群体（尤其是研究生）     <br/>
-除了得到应有的学分以及完成毕业设计论文，导师对你的评价也是你是否可以毕业的重要因素。如果跟导师关系没处好，到时候导师给你个延期毕业，自己的很多事情就都会被耽误。即使导师整天让你研究你认为没什么用的科研，即使导师整天让你写XXX策划书，你所能做的只能是忍着，并且尽量把这些事情做好。</p></li>
-<li><p>找工作和搞科研是对立的     <br/>
-这其实是我们教研室的一个同学说的，对于那些以后不会读博或者不会去研究所的同学来说，事情就是这样的，因为你研究生阶段搞的所谓“研究”和你以后的工作是没什么关系的（除了“研究”给你带来的文凭和一份更好的工作之间的关系），而时间大家都是差不多的。所以，怎样在两者间把握一个平衡，就看个人的本事了。</p></li>
-</ul>
-
-
-<p>回学校大概还要跟导师再聊一两次，希望我们之间不要产生无法弥补的裂痕，理解万岁啊！</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/6/">&larr; Older</a>
@@ -1080,6 +1310,10 @@ void Output ()
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/05/02/get-last-some-minutes-log/">获取最近几分钟的日志</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/04/05/functor/">仿函数——Functor</a>
       </li>
     
@@ -1093,10 +1327,6 @@ void Output ()
     
       <li class="post">
         <a href="/blog/2014/02/24/a-try-to-play-with-travis-ci/">小试Travis-Ci</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/01/31/typelist-and-abstract-fatory/">Typelist && Abstract Fatory</a>
       </li>
     
   </ul>

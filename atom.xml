@@ -4,7 +4,7 @@
   <title><![CDATA[Xavier's Blog]]></title>
   <link href="http://quxiao.github.io/atom.xml" rel="self"/>
   <link href="http://quxiao.github.io/"/>
-  <updated>2014-04-06T22:01:55+08:00</updated>
+  <updated>2014-05-02T17:40:56+08:00</updated>
   <id>http://quxiao.github.io/</id>
   <author>
     <name><![CDATA[Xavier]]></name>
@@ -12,6 +12,65 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[获取最近几分钟的日志]]></title>
+    <link href="http://quxiao.github.io/blog/2014/05/02/get-last-some-minutes-log/"/>
+    <updated>2014-05-02T16:39:35+08:00</updated>
+    <id>http://quxiao.github.io/blog/2014/05/02/get-last-some-minutes-log</id>
+    <content type="html"><![CDATA[<p>最近在整理对于各个模块的监控，需要有一定的实时性。比如，需要获取最近几分钟内的日志，然后看某些请求的数量以及响应时间是否符合要求。但是，线上服务的日志，通常都是按照小时粒度进行切分的，你不可能对一个文件进行直接的过滤操作。在此之前需要解决一个问题：<strong>在一份文件中，获取最近一段时间的日志</strong>。</p>
+
+<p>当然，还有一个最最基础的问题：你的日志内容里面是表示时间的字段的。（不打时间和请求ID的日志简直就是耍流氓！）</p>
+
+<p>我一开始的想法是：估算平均请求压力下，每5分钟的日志会有多少条，然后直接将<code>cat</code>替换为<code>tail -n XXX</code>就可以了。虽然修改起来很方便，但是是有明显缺陷的：</p>
+
+<ol>
+<li>随着流量变化，<code>tail</code>出来的日志的时间粒度是不一样的。如果用来监控实时请求响应时间还算能接受，用来监控请求量就不行了；</li>
+<li>如果以后模块升级，增加或者减少了请求日志，<code>tail</code>出来的数字需要不断调整。</li>
+</ol>
+
+
+<p>看来还是要精确的获取某个时间段的日志才行。其实思路还是比较清晰的：</p>
+
+<ol>
+<li>计算出<code>开始时间</code>和<code>结束时间</code>两个字段</li>
+<li>提取日志行中的<code>日志时间</code></li>
+<li>比较三个值，如果日志行的时间符合要求，则将其打印，作为过滤程序的输入</li>
+<li>执行数日志数量或者统计请求响应时间的命令</li>
+</ol>
+
+
+<p>对于步骤1，使用<code>date</code>命令就可以获取，这个简单。</p>
+
+<p>对于步骤2，一般日志中的时间都会比较在日志前面几个字段，比较好提取，也不难。</p>
+
+<p>步骤4嘛，就看需求是什么了，如果是获取请求数目，直接用<code>grep</code>和<code>wc -l</code>就OK了。如果涉及到提取日志字段，简单的也可以用<code>cut</code>搞定，复杂就得用<code>grep</code>或者<code>awk</code>了。</p>
+
+<p>最关键是步骤3如何实现，我想到的是在<code>awk</code>中进行逻辑判断，获取日志中的时间字段不难，但是如果时间字段是通过多个字段拼接而来的，比如<code>2014-05-02</code>和<code>17:25:00</code>，怎么把他们放到一个变量里面呢？要是有像<code>sprintf</code>这样的函数就好了，没想到，还真有！类似于下面这样：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>    cat xxx.log | awk <span class="s1">&#39;{t=sprintf(&quot;%s %s&quot;, $2, $3);}&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>还有一个问题，就是如何将BASH中的<code>开始时间</code>和<code>结束时间</code>变量传入<code>awk</code>呢？也有办法的！<code>awk</code>里面有<code>-v</code>选项，支持将外部变量传入其中。那么程序就类似于这样了：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>    <span class="nv">start_time</span><span class="o">=</span><span class="sb">`</span>date -d<span class="s2">&quot;$last_minutes minutes ago&quot;</span> +<span class="s2">&quot;%Y-%m-%d %H:%M:%S&quot;</span><span class="sb">`</span>
+</span><span class='line'>    <span class="nv">end_time</span><span class="o">=</span><span class="sb">`</span>date +<span class="s2">&quot;%Y-%m-%d %H:%M:%S&quot;</span><span class="sb">`</span>
+</span><span class='line'>    cat xxx.log | awk -v <span class="nv">st</span><span class="o">=</span><span class="s2">&quot;$start_time&quot;</span> -v <span class="nv">et</span><span class="o">=</span><span class="s2">&quot;$end_time&quot;</span> <span class="s1">&#39;{t=sprintf(&quot;%s %s&quot;, $2, $3); if(t&gt;=st &amp;&amp; t&lt;=et){print $0}}&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>最后，还有一个小问题，因为会定期切分日志，所以需要考虑临界时间点的情况，把当前时间段和上个时间段的日志同时作为输入即可。</p>
+
+<p>这样，精确获取最近一段时间日志的需求就得到解决了。</p>
+
+<p>&mdash;EOF&mdash;</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[仿函数——Functor]]></title>
@@ -2793,146 +2852,6 @@ def main(date):
 
 <p>身体需要锻炼，思想同样需要锻炼。不过，现在生活节奏快，发现我以及周围许多人，己经连读一篇几百字的文章的耐心都没有了，有个同事甚至开玩笑说，“我现在的头脑里面的内存很小，只有140字节，读太长的文章就溢出了”。
 尽量争取每天读一篇比较有意义、有深度的文章，可以是和业界相关的，也可以说一些杂书里面的文章，不用太长时间，30分钟就足够了。少逛一次人人，少刷一次微博，时间就省下来了。</p>
-
-<p>&mdash;EOF&mdash;</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Memcached调研]]></title>
-    <link href="http://quxiao.github.io/blog/2012/12/06/memcached_study/"/>
-    <updated>2012-12-06T00:28:32+08:00</updated>
-    <id>http://quxiao.github.io/blog/2012/12/06/memcached_study</id>
-    <content type="html"><![CDATA[<p>最近因开发需要，调研了下memcached，share一下！</p>
-
-<h1>什么是memcached</h1>
-
-<p>Memcached是一个开源的高性能，分布式的内存对象缓存系统，通过键值对的形式来对数据进行存取。</p>
-
-<h1>特性</h1>
-
-<h2>简单的Key Value存储</h2>
-
-<p>|&mdash;-Memcached只把key value当作一组字符串来组织，不关心数据的格式
-|&mdash;-没有持久化，所有数据都存储在内存中，当内存用满时，丢弃最旧的数据
--&mdash;数据只会保存一份，不支持replication，也不支持容错（一些客户端有自己的实现）</p>
-
-<h2>Server和client共同决定操作的行为</h2>
-
-<p>|&mdash;-Server只关心如何获取数据、存储数据、丢弃数据
--&mdash;Client只关心如何通过key定位server，以及如何和server通信</p>
-
-<h2>Server相互独立</h2>
-
-<p>|&mdash;-Server之间不会有通信，也不知道其他server的存在，但是Client知道所有server的存在。</p>
-
-<h2>所有操作都是常数时间，所有操作也都是原子操作</h2>
-
-<h1>数据组织</h1>
-
-<h2>内部结构</h2>
-
-<p>Memcached将内存分为不同的page（默认为1 Mb）、每个page被（永久）赋给某一个slab。Memcached中有多个级别的slab，每一种slab决定了内存的粒度。举例说明：
-假设memcached可以操作1 Mb的内存，每个page为1Kb，有3类slab：class1、class2、class3。Class1的内存分配粒度为96字节，class2的内存分配粒度为288字节，class3的内存分配粒度为1024字节。那么，memcached的内存结构为下图：</p>
-
-<p><a href="http://qxavier.me/wp-content/uploads/2012/12/memcached_internal_struct.png"><img src="http://qxavier.me/wp-content/uploads/2012/12/memcached_internal_struct.png" alt="" /></a></p>
-
-<p>实际运行效果：</p>
-
-<blockquote><p>./bin/memcached -vv -m 1 -I 1k -f 3 -M -p 11225</p>
-
-<p>slab class   1: chunk size        96 perslab      10</p>
-
-<p>slab class   2: chunk size       288 perslab       3</p>
-
-<p>slab class   3: chunk size      1024 perslab       1</p></blockquote>
-
-<p>class 1中，chunk的大小为96字节，共有10个chunk；
-class 2中，chunk的大小为288字节，共有3个chunk；
-class 3中，chunk的大小为1024字节，共有1个chunk；</p>
-
-<h1>数据处理</h1>
-
-<h2>存储</h2>
-
-<p>数据（item）以key、value的形式进行存储，key最大为250 byte，value最大为1 Mb。
-当存储item时，memcached会找到最“适合”大小的chunk用于保存这个item。例如item大小为200字节，对于上面的例子，这个item会被保存至class 2。</p>
-
-<h2>删除</h2>
-
-<p>Memcached不会主动删除数据，删除数据的情况有两种：</p>
-
-<ol>
-<li><p> 当新数据无法找到合适的位置进行存储时，会删除数据，删除数据的原则是LRU算法。</p></li>
-<li><p> 当client查找一个数据，server发现其已经过期时，就会删除该数据。</p></li>
-</ol>
-
-
-<p>对于情况1，具体来说，当对一个item进行存储时，如果在适合的slab class中，既找不到空闲的chunk，又找不着这个slab class中空闲的page，memcached就会选择数据进行删除。Memcached首先会在处于LRU队列尾部的几个数据中，查找已经过期的数据；如果找不到过期的数据，就在队列尾部选择一个未过期的数据进行删除。</p>
-
-<h1>线程工作方式</h1>
-
-<p>Memcached采用libevent库进行多线程请求处理。
-（libevent是一个事件出发的网络库，使用与 windows, linux, mac os 等的高性能跨平台网络库 ,支持的多种I/O 网络模型 epoll poll dev/poll select kqueue 等）
-Memcached中，每个线程拥有一个自己的libevent实例。
-如果memcached采用TCP/IP连接，将采用单线程监听端口，监听线程获取到请求之后，将其分配给其中一个处理线程，选取处理线程的算法为round-robin。
-如果memcached采用UDP连接，所有（空闲的）处理线程都有监听UDP socket，其中一个线程监听到请求之后，进行相应处理。</p>
-
-<h1>操作</h1>
-
-<p>Memcached中，所有操作都是原子操作，操作时间都是常数级别。Memcached的操作有以下几类：</p>
-
-<h2>存储</h2>
-
-<p>Set
-如有没有key对应的value，添加value；如果已存在该key对应的value，更新value。</p>
-
-<p>Add
-如有没有key对应的value，添加value；如果已存在该key对应的value，则操作失败。</p>
-
-<p>Replace
-如果已存在该key对应的value，更新value；如果没有key对应的value，则操作失败。</p>
-
-<p>Append / Prepend
-在key对应的value前/后添加数据</p>
-
-<p>Cas（check and set）
-Client会事先获取一个关于key的64位cas值，更新时，只有当server的cas值与client的cas一致时，才会执行value更新操作，否则操作失败。</p>
-
-<h2>查询</h2>
-
-<p>Get（Mget）
-根据一个key或者一系列key，获取对应的value(s)。</p>
-
-<p>Gets（get with cas）
-获取key所对应的value的同时，也会返回cas值。</p>
-
-<p>Exist
-查询某个key是否存在（不是官方标准，部分client会实现该功能）</p>
-
-<h2>删除</h2>
-
-<p>Del
-删除对应key的value</p>
-
-<h2>自增/自减</h2>
-
-<p>Incr / Decr
-如果value的形式是为64位整数的字符串，Incr / Decr将对该value进行自增/自减操作。</p>
-
-<h2>Flush</h2>
-
-<p>将memcached中的所有item都设置为过期。</p>
-
-<h1>参考</h1>
-
-<ul>
-<li><p><a href="http://memcached.org/">http://memcached.org/</a></p></li>
-<li><p><a href="http://work.tinou.com/2011/04/memcached-for-dummies.html">Memcached for Dummies</a></p></li>
-<li><p><a href="http://docs.oracle.com/cd/E17952_01/refman-5.5-en/ha-memcached-using.html">http://docs.oracle.com/cd/E17952_01/refman-5.5-en/ha-memcached-using.html</a></p></li>
-<li><p><a href="http://libmemcached.org/">http://libmemcached.org/</a></p></li>
-</ul>
-
 
 <p>&mdash;EOF&mdash;</p>
 ]]></content>

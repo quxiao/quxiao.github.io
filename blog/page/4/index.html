@@ -9,7 +9,8 @@
   <meta name="author" content="Xavier">
 
   
-  <meta name="description" content="离2012年还有不到一个小时的时间了，不能免俗，还是要总结一下这一年，规划规划新的一年。 家庭方面 2011年初奶奶突然去世了，本来以为只是老年人平常生了点小病，但没有想到会走得那么快。在医院，是我去见奶奶最后一眼的，看着曾经最疼爱我的奶奶一动不动的躺在病床上，怎么喊她也再没有回应， &hellip;">
+  <meta name="description" content="最近网站安全问题频发啊，我在某技术论坛上的帐号也沦陷了（虽然N年不用了）。自己赶紧补补这方面的知识，重点看了下Mozilla Wiki中的Secure Coding Guidelines，记下一些重点和之前忽略的地方。 密码怎么设计？ 密码设计原则 最好是8位或8位以上
+要有数字、字母的组合， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -64,6 +65,93 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/01/10/mozilla-wiki-secure-coding-guidelinese7ac94e8aeb0/">Mozilla Wiki Secure Coding Guidelines笔记</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-01-10T12:04:52+08:00" pubdate data-updated="true">Jan 10<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/01/10/mozilla-wiki-secure-coding-guidelinese7ac94e8aeb0/#disqus_thread"
+             data-disqus-identifier="http://quxiao.github.io/blog/2012/01/10/mozilla-wiki-secure-coding-guidelinese7ac94e8aeb0/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>最近网站安全问题频发啊，我在某技术论坛上的帐号也沦陷了（虽然N年不用了）。自己赶紧补补这方面的知识，重点看了下Mozilla Wiki中的Secure Coding Guidelines，记下一些重点和之前忽略的地方。</p>
+
+<h1>密码怎么设计？</h1>
+
+<p>密码设计原则</p>
+
+<ul>
+<li><p>最好是8位或8位以上</p></li>
+<li><p>要有数字、字母的组合，最好是包含字母大小写和特殊字符</p></li>
+<li><p>设置密码黑名单，禁止用户注册过于简单的密码，以防止黑客通过社会工程学猜到密码</p></li>
+</ul>
+
+
+<p>之前做项目只想到第一条，而且还是只要求6位。要是用户只注册含有数字的6为密码，那就可以被轻易破解了。人人网都没有做到以上全部，我的人人密码就是6位数字。。。虽说密码设计应该是用户自己的事情，但是简单的密码实在是太好破解了，还是最好引导用户设计出相对复杂的密码比较好。</p>
+
+<h1>密码怎么保存？</h1>
+
+<p>密码应该用<a href="http://en.wikipedia.org/wiki/HMAC">hmac</a>+<a href="http://en.wikipedia.org/wiki/Bcrypt">bcrypt</a>进行加密保存。</p>
+
+<p>简单的说，hmac是通过含有密钥的hash算法，生成消息认证码（Message Authentication Code），可以进行数据一致性检测和消息认证；bcrypt是一种较“慢”的hash算法，这样可以使得暴力枚举破解的时间成本极大提升。</p>
+
+<p>bcrypt的Python实现<a href="http://www.mindrot.org/projects/py-bcrypt/">py-bcrypt</a>和Java实现<a href="http://www.mindrot.org/projects/jBCrypt/">jBCrypt</a>。</p>
+
+<p>我感觉，即使不用Mozilla推荐的hmac+bcrypt的策略，至少也应该是用md5和sha来保存的。明文是绝对不允许的，否则一抓包，用户名和密码就搞到手了。让黑客暴力破解出密码可能不是你的错，但是直接把密码告诉黑客，就是你的不对了。</p>
+
+<h1>输入是在客户端验证，还是在服务端验证？</h1>
+
+<p>都要！因为即使有客户端的js验证，用户也可以禁用浏览器的js功能，将“脏”数据传到服务端。</p>
+
+<p>在客户端验证，是为了有很好的用户体验，避免什么数据都要先提交到服务端，然后再告诉你提交的数据有误；在服务端验证，则是加上了第二把锁，并且，有的数据是一定要到服务端才能检测的，比如帐号密码。</p>
+
+<p>另外，在验证输入时，应该检测符合要求的格式，即“<strong>accept known good</strong>”，而不是检测不符合要求的格式，即“reject known bad”。符合要求的格式是可以设计全面的，它的补集则不可以。</p>
+
+<h1>输出编码</h1>
+
+<p>输出编码是防止XSS和各种注入的首要手段。（输入验证是次要手段）</p>
+
+<pre><code>输出编码就是将一些HTML、JS、XML等格式中的特殊字符进行转义，比如将&lt;script&gt;转化为&amp;lt;script&amp;gt;。这样，即使用户在之前的输入中填写了恶意代码，等到系统显示的时候，它也不会被执行了。
+</code></pre>
+
+<p>在进行SQL查询时，应该使用参数化的SQL语句（parameterized queries），千万不要使用字符串拼接来进行SQL查询（貌似之前的项目绝大部分都是这么做的 :( ）。一些ORM（比如Hibernate）可以阻止一部分的SQL注入，但是在一些情况下，ORM仍然会使用native SQL，所以ORM不是万能的。</p>
+
+<h1>访问控制</h1>
+
+<p>应该防止一些URL暴露保密的内容，即使你没有提供给用户，一些用户也会有意无意的访问到那些URL（比如通过枚举）。设计某个Web工程的时候，应该先要按照某种原则设计好URL目录，然后根据不同的路径设计不同的访问权限，比如可以通过url filter实现。</p>
+
+<p>安全可是永恒的话题，先写这么多，以后还要在实践中慢慢领悟。</p>
+
+<p>&mdash;EOF&mdash;</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1054,295 +1142,6 @@ public class FindMaxInKey {
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2011/07/15/usaco-section-4-1-cryptcowgraphy/">USACO Section 4.1 Cryptcowgraphy</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-07-15T00:00:54+08:00" pubdate data-updated="true">Jul 15<span>th</span>, 2011</time>
-        
-           | <a href="/blog/2011/07/15/usaco-section-4-1-cryptcowgraphy/#disqus_thread"
-             data-disqus-identifier="http://quxiao.github.io/blog/2011/07/15/usaco-section-4-1-cryptcowgraphy/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>题目大意：</p>
-
-<p>一种字符串加密算法，即在原有字符串的任意位置插入C、O、W，C的下标 &lt; O的下标 &lt; W的下标，将C、O之间和O、W之间子串交换，得到新的字符串。给你一个字符串，问其是否是对字符串Begin the Escape execution at the Break of Dawn经过多次加密过后的字符串。</p>
-
-<p>我的思路：</p>
-
-<p>首先，原字符串中并没有COW三个字母，所以不用判断COW是属于原先的字符还是加密时加上的字符，这样简单很多。另外，对于已加密的字符串，只要找到任意一组COW，交换CO和OW之间的子串，再把COW删掉，得到的字符串就是可能的一种原字符串，再这样递归下去，直到不可能的情况或者字符串变为Begin the Escape execution at the Break of Dawn。</p>
-
-<p>在搜索时，有几种减枝可以排除目前的字符串：</p>
-
-<ul>
-<li><p>如果目前字符串的长度不等于原串长度+3×k，排除。（其实只需在开始时判断一次即可）</p></li>
-<li><p>如果目前字符串中COW三个字母的数目不相等，排除。（也可只判断一次）</p></li>
-<li><p>如果任意COW字符之间的子串，没有出现在原串中，排除。（这个减枝很重要，但是没想到，不应该啊）</p></li>
-<li><p>字符串中，所有出现COW的地方，C应该排在第一个，W应该排在最后一个。否则，无法还原成原字符串。</p></li>
-<li><p>用hash来判断目前字符串之前有没有出现过。（hash表的大小选择很关键，选的太大，可能会超时，选的太小，可能会WA）</p></li>
-</ul>
-
-
-<p>另外，枚举COW时的搜索方式也很重要。如果每一层都会从i到len，像这样：</p>
-
-<pre><code>    for (i = 0; i &lt; l; i ++)
-    {
-        if ( str[i] != 'C' )
-            continue;
-        for (j = i + 1; j &lt; l; j ++)
-        {
-            if ( str[j] != 'O' )
-                continue;
-            for (k = j + 1; k &lt; l; k ++)
-            {
-                if ( str[k] != 'W' )
-                    continue;
-                if ( CheckStr( RestoreString(str, i, j, k)) )
-                    return true;
-            }
-        }
-    }
-</code></pre>
-
-<p>很容易就超时了。</p>
-
-<p>但是，如果先把所有COW的下标先记下来，再在每一层枚举它们的下标，像这样：</p>
-
-<pre><code>    for (i = 0; i &lt; cNum; i ++)
-    {
-        for (j = 0; j &lt; oNum; j ++)
-        {
-            for (k = 0; k &lt; wNum; k ++)
-            {
-                if ( cIdx[i] &lt; oIdx[j] &amp;&amp; oIdx[j] &lt; wIdx[k] )
-                {
-                    if ( CheckStr( RestoreString(str, cIdx[i], oIdx[j], wIdx[k])) )
-                        return true;
-                }
-            }
-        }
-    }
-</code></pre>
-
-<p>就会快很多。</p>
-
-<p>好了，废话不多说，直接上代码：</p>
-
-<pre><code>unsigned int elf_hash(string str)
-{
-    unsigned long h = 0, g, i, l;
-    l = str.length();
-    for (i = 0; i &lt; l; i ++)
-    {
-        h = (h &lt;&lt; 4) + str[i];
-        if (g = h &amp; 0xf0000000l)
-            h ^= g &gt;&gt; 24;
-        h &amp;= ~g;
-    }
-    return h % HASH_NUM;
-}
-
-//COW的数目是否相等，以及数目是多少
-//其实跟CheckStr中的判断有重复，还可以优化！
-int CheckCOWNum (string str)
-{
-    int i, l;
-    int nC, nO, nW;
-    nC= nO = nW = 0;
-    l = str.length();
-
-    for (i = 0; i &lt; l; i ++)
-    {
-        if ( str[i] == 'C' )
-            ++ nC;
-        else if ( str[i] == 'O' )
-        {
-            ++ nO;
-        }
-        else if ( str[i] == 'W' )
-        {
-            ++ nW;
-        }
-    }
-    if ( nC == nO &amp;&amp; nO == nW )
-        return nC;
-    else
-        return -1;
-}
-
-//还原加密的字符串
-//idx1 &lt; idx2 &lt; idx3
-string RestoreString (string now, int idx1, int idx2, int idx3)
-{
-    string pre = "";
-    int i, l;
-    l = now.length();
-    pre = now.substr(0, idx1);
-    pre += now.substr(idx2+1, idx3-idx2-1);
-    pre += now.substr(idx1+1, idx2-idx1-1);
-    pre += now.substr(idx3+1, l-idx3-1);
-
-    return pre;
-}
-
-bool CheckBetweenCOW (string str)
-{
-    int lastIdx;
-    int i, l;
-    lastIdx = -1;
-    l = str.length();
-    for (i = 0; i &lt; l; i ++)
-    {
-        if ( str[i] == 'C' || str[i] == 'O' || str[i] == 'W' )
-        {
-            if ( finalStr.find(str.substr(lastIdx + 1, i - lastIdx - 1)) == string::npos )
-            {
-                return false;
-            }
-            lastIdx = i;
-        }
-    }
-    return true;
-}
-
-bool CheckStr (string str)
-{
-    if ( str == finalStr )
-        return true;
-
-    int hash;
-    hash = elf_hash(str);
-    if ( hashVisited[hash] )
-        return false;
-    hashVisited[hash] = true;
-
-    int i, j, k, l;
-    int cNum, oNum, wNum, allNum;
-    int cIdx[NUM], oIdx[NUM], wIdx[NUM], allIdx[NUM];
-    cNum = oNum = wNum = allNum = 0;
-    l = str.length();
-
-    //记录C O W的下标
-    allIdx[allNum++] = -1;
-    for (i = 0; i &lt; l; i ++)
-    {
-        if ( str[i] == 'C' )
-        {
-            cIdx[cNum++] = i;
-            allIdx[allNum++] = i;
-        }
-        else if ( str[i] == 'O' )
-        {
-            oIdx[oNum++] = i;
-            allIdx[allNum++] = i;
-        }
-        else if ( str[i] == 'W' )
-        {
-            wIdx[wNum++] = i;
-            allIdx[allNum++] = i;
-        }
-    }
-    if ( allIdx[allNum-1] != l - 1 )
-        allIdx[allNum++] = l;
-
-    //所有出现COW的地方，C应该排在第一个，W应该排在最后一个。否则，无法还原成原字符串
-    if ( cNum )
-    {
-        if ( cIdx[0] &gt; oIdx[0] || cIdx[0] &gt; wIdx[0] )
-            return false;
-        if ( wIdx[wNum-1] &lt; cIdx[cNum-1] || wIdx[wNum-1] &lt; oIdx[oNum-1] )
-            return false;
-    }
-
-    //任意COW之间的子串都应该在原串中出现过
-    for (i = 0; i &lt; allNum-1; i ++)
-    {
-        if ( finalStr.find(str.substr(allIdx[i]+1, allIdx[i+1]-allIdx[i]-1)) == string::npos )
-            return false;
-    }
-
-    for (i = 0; i &lt; cNum; i ++)
-    {
-        for (j = 0; j &lt; oNum; j ++)
-        {
-            for (k = 0; k &lt; wNum; k ++)
-            {
-                if ( cIdx[i] &lt; oIdx[j] &amp;&amp; oIdx[j] &lt; wIdx[k] )
-                {
-                    if ( CheckStr( RestoreString(str, cIdx[i], oIdx[j], wIdx[k])) )
-                        return true;
-                }
-            }
-        }
-    }
-
-    //这样就会很慢。。。
-    //  for (i = 0; i &lt; l; i ++)
-    //  {
-    //      if ( str[i] != 'C' )
-    //          continue;
-    //      for (j = i + 1; j &lt; l; j ++)
-    //      {
-    //          if ( str[j] != 'O' )
-    //              continue;
-    //          for (k = j + 1; k &lt; l; k ++)
-    //          {
-    //              if ( str[k] != 'W' )
-    //                  continue;
-    //              if ( CheckStr( RestoreString(str, i, j, k)) )
-    //                  return true;
-    //          }
-    //      }
-    //  }
-
-    return false;
-}
-
-void Solve ()
-{
-    if ( (str.length() - finalStr.length()) % 3 != 0 )
-    {
-        printf("0 0\n");
-        return;
-    }
-
-    int nCOW = CheckCOWNum(str);
-    if ( nCOW == -1 || !CheckStr(str) )
-    {
-        printf("0 0\n");
-        return;
-    }
-    printf("1 %d\n", nCOW);
-}
-</code></pre>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/5/">&larr; Older</a>
@@ -1360,6 +1159,10 @@ void Solve ()
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/05/02/get-last-some-minutes-log/">获取最近几分钟的日志</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/04/05/functor/">仿函数——Functor</a>
       </li>
     
@@ -1373,10 +1176,6 @@ void Solve ()
     
       <li class="post">
         <a href="/blog/2014/02/24/a-try-to-play-with-travis-ci/">小试Travis-Ci</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/01/31/typelist-and-abstract-fatory/">Typelist && Abstract Fatory</a>
       </li>
     
   </ul>
