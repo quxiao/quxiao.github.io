@@ -6,7 +6,6 @@ comments: true
 categories: 
 ---
 
-
 自己作为后端研发工程师，一直在公司电商项目中参与和检索相关的工作。工作的时间也不短了，一直希望能写一些文章来总结、整理下自己接触到的知识点，一方面是为了梳理自己的思路，另一方面也作为一种分享和交流。
 
 本文简单总结一下，电商检索系统需要向用户提供哪些功能。
@@ -16,7 +15,7 @@ categories:
 
 下图是一个电商搜索结果页的基本结构：
 
-![搜索页结构](https://www.evernote.com/shard/s30/sh/fd16350c-79fa-4be1-8d15-eea53134c5e7/221af1873a7f99885705068e333f4853/res/512bf645-05e8-4961-881f-a075de7249d6.jpg?resizeSmall&width=832)
+![搜索页结构](http://quxiao-img.qiniudn.com/%E7%94%B5%E5%95%86%E6%A3%80%E7%B4%A2%E7%B3%BB%E7%BB%9F%E9%A1%B5%E9%9D%A2.png)
 
 大家可以看到，页面基本上有以下几种元素构成：
 
@@ -59,7 +58,7 @@ Query检索
 ------
 一般来说，综合型电商网站的首页，都会有一个分类树全集，供用户直接点击查询。例如下图：
 
-![](https://www.evernote.com/shard/s30/sh/4d2b4727-0271-41f1-b2f1-72fe91a480db/f414b1bf92c01431d582562ddeb3efb5/res/475aeb80-d662-4af8-aa47-69938a383daa.jpg?resizeSmall&width=832)
+![](http://quxiao-img.qiniudn.com/%E5%88%86%E7%B1%BB%E6%A0%91%E5%85%A8%E9%9B%86.png)
 
 除了Query检索，用户按照商品的分类进行检索的比例也会较大。分类检索和Query检索相比，不同点只是少了切词步骤，另外将term改为商品的分类ID。
 
@@ -99,13 +98,13 @@ Query检索
 
 当用户检索商品时，检索系统除了直接展示商品以外，还会将商品上面的标签进行聚合，一般都是通过“标签名 + 标签值的列表”的形式展现给用户（如下图），方便用户通过标签进行进一步的筛选。
 
-![](https://www.evernote.com/shard/s30/sh/f0f46e45-c7c7-40bb-8dcb-f95f99bec4d7/fab9c6acad9ebef3772522a72c7baf96/res/45d46587-0941-470d-8036-dabc718dfd00.jpg?resizeSmall&width=832)
+![](http://quxiao-img.qiniudn.com/%E7%AD%9B%E9%80%89%E9%A1%B9.png)
 
 分类树
 ------
 当用户进行query检索时，检索系统会进行query分析，将这个query可能对应的分类，通过分类树的形式展现给用户。比如用户搜索“小米”，query分析出的分类既有“手机通讯”，又有“粮油米面”。
 
-![](https://www.evernote.com/shard/s30/sh/fe7c1da4-5809-4d8b-93b0-694d86346a8e/4ccb50434dc9e26e8dfff29d8f0359fd/res/bbd06d75-9062-4917-8531-1d5bc4fc974f.jpg?resizeSmall&width=832)
+![](http://quxiao-img.qiniudn.com/%E5%88%86%E7%B1%BB%E6%A0%91.png)
 
 一般来说，检索系统为了保证query的准确率，会在检索条件中添加query的预测分类，使得检索结果不至于各种分类的商品混杂在一起，影响用户体验。所以当用户搜索“小米”时，检索结果会限定在“手机通讯”这个分类下，但是如果用户真的是想搜索“粮油米面”下的小米，也没关系，只需在点击分类树中相应分类进行限定即可。
 
@@ -135,11 +134,11 @@ Query提示
 
 以下是京东的query提示截屏，有拼音翻译为query、有分类预测、有每个query对应的检索商品数，做的比较完善。
 
-![](https://www.evernote.com/shard/s30/sh/126faae5-2aeb-488f-8c32-cd721f960e74/58e88c4180b58344f5ba90a7c4282dd7/res/56ba9cd9-9b73-491d-90ed-a1cb1f3da93e.png?resizeSmall&width=832)
+![](http://quxiao-img.qiniudn.com/query%E6%8F%90%E7%A4%BA%E4%BA%AC%E4%B8%9C.png)
 
 相对而言，微购做的query提示就原始许多，输入“shouji”，居然连本身的“手机”都没有，囧……
 
-![](https://www.evernote.com/shard/s30/sh/19a49219-1696-4347-9c85-f1c4730fb61d/81b9b163e0c84a740fc65a0545b0eb91/res/fd6bbefe-76b1-499a-9a5b-b6db7265e02f.png?resizeSmall&width=832)
+![](http://quxiao-img.qiniudn.com/query%E6%8F%90%E7%A4%BA%E5%BE%AE%E8%B4%AD.png)
 
 Query改写
 ------
@@ -147,7 +146,7 @@ Query分析中的一项功能就是做“query correction”，通过算法或�
 
 以下是在京东搜索“按着手机”的截图：
 
-![](https://www.evernote.com/shard/s30/sh/e214e834-608d-4c21-8a5a-47dc09c4eaaf/d691c238dac5093d80c8a4d63968f169/res/990d5f19-b73e-41f2-a25b-50a410173418.jpg?resizeSmall&width=832)
+![](http://quxiao-img.qiniudn.com/query%E9%87%8D%E5%86%99.png)
 
 SPU聚合
 ------
@@ -161,11 +160,11 @@ SPU聚合
 
 下图是微购检索结果页SPU、SKU排列结果：
 
-![](https://www.evernote.com/shard/s30/sh/dd67191f-1ed1-4843-9220-7cb0096bd9da/1046ee5e87096b0896ed03bcbe44b9dc/res/6aae1cc3-0fa0-40de-9014-7378af6522a1.jpg?resizeSmall&width=832)
+![](http://quxiao-img.qiniudn.com/spu_sku.png)
 
 以下是京东商品详情页的截屏，红框中的选项的每一种组合，都代表着不同的SKU。
 
-![](https://www.evernote.com/shard/s30/sh/df9b7391-5ce0-41c6-a79d-5bc2663c9c59/7f7aa73d84232b3daa22e51a80e78f71/res/2272baf3-b7a4-48ca-8241-82d115c349bf.jpg?resizeSmall&width=832)
+![](http://quxiao-img.qiniudn.com/SPU.png)
 
 推荐
 ------
@@ -182,11 +181,11 @@ SPU聚合
 
 第一种推荐，在各分类商品中出现的都比较多，一般的推荐理由是“看（购买）过该商品的用户也看（购买）了”；
 
-![](https://www.evernote.com/shard/s30/sh/41bb5d65-0c24-48ea-8daa-d90ea84d58d5/c991c85acd4c4be13a23c13f03f5d340/res/4b99404b-ff4a-4a39-9d4f-a0397a4c3aea.jpg?resizeSmall&width=832)
+![](http://quxiao-img.qiniudn.com/%E8%AF%A6%E6%83%85%E9%A1%B5%E6%8E%A8%E8%8D%90.png)
 
 第二种推荐，一般出现在数码产品中。比如用户在看一款手机时，向用户推荐手机套、手机耳机、SD卡，让用户可以“一页式”完成许多商品的购买，减少用户决策的过程，激发用户的购物欲望（原来根本没想到手机套这回事，既然你推荐了，又不贵，就买一个呗）。
 
-![](https://www.evernote.com/shard/s30/sh/9b67c427-cc71-4a6d-8f7b-255fcc08a020/c7d0edc4d68b846ae757fdb0ca25baa0/res/b7420a81-ba72-41bd-9eb0-ad9c6b3b57f1.jpg?resizeSmall&width=832)
+![](http://quxiao-img.qiniudn.com/%E4%B8%80%E8%B5%B7%E4%B9%B0%E6%8E%A8%E8%8D%90.png)
 
 到了购物车页面，用户的购物流程即将结束，能让用户在这个阶段再购买的一个主要动力是：凑单，这样可以节省运费或者参加活动。所以在这个阶段推荐的商品一般是：同店铺的相似商品，以及一些单价较低的、日常消费的商品。
 
@@ -194,4 +193,4 @@ SPU聚合
 ======
 本文并没有讲解与电商检索相关的技术细节，只是单独从产品的角度，罗列了一下一个电商检索系统需要具备的功能，只能算是自己粗浅的整理和归纳，肯定有许多遗漏或者错误之处。有问题的话，欢迎大家反馈，我也会及时进行更正。以后有机会的话，还会对电商检索系统中的技术细节进行一些归纳和整理。
 
---EOF--
+-- EOF --
