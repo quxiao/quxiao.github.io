@@ -1,0 +1,305 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>小试Travis-Ci - Xavier's Blog</title>
+  <meta name="author" content="Xavier">
+
+  
+  <meta name="description" content="前段时间，好友小新给我看了一个工具（或者说是一种服务）——travis-ci，它提供了对于Github的项目上的持续集成服务（私有项目是要收费的）。正好最近把一个大学时写的小程序从Google Code迁移到Github上，就拿他来做个实验吧！ .travis.yml 查看travis- &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://quxiao.github.io/blog/2014/02/24/a-try-to-play-with-travis-ci">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Xavier's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Xavier's Blog</a></h1>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:quxiao.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">小试Travis-Ci</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-02-24T07:36:20+08:00" pubdate data-updated="true">Feb 24<span>th</span>, 2014</time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://quxiao.github.io">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>前段时间，好友小新给我看了一个工具（或者说是一种服务）——<strong>travis-ci</strong>，它提供了对于Github的项目上的持续集成服务（私有项目是要收费的）。正好最近把一个大学时写的小程序从Google Code迁移到Github上，就拿他来做个实验吧！</p>
+
+<h2>.travis.yml</h2>
+
+<p>查看travis-ci的官方文档，其实十分简单。如果需要在项目中使用travis-ci提供的服务，只需要在Repository中添加<code>.travis.yml</code>配置文件。进行持续集成嘛，配置文件里面无非就是这么几项吧：</p>
+
+<ul>
+<li>使用的编程语言</li>
+<li>编译器及其版本</li>
+<li>编译命令</li>
+<li>跑测试用例的命令</li>
+<li>etc.</li>
+</ul>
+
+
+<!--more-->
+
+
+<p>是的，不过travis-ci提供更细粒度的操作。当你每次push时，它进行如下操作：</p>
+
+<ol>
+<li><code>clone</code>你的repository并<code>cd</code>进去</li>
+<li>执行<code>before_install</code>操作</li>
+<li>执行<code>install</code>操作</li>
+<li>执行<code>before_script</code>操作</li>
+<li>执行<code>script</code>操作</li>
+<li>根据是否成功，执行<code>after_success</code>和<code>after_failure</code>操作</li>
+<li>执行<code>after_script</code>操作</li>
+</ol>
+
+
+<p>其中除了步骤1，其它操作的命令都需要在<code>.travis.yml</code>中进行配置，具体可以看<a href="http://docs.travis-ci.com/user/build-configuration/">doc</a> 。其实一般比较简单、独立的项目，并不会用到里面的每一个操作，有时候只需配置<code>script</code>就行了。比如我的简单程序，我只需要看是否能编译通过以及跑过测试用例，我就把这些操作写在<code>build_and_test.sh</code>里面，然后这么写：</p>
+
+<pre><code>language: cpp
+
+script: 
+    - ./build_and_test.sh
+</code></pre>
+
+<h2>开启服务</h2>
+
+<p>配置文件编写好之后，你还需要登录<a href="http://travis-ci.org">http://travis-ci.org</a>来开启对于某个Repository的持续集成服务。</p>
+
+<p><img class="center" src="/images/2014-02-24/20140224-2.png"></p>
+
+<h2>Push</h2>
+
+<p>万事俱备，就差你push来触发服务了！每次你进行push操作，都会在travis-ci的虚拟环境下进行build操作（除非你的comment里面写着<code>[ci skip]</code>）。你可以自己看到每次build的结果。</p>
+
+<p><img class="center" src="/images/2014-02-24/20140224-1.png"></p>
+
+<p>BTW，travis-ci还会为最近一次的build结果生成图片链接（点击上面的<code>build xxx</code>小图标即可），你可以把它放到Repository中的README中，这样在Github上面就能随时看到build的结果了。</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Xavier</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-02-24T07:36:20+08:00" pubdate data-updated="true">Feb 24<span>th</span>, 2014</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/01/31/typelist-and-abstract-fatory/" title="Previous Post: typelist && abstract fatory">&laquo; typelist && abstract fatory</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/03/18/log-practice/" title="Next Post: 日志规范实践">日志规范实践 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/05/22/ec-retrieval-system-part-one/">电商检索系统总结——功能篇</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/05/02/get-last-some-minutes-log/">获取最近几分钟的日志</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/04/05/functor/">仿函数——Functor</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/03/24/branch-in-my-eye/">公司设立分部弊端之我见</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/03/18/log-practice/">日志规范实践</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/quxiao">@quxiao</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'quxiao',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Xavier -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'qxavier';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://quxiao.github.io/blog/2014/02/24/a-try-to-play-with-travis-ci/';
+        var disqus_url = 'http://quxiao.github.io/blog/2014/02/24/a-try-to-play-with-travis-ci/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

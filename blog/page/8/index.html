@@ -9,7 +9,7 @@
   <meta name="author" content="Xavier">
 
   
-  <meta name="description" content="一个图，有至少2个连通分量，用分别属于不同连通分量的点对将这两个连通分量连接，使其“直径”最小，问最小直径为多少。（直径的定义为连通分量中点对的最短路径中最长的路径） 我的思路是： 1、Floyd算出点对最短路径 2、深搜找出不同连通分量 3、枚举同一连通分量中的点对最短路径， &hellip;">
+  <meta name="description" content="最直接的想法是枚举每个数，看是否能用S中的元素将其分解，但1&lt;=N&lt;=100000，第N个数肯定会很大，这样做肯定超时，放弃。 后来想利用STL中的set来解决，枚举某一个数，如果属于set，将其与S中各元素相乘的数放入set，如此循环，直至找到第N个数，提交后还是超时。 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -64,6 +64,51 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/01/30/usaco-section-3-1-humble-numbers/">USACO Section 3.1 Humble Numbers</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-01-30T16:59:01+08:00" pubdate data-updated="true">Jan 30<span>th</span>, 2011</time>
+        
+           | <a href="/blog/2011/01/30/usaco-section-3-1-humble-numbers/#disqus_thread"
+             data-disqus-identifier="http://quxiao.github.io/blog/2011/01/30/usaco-section-3-1-humble-numbers/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>最直接的想法是枚举每个数，看是否能用S中的元素将其分解，但1&lt;=N&lt;=100000，第N个数肯定会很大，这样做肯定超时，放弃。</p>
+
+<p>后来想利用STL中的set来解决，枚举某一个数，如果属于set，将其与S中各元素相乘的数放入set，如此循环，直至找到第N个数，提交后还是超时。看来即便是set，毕竟存取的效率不是O(1)，性能还是有影响。</p>
+
+<p>突然想到，这题不是跟poj的<a href="http://poj.org/problem?id=1338">Ugly Number</a>挺像的嘛，是Ugly Number的加强版。具体思想是：对于S中的每个元素p[i]，设置一个下标pIdx[i]，pIdx[i]指向humble number数组。进行N次循环，每次找出最小的p[i] * humble[pIdx[i]]，将该数加入humble数组，然后pIdx[minIdx]++。这样就能由小到大找出第N个humble number了。</p>
+
+<p>PS：其实这种方法生成的humble number只能保证非降序，比如2×3和3×2就会生成相同的humble number，这种情况要排除。</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -838,55 +883,6 @@ ab的距离 + a到本连通分量最远距离 + b到本连通分量最远距离<
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2010/11/05/bug-day-before-the-acceptance/">项目验收前一天的Bug</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2010-11-05T22:01:30+08:00" pubdate data-updated="true">Nov 5<span>th</span>, 2010</time>
-        
-           | <a href="/blog/2010/11/05/bug-day-before-the-acceptance/#disqus_thread"
-             data-disqus-identifier="http://quxiao.github.io/blog/2010/11/05/bug-day-before-the-acceptance/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>前段时间，教研室正在做一个小项目，准备作为一个作品参赛。可是在提交作品的前一天，大家进行最后的模块整合时，发现一个重大bug，把之前的项目计划打破了，作品不得不推迟提交。这让我不禁想起了我们之前做的另一个项目，有次要想外地的客户进行阶段性演示，在前一天晚上整合项目各模块时，发现了重大bug。一开始大家怎么也找不到引起bug的原因，结果一起奋战至第二天凌晨3点，才初步解决了问题，然后大家各自回去睡了一会儿，接着乘早上5点的火车出差见客户。</p>
-
-<p>为什么我们总是在项目要提交或者进行阶段性验收时，发现重大问题，而不是在平时开发项目的时候？我想，一个原因是我们在项目开发时，几乎就没有应用软件工程方面的思想与方法。目前，作为计算机专业的研究生，我们平时软件开发方法还属于“作坊式”的，我们教研室是这样的，我想我们学校其他教研室的状况也会跟我们类似，这是十分可悲的。有时我们的研究课题会更偏向理论，这时也许不需要软件工程；但是当真正接到一些项目，需要多人协同开发时，没有软件工程将会大大提高项目的风险。</p>
-
-<p>我们在大学里接到的项目，一般不会很庞大，绝大部分是中小规模。即便规模不大，但在开发过程中，没有代码版本控制，没有软件测试（除了手工的模拟测试），应该不能算是规范的软件开发的。很不幸，我们的团队目前就是这种状态。接到项目，分一下模块，大家各自按分的模块进行编码，代码根据时间保存成一个个压缩包，项目需要整合时，就将大家的代码复制到一台电脑上，合成一个项目，然后手工运行一下，作为测试。这就是我们团队目前的“作坊式”开发方法。</p>
-
-<p>知道“作坊式”的开发方法不好，那为什么不早点改变呢？那是因为改变是要有代价的，要摒弃原先的开发模式，学习新的开发方法，更重要的是改变我们平时做事情的思维模式。这些改变的代价不小，但我觉得是值得的。尤其是每当项目出现bug，但原因并不是代码本身，而是由于我们协同开发时的沟通出了问题，每当我们被项目搞得焦头烂额，感觉像是《人月神话》封面那些陷入焦油坑的困兽时，我就愈发迫切想要改变。</p>
-
-<p>不过，一下子就改变我们目前的开发方法也是不实际的，得一步一步来。目前打算让我们教研室的同学每隔1～2周进行一次技术交流，大家交流一下有关软件开发方面的心得。另外，还想弄一台电脑，专门用作我们平时做项目的服务器，让大家可以实践起来。</p>
-
-<p>想法很好，就看我们能不能坚持下去了。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/9/">&larr; Older</a>
@@ -904,6 +900,10 @@ ab的距离 + a到本连通分量最远距离 + b到本连通分量最远距离<
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/05/22/ec-retrieval-system-part-one/">电商检索系统总结——功能篇</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/05/02/get-last-some-minutes-log/">获取最近几分钟的日志</a>
       </li>
     
@@ -917,10 +917,6 @@ ab的距离 + a到本连通分量最远距离 + b到本连通分量最远距离<
     
       <li class="post">
         <a href="/blog/2014/03/18/log-practice/">日志规范实践</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/02/24/a-try-to-play-with-travis-ci/">小试Travis-Ci</a>
       </li>
     
   </ul>

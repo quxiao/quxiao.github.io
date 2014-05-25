@@ -9,8 +9,7 @@
   <meta name="author" content="Xavier">
 
   
-  <meta name="description" content="最近网站安全问题频发啊，我在某技术论坛上的帐号也沦陷了（虽然N年不用了）。自己赶紧补补这方面的知识，重点看了下Mozilla Wiki中的Secure Coding Guidelines，记下一些重点和之前忽略的地方。 密码怎么设计？ 密码设计原则 最好是8位或8位以上
-要有数字、字母的组合， &hellip;">
+  <meta name="description" content="之前使用Python的PLY写了一个操作HBase的类SQL编译器的雏形，目前还只初步完成了词法语法分析器，等开始写后面的预处理器、逻辑计划产生器和物理计划产生器的时候，问题出现了：HBase以及整个Hadoop项目都是用Java写成的，当然是使用Java API最直接。 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -65,6 +64,152 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/01/30/operate_hbase_with_jython/">使用Jython操作HBase</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-01-30T15:59:06+08:00" pubdate data-updated="true">Jan 30<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/01/30/operate_hbase_with_jython/#disqus_thread"
+             data-disqus-identifier="http://quxiao.github.io/blog/2012/01/30/operate_hbase_with_jython/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>之前使用Python的<a href="http://www.dabeaz.com/ply/">PLY</a>写了一个操作HBase的类SQL编译器的雏形，目前还只初步完成了词法语法分析器，等开始写后面的预处理器、逻辑计划产生器和物理计划产生器的时候，问题出现了：HBase以及整个Hadoop项目都是用Java写成的，当然是使用Java API最直接。如果想使用其他语言的API接口，可以有这么几种方式：</p>
+
+<ul>
+<li><p><a href="http://wiki.apache.org/hadoop/Hbase/ThriftApi">Thrift API</a></p></li>
+<li><p><a href="http://wiki.apache.org/hadoop/Hbase/Stargate">RESTful API</a></p></li>
+<li><p>其他基于JVM的语言（Jython、Groovy、Scala等）</p></li>
+</ul>
+
+
+<p>现在，如果要完成操作HBase的类SQL编译器的话，有三种方案：</p>
+
+<ol>
+<li><p> 前端继续用Python写编译器，后端用Java API操作HBase，中间的结果用某种形式（比如文件）进行保存</p></li>
+<li><p> 重新用Java写词法语法编译器，然后直接使用HBase的Java API</p></li>
+<li><p> 继续用Python写编译器，然后使用Jython</p></li>
+</ol>
+
+
+<p>对于方案一，中间的结果可能会是比较复杂的数据结构，不便于保存，就算可以保存，读写也会比较麻烦。</p>
+
+<p>对于方案二，风险集中在需要重新寻找和学习Java的词法语法编译器。之前找到了<a href="http://www.antlr.org/">ANTLR</a>、<a href="http://javacc.java.net/">JavaCC</a>等等，但是大多都比较笨重，学习成本较高，况且我预期的类SQL编译器相对简单，不需要那么高级的工具库。</p>
+
+<p>对于方案三，用PLY写的编译器可以说已经完成一半了，使用起来也很轻便，如果Jython能够比较好的操作HBase的话，进度还是可以保证的。试用了Jython一下，感觉还不错！</p>
+
+<p>综合各方面因素，暂时决定采用方案三。</p>
+
+<p>好了，有点跑题了，言归正传，来看看Jython如果操作HBase。（配置Jython和HBase就不在这里讲了）</p>
+
+<p>首先，将HBase启动：</p>
+
+<blockquote><p>bin/start-hbase.sh</p></blockquote>
+
+<p>或者，HBase用到的classpath（因为Jython需要使用在classpath下的Java类），</p>
+
+<blockquote><pre><code>ps auwx | grep java | grep org.apache.hadoop.hbase.master.HMaster | perl -pi -e "s/.*classpath //"
+</code></pre></blockquote>
+
+<p>ps是获取正在运行的进程，其中Java启动的进行的格式类似于</p>
+
+<blockquote><p>/usr/lib/jvm/java-6-sun//bin/java –Xmx1000m … –classpath XXX</p></blockquote>
+
+<p>最后使用的perl就是用来获取<code>-classpath</code>后面的XXX的。-p是指对于输入一行一行的循环操作，i是指不需要对输入文件进行备份，-e是指执行命令<code>s/.*classpath //</code>。（这个命令是把classpath以及之前的字符都去掉，一定能保证-classpath是最后一个参数吗？后面还有与classpath无关的参数怎么办？实际的情况的确有无关的参数，幸好只有一点，这里算是个小bug了。）</p>
+
+<p>将获取的classpath导入到环境变量中</p>
+
+<blockquote><pre><code>export CLASSPATH=XXX
+</code></pre></blockquote>
+
+<p>这样，你就可以用Jython运行python脚本操作HBase了。下面是一个简单的例子：</p>
+
+<pre><code>import java.lang
+from org.apache.hadoop.hbase import HBaseConfiguration, HTableDescriptor, HColumnDescriptor, HConstants
+from org.apache.hadoop.hbase.client import HBaseAdmin, HTable, Put, Get
+
+conf = HBaseConfiguration()
+
+admin = HBaseAdmin(conf)
+
+tablename = "test_jython_hbase"
+
+desc = HTableDescriptor(tablename)
+desc.addFamily(HColumnDescriptor("content"))
+
+# Drop and recreate if it exists
+if admin.tableExists(tablename):
+    admin.disableTable(tablename)
+    admin.deleteTable(tablename)
+admin.createTable(desc)
+
+table = HTable(conf, tablename)
+
+# Add content
+row = 'row_x'
+put_row = Put(row)
+put_row.add('content', 'some_content', 'some_value')
+table.put(put_row)
+
+# Read content
+get = Get(row)
+data_row = table.get(get)
+data = java.lang.String(data_row.value(), "UTF8")
+print "The fetched row contains the value '%s'" % data
+
+# Delete the table.
+admin.disableTable(desc.getName())
+admin.deleteTable(desc.getName())
+</code></pre>
+
+<p>输出结果如下所示：</p>
+
+<pre><code>…………
+12/01/29 23:55:51 DEBUG client.HConnectionManager$HConnectionImplementation: Cached location for .META.,,1.1028785192 is ubuntu2-vmware:60020
+12/01/29 23:55:52 DEBUG client.MetaScanner: Scanning .META. starting at row=test_jython_hbase,,00000000000000 for max=2147483647 rows
+12/01/29 23:55:52 INFO zookeeper.ZooKeeper: Initiating client connection, connectString=ubuntu3-vmware:2181,ubuntu2-vmware:2181 sessionTimeout=180000 watcher=hconnection
+12/01/29 23:55:52 INFO zookeeper.ClientCnxn: Opening socket connection to server ubuntu3-vmware/192.168.1.202:2181
+12/01/29 23:55:52 INFO zookeeper.ClientCnxn: Socket connection established to ubuntu3-vmware/192.168.1.202:2181, initiating session
+12/01/29 23:55:52 INFO zookeeper.ClientCnxn: Session establishment complete on server ubuntu3-vmware/192.168.1.202:2181, sessionid = 0x1352c9556270012, negotiated timeout = 180000
+12/01/29 23:55:52 DEBUG client.HConnectionManager$HConnectionImplementation: Lookedup root region location, connection=org.apache.hadoop.hbase.client.HConnectionManager$HConnectionImplementation@8a2006; hsa=ubuntu3-vmware:60020
+12/01/29 23:55:52 DEBUG client.HConnectionManager$HConnectionImplementation: Cached location for .META.,,1.1028785192 is ubuntu2-vmware:60020
+12/01/29 23:55:52 DEBUG client.MetaScanner: Scanning .META. starting at row=test_jython_hbase,,00000000000000 for max=10 rows
+12/01/29 23:55:52 DEBUG client.HConnectionManager$HConnectionImplementation: Cached location for test_jython_hbase,,1327910151208.09451a5e064db613648741bd8c896eb7. is ubuntu2-vmware:60020
+The fetched row contains the value 'some_value'
+12/01/29 23:55:52 INFO client.HBaseAdmin: Started disable of test_jython_hbase
+12/01/29 23:55:52 DEBUG client.HBaseAdmin: Sleeping= 1000ms, waiting for all regions to be disabled in test_jython_hbase
+12/01/29 23:55:53 DEBUG client.HBaseAdmin: Sleeping= 1000ms, waiting for all regions to be disabled in test_jython_hbase
+12/01/29 23:55:54 INFO client.HBaseAdmin: Disabled test_jython_hbase
+12/01/29 23:55:55 INFO client.HBaseAdmin: Deleted test_jython_hbase
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -989,159 +1134,6 @@ public class FindMaxInKey {
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2011/07/21/avl_tree_implimentation/">AVL树初步实现</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-07-21T21:12:20+08:00" pubdate data-updated="true">Jul 21<span>st</span>, 2011</time>
-        
-           | <a href="/blog/2011/07/21/avl_tree_implimentation/#disqus_thread"
-             data-disqus-identifier="http://quxiao.github.io/blog/2011/07/21/avl_tree_implimentation/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>这两天复习数据结构，看到AVL树这一部分，之前这部分一直处于“纸上谈兵”的阶段，表示有些遗憾。趁着最近比较闲，把它实现一下！</p>
-
-<p>还是先讲一下AVL树的基本概念吧。其实，AVL树就是二叉树，与普通二叉树不同的是，它能通过某种操作（“旋转”）使得树保持几乎平衡，这里就是指左子树和右子树的树高差的绝对值&lt;=1。当二叉树是平衡的情况下，在树上的搜索效率就会提高。极端情况下，能从O(N)降到O(logN)。</p>
-
-<p>OK，那么又有哪几种不平衡的情况呢？我们来看一下下面几种情况：</p>
-
-<p>右子树的右子树太“深”</p>
-
-<p><a href="http://www.qxavier.me/wp-content/uploads/2011/07/image.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/07/image_thumb.png" alt="image" /></a></p>
-
-<p>树往一边倾斜，这是一种常见的不平衡状态。比如把一个已排序的数据插入二叉树就是这种情况。遇到这种情况，如果可以把k2“提”起来就好了。很简单，我们可以把k2作为树根，k1做k2的左孩子，再把B当作k1的右子树。旋转之后可以得到：</p>
-
-<p><a href="http://www.qxavier.me/wp-content/uploads/2011/07/image1.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/07/image_thumb1.png" alt="image" /></a></p>
-
-<p>这样，树又基本平衡了。左子树的左子树太深的情况可依此类推。这两种情况成为单旋转。</p>
-
-<p>还有一种情况，右子树的左子树太“深”</p>
-
-<p><a href="http://www.qxavier.me/wp-content/uploads/2011/07/image2.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/07/image_thumb2.png" alt="image" /></a></p>
-
-<p>这样就k2不好“提”了，因为旋转之后，B子树的树高没有改变。把树描述的更加详细一些：</p>
-
-<p><a href="http://www.qxavier.me/wp-content/uploads/2011/07/image3.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/07/image_thumb3.png" alt="image" /></a> => <a href="http://www.qxavier.me/wp-content/uploads/2011/07/image4.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/07/image_thumb4.png" alt="image" /></a></p>
-
-<p>我们的目标是把k3以及BC放的高一些，以降低整体树高。因为k1&lt;=k3&lt;=k2，那可否让k3来做树根呢？k3做了树根，k1和k2是其左右孩子，AD子树可以不变，B可以作为k1右子树，C可以作为k2左子树，这样就搞定了！</p>
-
-<p>同样，左子树的右子树太深的情况也是类似。这两种情况成为双旋转。</p>
-
-<p>好，用代码实现这些操作！</p>
-
-<p>根据单旋转的图例，两步操作就可以完成：</p>
-
-<ol>
-<li><p> k2的左指针指向k1</p></li>
-<li><p> k1的右指针指向B</p></li>
-</ol>
-
-
-<p>代码实现就是这样：</p>
-
-<pre><code>AVLTree* singleRotateWithRight(AVLTree* pNode)
-{
-    if ( pNode == NULL || pNode-&gt;right == NULL )
-        return NULL;
-    AVLTree* rightNode = pNode-&gt;right;
-    pNode-&gt;right = rightNode-&gt;left;
-    rightNode-&gt;left = pNode;
-
-    pNode-&gt;height = max(getHeight(pNode-&gt;left), getHeight(pNode-&gt;right)) + 1;
-    rightNode-&gt;height = max(getHeight(rightNode-&gt;left), getHeight(rightNode-&gt;right)) + 1;
-
-    return rightNode;
-}
-</code></pre>
-
-<p>再看双旋转的实现，很奇妙的是，一个双旋转可以用两个但旋转来代替！</p>
-
-<p><a href="http://www.qxavier.me/wp-content/uploads/2011/07/image5.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/07/image_thumb5.png" alt="image" /></a>=><a href="http://www.qxavier.me/wp-content/uploads/2011/07/image6.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/07/image_thumb6.png" alt="image" /></a> =><a href="http://www.qxavier.me/wp-content/uploads/2011/07/image7.png"><img src="http://www.qxavier.me/wp-content/uploads/2011/07/image_thumb7.png" alt="image" /></a></p>
-
-<p>实现起来相当简单：</p>
-
-<pre><code>AVLTree* doubleRotateWithRight (AVLTree* pNode)
-{
-    pNode-&gt;right = singleRotateWithLeft(pNode-&gt;right);
-    return singleRotateWithRight(pNode);
-}
-</code></pre>
-
-<p>插入操作怎么实现呢？其实就是在普通二叉树的插入操作之后，加入判断是否不平衡，若不平衡，判断是哪种情况，进行相应旋转操作。</p>
-
-<pre><code>AVLTree* insert(int data, AVLTree* pNode)
-{
-    if ( pNode == NULL )
-    {
-        pNode = new AVLTree();
-        pNode-&gt;data = data;
-        pNode-&gt;height = 0;
-        pNode-&gt;left = pNode-&gt;right = NULL;
-    }
-    else if ( data &lt; pNode-&gt;data )
-    {
-        pNode-&gt;left = insert(data, pNode-&gt;left);
-        if ( getHeight(pNode-&gt;left) - getHeight(pNode-&gt;right) == 2 )
-        {
-            if ( data &lt; pNode-&gt;left-&gt;data )
-            {
-                pNode = singleRotateWithLeft(pNode);
-            }
-            else
-            {
-                pNode = doubleRotateWithLeft(pNode);
-            }
-        }
-    }
-    else if ( data &gt; pNode-&gt;data )
-    {
-        pNode-&gt;right = insert(data, pNode-&gt;right);
-        if ( getHeight(pNode-&gt;right) - getHeight(pNode-&gt;left) == 2 )
-        {
-            if ( data &gt; pNode-&gt;right-&gt;data )
-            {
-                pNode = singleRotateWithRight(pNode);
-            }
-            else
-            {
-                pNode = doubleRotateWithRight(pNode);
-            }
-        }
-    }
-
-    return pNode;
-}
-</code></pre>
-
-<p>好吧，先写这么多，性能对比以后再写。全部实现代码可以在<a href="http://code.google.com/p/quxiao-source-code/source/browse/#svn%2Ftrunk%2Fdata_structure%2FAVLTreeCPP%2FAVLTreeCPP">这里</a>看到。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/5/">&larr; Older</a>
@@ -1159,6 +1151,10 @@ public class FindMaxInKey {
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/05/22/ec-retrieval-system-part-one/">电商检索系统总结——功能篇</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/05/02/get-last-some-minutes-log/">获取最近几分钟的日志</a>
       </li>
     
@@ -1172,10 +1168,6 @@ public class FindMaxInKey {
     
       <li class="post">
         <a href="/blog/2014/03/18/log-practice/">日志规范实践</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/02/24/a-try-to-play-with-travis-ci/">小试Travis-Ci</a>
       </li>
     
   </ul>
